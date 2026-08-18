@@ -231,6 +231,7 @@ label input,label textarea,label select{
   <option>Regeneration</option><option>Kraft / BetterMe</option><option>Mobilität</option><option>Sonstiges</option>
 </datalist>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const KEY="training_app_v2";
 let db=JSON.parse(localStorage.getItem(KEY)||'null')||{"plans": [{"id": "RADMARATHON", "name": "Radmarathon 2026/27 – Block 1", "description": "Erste sechs Wochen des gemeinsam erstellten Plans; anschließend fortführbar."}], "sessions": [{"id": "c8a6edc9-7167-4621-8474-7c2f8fa6ecbf", "planId": "RADMARATHON", "date": "2026-08-17", "type": "Indoor Rad", "title": "Grundlage / Z2", "desc": "45 min Z2 · 45 min lockere Grundlage; gleichmäßig, nicht überziehen.", "note": "", "status": "open"}, {"id": "2c412d0d-802b-4704-8ef3-fd209fe07227", "planId": "RADMARATHON", "date": "2026-08-18", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kurze Ganzkörpereinheit, Schwerpunkt Rumpf/Beine.", "note": "", "status": "open"}, {"id": "5e8d5198-bd4a-4fe4-89eb-0e07da43beb1", "planId": "RADMARATHON", "date": "2026-08-19", "type": "Indoor Rad", "title": "Tempo / Sweet Spot", "desc": "60 min · Einrollen, anschließend kontrollierte Belastungsblöcke; sauber und nicht maximal.", "note": "", "status": "open"}, {"id": "ed7eee2b-0933-4bf5-8fa3-cb7ee552c942", "planId": "RADMARATHON", "date": "2026-08-20", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Kein Radtraining. Locker bewegen/Mobilität nach Bedarf.", "note": "", "status": "open"}, {"id": "2af2c410-12d8-4d42-9406-d9170fa553cd", "planId": "RADMARATHON", "date": "2026-08-21", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Ruhige Ausdauer, gleichmäßige Trittfrequenz.", "note": "", "status": "open"}, {"id": "1bcd549c-ac74-4015-80fb-30de3d22ee8a", "planId": "RADMARATHON", "date": "2026-08-22", "type": "Outdoor Rad", "title": "Grundlagenausfahrt", "desc": "40–55 km · 40–55 km, überwiegend locker; keine harte Bergbelastung.", "note": "", "status": "open"}, {"id": "af11e453-07d4-4d3e-b0c8-569103844c2d", "planId": "RADMARATHON", "date": "2026-08-23", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Komplett frei oder Spaziergang.", "note": "", "status": "open"}, {"id": "72dc8ec5-76c9-478c-94fa-f5e03cd516bb", "planId": "RADMARATHON", "date": "2026-08-24", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Lockere Ausdauer.", "note": "", "status": "open"}, {"id": "87a8421b-7eb5-48af-8929-ea87ea8ccbc8", "planId": "RADMARATHON", "date": "2026-08-25", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kurze Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "40d41b63-8578-4962-aa1a-27a2f17b97de", "planId": "RADMARATHON", "date": "2026-08-26", "type": "Indoor Rad", "title": "Intervalle", "desc": "ca. 60 min · Strukturiertes Intervalltraining; kontrollierte Belastung.", "note": "", "status": "open"}, {"id": "01810473-5ed8-4452-acba-1d9dd50d364c", "planId": "RADMARATHON", "date": "2026-08-27", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Vor dem Urlaub keine zusätzliche Belastung erzwingen.", "note": "", "status": "open"}, {"id": "4cf54b38-afb1-45df-8317-9cada96127d9", "planId": "RADMARATHON", "date": "2026-08-28", "type": "Regeneration", "title": "Urlaub", "desc": "— · Urlaub mit Tochter. Training nur optional abends.", "note": "", "status": "open"}, {"id": "30cae4ff-df49-443d-9676-687562298aa0", "planId": "RADMARATHON", "date": "2026-08-29", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein geplantes Radtraining.", "note": "", "status": "open"}, {"id": "c63dede2-3e88-426a-9106-ad213d6f5a2d", "planId": "RADMARATHON", "date": "2026-08-30", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein geplantes Radtraining.", "note": "", "status": "open"}, {"id": "7285e693-076b-4b6e-885b-beca7aacbd3a", "planId": "RADMARATHON", "date": "2026-08-31", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining; optional kurze BetterMe-Einheit abends.", "note": "", "status": "open"}, {"id": "a4a8206b-6486-4df7-b159-01f609364a64", "planId": "RADMARATHON", "date": "2026-09-01", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "3a0a6527-d545-4eaf-a5cb-9821f892f3f4", "planId": "RADMARATHON", "date": "2026-09-02", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining; optional kurze BetterMe-Einheit.", "note": "", "status": "open"}, {"id": "d446970d-ff06-4714-a7f7-cafee7145b70", "planId": "RADMARATHON", "date": "2026-09-03", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "7c2936fb-37ed-4223-948a-b265c3890040", "planId": "RADMARATHON", "date": "2026-09-04", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "38026b75-3818-4b76-8cb5-44bdf92f1706", "planId": "RADMARATHON", "date": "2026-09-05", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "b546a015-e2c6-4f38-8bc6-00871b818911", "planId": "RADMARATHON", "date": "2026-09-06", "type": "Regeneration", "title": "Urlaub", "desc": "— · Rückkehr; noch keine harte Einheit.", "note": "", "status": "open"}, {"id": "d4a09fa6-a290-4770-8be7-3d63425ee914", "planId": "RADMARATHON", "date": "2026-09-07", "type": "Indoor Rad", "title": "Wiedereinstieg", "desc": "40–50 min Z2 · Locker wieder in den Rhythmus kommen.", "note": "", "status": "open"}, {"id": "10f81a4f-aef8-48c2-9c78-3737ede4f514", "planId": "RADMARATHON", "date": "2026-09-08", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Ganzkörper-/Core-Einheit.", "note": "", "status": "open"}, {"id": "d3165a09-5488-4018-bcdb-1e9a0f28bb4f", "planId": "RADMARATHON", "date": "2026-09-09", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "9313347a-ca03-4d75-8146-baa24e626efc", "planId": "RADMARATHON", "date": "2026-09-10", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "fde295b3-8e78-4e8f-aafe-3177b6c399f7", "planId": "RADMARATHON", "date": "2026-09-11", "type": "Indoor Rad", "title": "Intervalle", "desc": "ca. 60 min · Kurze kontrollierte Intervalle, keine Maximalbelastung.", "note": "", "status": "open"}, {"id": "5434eff2-dbba-41e6-8499-325e740770fd", "planId": "RADMARATHON", "date": "2026-09-12", "type": "Outdoor Rad", "title": "Grundlagenausfahrt", "desc": "50–60 km · 50–60 km; überwiegend Z2, Anstiege kontrolliert fahren.", "note": "", "status": "open"}, {"id": "fe5505a8-149e-49ca-a0ae-cbddf05a6d1f", "planId": "RADMARATHON", "date": "2026-09-13", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "a5fe7374-f10c-46d5-88db-0bd5c479cb45", "planId": "RADMARATHON", "date": "2026-09-14", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · Ausdauerarbeit.", "note": "", "status": "open"}, {"id": "2146ce9a-be52-4697-b6b9-e3dfa5660938", "planId": "RADMARATHON", "date": "2026-09-15", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "24dde07d-3606-4ccd-a53a-cd70fd1bf046", "planId": "RADMARATHON", "date": "2026-09-16", "type": "Indoor Rad", "title": "Schwelle / Tempo", "desc": "60–70 min · Belastungsblöcke an der oberen Ausdauer-/Tempo-Grenze.", "note": "", "status": "open"}, {"id": "5adf7eee-01bf-4922-925d-e40956abbedf", "planId": "RADMARATHON", "date": "2026-09-17", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "3b7fd233-6ce5-4ba6-bca7-74ed5cd97bb5", "planId": "RADMARATHON", "date": "2026-09-18", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min · Lockere bis moderate Ausdauer.", "note": "", "status": "open"}, {"id": "c543c676-fc84-421c-a7cc-8a022af8d68e", "planId": "RADMARATHON", "date": "2026-09-19", "type": "Indoor Rad", "title": "Lange Grundlage", "desc": "75–90 min Z2 · Längere Indoor-Einheit, gleichmäßig.", "note": "", "status": "open"}, {"id": "1ce85adb-624a-4d41-8e9e-813eeb0a1654", "planId": "RADMARATHON", "date": "2026-09-20", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "1b64215c-7f05-448f-9501-f395575b7605", "planId": "RADMARATHON", "date": "2026-09-21", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · Ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "7d0c1480-d72c-419e-9078-f685d568ba2d", "planId": "RADMARATHON", "date": "2026-09-22", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kraft/Core, nicht bis zur völligen Ermüdung.", "note": "", "status": "open"}, {"id": "6345b4ee-35b5-4e20-bfd7-d974a9892d5f", "planId": "RADMARATHON", "date": "2026-09-23", "type": "Indoor Rad", "title": "Intervalle", "desc": "60–70 min · Strukturiertes Intervalltraining.", "note": "", "status": "open"}, {"id": "6002cef1-c649-4af4-ad1e-a14c042a2ffd", "planId": "RADMARATHON", "date": "2026-09-24", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "847bc44b-3006-4429-8866-e1575a360bc7", "planId": "RADMARATHON", "date": "2026-09-25", "type": "Indoor Rad", "title": "Locker", "desc": "40–50 min · Kurze lockere Einheit.", "note": "", "status": "open"}, {"id": "e4138030-7dae-46ba-86cc-e764837f11da", "planId": "RADMARATHON", "date": "2026-09-26", "type": "Outdoor Rad", "title": "Grundlage + Anstiege", "desc": "55–65 km · 55–65 km; zwei längere Anstiege kontrolliert fahren, Fokus Ausdauer.", "note": "", "status": "open"}, {"id": "ba565f3a-2a43-4832-9b2d-c20b96c96e5a", "planId": "RADMARATHON", "date": "2026-09-27", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "993399b0-03bf-4c00-9191-4ac9d71d8902", "planId": "RADMARATHON", "date": "2026-09-28", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · 60 min ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "31fc1803-53ef-4893-8119-9b2cdbf113f5", "planId": "RADMARATHON", "date": "2026-09-29", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "bb5c578b-54d2-453b-bbf3-785736c8bf74", "planId": "RADMARATHON", "date": "2026-09-30", "type": "Indoor Rad", "title": "Tempo", "desc": "60–70 min · Kontrollierte Tempo-Blöcke.", "note": "", "status": "open"}, {"id": "9a19fe4a-c48e-4d43-a04f-e0264cdf5fee", "planId": "RADMARATHON", "date": "2026-10-01", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "dae0b3ea-22b4-45f2-a144-0f4e825dc1bc", "planId": "RADMARATHON", "date": "2026-10-02", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Locker bis moderat.", "note": "", "status": "open"}, {"id": "a327ccf9-d77c-4844-aea8-b0456cbf07f6", "planId": "RADMARATHON", "date": "2026-10-03", "type": "Indoor Rad", "title": "Lange Grundlage", "desc": "90 min Z2 · Längere Ausdauer-Einheit.", "note": "", "status": "open"}, {"id": "d82011b0-c596-4ddd-8942-c68126bcf467", "planId": "RADMARATHON", "date": "2026-10-04", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}], "activePlan": "RADMARATHON"};
@@ -439,6 +440,343 @@ function connectCloud(e){
   cloudDialog.close();
   alert('Verbindungsdaten gespeichert. Für echte Synchronisierung müssen Authentifizierung und Datenabgleich anschließend noch aktiviert werden.');
 }
+
+/* ===== Supabase Sync – V4 Sync ===== */
+const SUPABASE_URL = "https://vhbhocfjzrgdcekjuime.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_iI79yd8iQ0R7hT500Ijtpw_jAWZMu14";
+let sbClient = null;
+let cloudUser = null;
+let syncInProgress = false;
+let syncTimer = null;
+let lastSyncAt = localStorage.getItem("training_last_sync") || "";
+
+function isUuid(v){
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||""));
+}
+
+function isoNow(){ return new Date().toISOString(); }
+function legacyTime(){ return "2026-08-17T00:00:00.000Z"; }
+
+function normalizeLocalData(){
+  db.plans.forEach(p=>{
+    if(!p.updatedAt) p.updatedAt = legacyTime();
+  });
+  db.sessions.forEach(s=>{
+    if(!isUuid(s.id)) s.id = crypto.randomUUID();
+    if(!s.updatedAt) s.updatedAt = legacyTime();
+    if(typeof s.topup!=="boolean") s.topup=false;
+    if(!s.reminder) s.reminder="both";
+    if(!s.reminderTime) s.reminderTime="19:00";
+  });
+  localStorage.setItem(KEY,JSON.stringify(db));
+}
+
+function migrateLegacyPlanIdsForUser(){
+  if(!cloudUser) return;
+  const mapping={};
+  db.plans.forEach(p=>{
+    if(p.id==="RADMARATHON"){
+      mapping[p.id]=cloudUser.id;
+      p.id=cloudUser.id;
+      p.updatedAt=p.updatedAt||legacyTime();
+    } else if(!isUuid(p.id)){
+      const newId=crypto.randomUUID();
+      mapping[p.id]=newId;
+      p.id=newId;
+    }
+  });
+  if(Object.keys(mapping).length){
+    db.sessions.forEach(s=>{ if(mapping[s.planId]) s.planId=mapping[s.planId]; });
+    if(mapping[db.activePlan]) db.activePlan=mapping[db.activePlan];
+    localStorage.setItem(KEY,JSON.stringify(db));
+    render();
+  }
+}
+
+function cloudStatusText(){
+  if(!sbClient) return "Supabase konnte nicht geladen werden.";
+  if(!cloudUser) return "Nicht angemeldet";
+  return `Angemeldet als ${cloudUser.email||"Benutzer"}${lastSyncAt?` · Sync: ${new Date(lastSyncAt).toLocaleString("de-DE")}`:""}`;
+}
+
+function showSettings(){
+  const title=document.querySelector('.screen-title');
+  if(title) title.textContent='Einstellungen';
+  const vb=document.querySelector('.viewbar'); if(vb) vb.style.display='none';
+  const list=document.getElementById('list');
+  list.innerHTML=`
+    <div class="settings-card">
+      <h3>☁️ Cloud-Synchronisierung</h3>
+      <p>Status, Notizen, verschobene Einheiten, Trainingspläne und goldene On-Top-Einheiten werden über Supabase synchronisiert.</p>
+      <div class="statusline" id="cloudStatus">${cloudStatusText()}</div><br>
+      ${cloudUser
+        ? `<button onclick="syncCloud(true)">Jetzt synchronisieren</button>
+           <button style="margin-left:6px;background:#8e8e93" onclick="cloudSignOut()">Abmelden</button>`
+        : `<button onclick="cloudDialog.showModal()">Per E-Mail anmelden</button>`}
+    </div>
+    <div class="settings-card">
+      <h3>🔔 Erinnerungen</h3>
+      <p>Die Auswahl Vortag / Trainingstag / beides / keine sowie die Uhrzeit wird bereits mit der Cloud synchronisiert.</p>
+      <div class="statusline">Die tatsächliche iPhone-Push-Zustellung folgt im nächsten Schritt über Scheduler + Web Push.</div>
+    </div>
+    <div class="settings-card">
+      <h3>⭐ On-Top-Einheiten</h3>
+      <p>Zusatztrainings bleiben innerhalb ihres Trainingsplans und werden auch auf anderen Geräten gold dargestellt.</p>
+    </div>
+    <div class="settings-card">
+      <h3>💾 Lokales Backup</h3>
+      <p>Das lokale JSON-Backup bleibt zusätzlich als unabhängige Sicherung erhalten.</p>
+      <button onclick="exportData()">Backup exportieren</button>
+    </div>`;
+}
+
+async function initCloud(){
+  normalizeLocalData();
+  if(!window.supabase){
+    console.error("Supabase JS wurde nicht geladen.");
+    return;
+  }
+  sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  });
+
+  const {data, error} = await sbClient.auth.getSession();
+  if(error) console.error("Supabase Session:", error);
+  cloudUser = data?.session?.user || null;
+
+  sbClient.auth.onAuthStateChange((event, session)=>{
+    cloudUser = session?.user || null;
+    setTimeout(()=>{
+      if(cloudUser){
+        migrateLegacyPlanIdsForUser();
+        syncCloud(false);
+      }
+      const status=document.getElementById("cloudStatus");
+      if(status) status.textContent=cloudStatusText();
+    },0);
+  });
+
+  if(cloudUser){
+    migrateLegacyPlanIdsForUser();
+    await syncCloud(false);
+  }
+}
+
+async function sendMagicLink(e){
+  e.preventDefault();
+  if(!sbClient) return;
+  const email=document.getElementById("cloudEmail").value.trim();
+  const status=document.getElementById("cloudDialogStatus");
+  status.textContent="Magic-Link wird gesendet …";
+  const redirectTo = window.location.origin + window.location.pathname;
+  const {error} = await sbClient.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: redirectTo }
+  });
+  if(error){
+    status.textContent="Fehler: "+error.message;
+    return;
+  }
+  status.textContent="E-Mail gesendet. Öffne den Magic-Link auf diesem iPhone.";
+}
+
+async function cloudSignOut(){
+  if(!sbClient) return;
+  await sbClient.auth.signOut();
+  cloudUser=null;
+  showSettings();
+}
+
+function planToRemote(p){
+  return {
+    id:p.id,
+    user_id:cloudUser.id,
+    name:p.name,
+    description:p.description||""
+  };
+}
+
+function sessionToRemote(s){
+  return {
+    id:s.id,
+    user_id:cloudUser.id,
+    plan_id:s.planId,
+    training_date:s.date,
+    training_type:s.type||"",
+    title:s.title||"",
+    description:s.desc||"",
+    note:s.note||"",
+    status:s.status||"open",
+    topup:!!s.topup,
+    reminder:s.reminder||"both",
+    reminder_time:s.reminderTime||"19:00",
+    updated_at:s.updatedAt||legacyTime()
+  };
+}
+
+function remoteToPlan(p){
+  return {
+    id:p.id,
+    name:p.name,
+    description:p.description||"",
+    updatedAt:legacyTime()
+  };
+}
+
+function remoteToSession(s){
+  return {
+    id:s.id,
+    planId:s.plan_id,
+    date:s.training_date,
+    type:s.training_type||"",
+    title:s.title||"",
+    desc:s.description||"",
+    note:s.note||"",
+    status:s.status||"open",
+    topup:!!s.topup,
+    reminder:s.reminder||"both",
+    reminderTime:(s.reminder_time||"19:00").slice(0,5),
+    updatedAt:s.updated_at||legacyTime()
+  };
+}
+
+async function syncCloud(showResult=false){
+  if(syncInProgress || !sbClient || !cloudUser) return;
+  syncInProgress=true;
+  try{
+    migrateLegacyPlanIdsForUser();
+    normalizeLocalData();
+
+    const [plansRes,sessionsRes] = await Promise.all([
+      sbClient.from("training_plans").select("*"),
+      sbClient.from("training_sessions").select("*")
+    ]);
+    if(plansRes.error) throw plansRes.error;
+    if(sessionsRes.error) throw sessionsRes.error;
+
+    const remotePlans=plansRes.data||[];
+    const remoteSessions=sessionsRes.data||[];
+    const remotePlanMap=new Map(remotePlans.map(x=>[x.id,x]));
+    const remoteSessionMap=new Map(remoteSessions.map(x=>[x.id,x]));
+
+    // Plans: IDs are stable. Add cloud-only plans locally; upload local/new plans.
+    remotePlans.forEach(r=>{
+      if(!db.plans.some(p=>p.id===r.id)) db.plans.push(remoteToPlan(r));
+    });
+    const planRows=db.plans.map(planToRemote);
+    if(planRows.length){
+      const {error}=await sbClient.from("training_plans").upsert(planRows,{onConflict:"id"});
+      if(error) throw error;
+    }
+
+    // Sessions: newest updated_at wins. Local-only rows are uploaded.
+    const pushSessions=[];
+    remoteSessions.forEach(r=>{
+      const i=db.sessions.findIndex(s=>s.id===r.id);
+      if(i<0){
+        db.sessions.push(remoteToSession(r));
+      } else {
+        const local=db.sessions[i];
+        const lt=Date.parse(local.updatedAt||legacyTime());
+        const rt=Date.parse(r.updated_at||legacyTime());
+        if(rt>lt){
+          db.sessions[i]=remoteToSession(r);
+        } else if(lt>rt){
+          pushSessions.push(local);
+        }
+      }
+    });
+    db.sessions.forEach(s=>{
+      if(!remoteSessionMap.has(s.id)) pushSessions.push(s);
+    });
+
+    // Remove duplicate push IDs if a row was selected twice.
+    const uniquePush=[...new Map(pushSessions.map(s=>[s.id,s])).values()];
+    if(uniquePush.length){
+      const {error}=await sbClient.from("training_sessions").upsert(uniquePush.map(sessionToRemote),{onConflict:"id"});
+      if(error) throw error;
+    }
+
+    if(!db.plans.some(p=>p.id===db.activePlan) && db.plans.length) db.activePlan=db.plans[0].id;
+    localStorage.setItem(KEY,JSON.stringify(db));
+    lastSyncAt=isoNow();
+    localStorage.setItem("training_last_sync",lastSyncAt);
+    render();
+
+    if(showResult) alert(`Cloud-Sync abgeschlossen.\n${db.plans.length} Plan/Pläne · ${db.sessions.length} Einheiten`);
+  }catch(err){
+    console.error("Cloud-Sync fehlgeschlagen:",err);
+    if(showResult) alert("Cloud-Sync fehlgeschlagen: "+(err?.message||err));
+  }finally{
+    syncInProgress=false;
+    const status=document.getElementById("cloudStatus");
+    if(status) status.textContent=cloudStatusText();
+  }
+}
+
+function queueCloudSync(){
+  if(!cloudUser || syncInProgress) return;
+  clearTimeout(syncTimer);
+  syncTimer=setTimeout(()=>syncCloud(false),700);
+}
+
+/* Track timestamps for user edits, then autosync. */
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(db));
+  render();
+  queueCloudSync();
+}
+
+function status(id,st){
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+  s.status=st;
+  s.updatedAt=isoNow();
+  save();
+}
+
+function saveSession(e){
+  e.preventDefault();
+  const old=editId?db.sessions.find(x=>x.id===editId):null;
+  const obj={
+    id:editId||crypto.randomUUID(),
+    planId:db.activePlan,
+    date:sDate.value,
+    type:sType.value,
+    title:sTitle.value,
+    desc:sDesc.value,
+    note:sNote.value,
+    status:sStatus.value,
+    topup:!!sTopup.checked,
+    reminder:sReminder.value,
+    reminderTime:sReminderTime.value,
+    updatedAt:isoNow()
+  };
+  const i=db.sessions.findIndex(x=>x.id===obj.id);
+  if(i>=0)db.sessions[i]=obj; else db.sessions.push(obj);
+  sessionDialog.close();save();
+}
+
+function savePlan(e){
+  e.preventDefault();
+  const p={id:crypto.randomUUID(),name:pName.value,description:pDesc.value,updatedAt:isoNow()};
+  db.plans.push(p);db.activePlan=p.id;planDialog.close();save();
+}
+
+function moveSession(id,days=1){
+  const s=db.sessions.find(x=>x.id===id);if(!s)return;
+  const d=new Date(s.date+'T12:00:00');d.setDate(d.getDate()+days);
+  s.date=d.toISOString().slice(0,10);
+  s.status='move';
+  s.updatedAt=isoNow();
+  save();
+}
+
+window.addEventListener("load",()=>initCloud());
 </script>
 
 <nav class="bottomnav">
@@ -449,16 +787,18 @@ function connectCloud(e){
 </nav>
 
 <dialog id="cloudDialog">
-  <form method="dialog" class="modal" onsubmit="connectCloud(event)">
-    <h2>☁️ Cloud-Synchronisierung</h2>
-    <p class="helper">Die V4 enthält bereits das Datenmodell und die App-Oberfläche für Supabase. Für echte Synchronisierung werden Projekt-URL und Publishable Key benötigt.</p>
+  <form method="dialog" class="modal" onsubmit="sendMagicLink(event)">
+    <h2>☁️ Cloud-Anmeldung</h2>
+    <p class="helper">Melde dich per E-Mail an. Supabase sendet dir einen sicheren Magic-Link; ein eigenes App-Passwort ist nicht nötig.</p>
     <div class="grid">
-      <label class="full">Supabase URL<input id="sbUrl" placeholder="https://xxxx.supabase.co"></label>
-      <label class="full">Publishable Key<input id="sbKey" placeholder="sb_publishable_..."></label>
+      <label class="full">E-Mail
+        <input id="cloudEmail" type="email" autocomplete="email" required placeholder="name@beispiel.at">
+      </label>
     </div>
+    <div id="cloudDialogStatus" class="statusline"></div>
     <div class="buttons">
       <button type="button" onclick="cloudDialog.close()">Abbrechen</button>
-      <button class="primary">Speichern</button>
+      <button class="primary">Magic-Link senden</button>
     </div>
   </form>
 </dialog>
