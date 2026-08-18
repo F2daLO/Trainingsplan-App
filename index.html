@@ -166,7 +166,10 @@ label input,label textarea,label select{
   <select id="planSelect"></select>
 </header>
 <main>
-  <div class="screen-title">Übersicht</div><div class="stats" id="stats"></div>
+  <div class="screen-title">Übersicht</div>
+<div id="globalCloudStatus" style="margin:-8px 0 14px;font-size:12px;color:#6e6e73">
+  ☁️ Cloud wird geprüft …
+</div><div class="stats" id="stats"></div>
   <div class="toolbar">
     <button class="primary" onclick="openSession()">＋ Training</button>
     <button class="soft" onclick="openSession(null,true)">⭐ On Top</button>
@@ -777,6 +780,199 @@ function moveSession(id,days=1){
 }
 
 window.addEventListener("load",()=>initCloud());
+
+/* ===== V4.1 AutoSync / Persistente Session ===== */
+let v41Online = navigator.onLine;
+let v41SyncRunning = false;
+let v41SyncQueued = false;
+let v41LastSync = localStorage.getItem("training_last_sync") || "";
+let v41LastSyncError = "";
+
+function v41SetCloudStatus(text, kind="normal"){
+  const el=document.getElementById("globalCloudStatus");
+  if(!el) return;
+  const prefix = kind==="ok" ? "☁️ " : kind==="offline" ? "⚠️ " : kind==="error" ? "❗ " : "☁️ ";
+  el.textContent = prefix + text;
+  el.style.color = kind==="ok" ? "#248a3d" : kind==="offline" ? "#a06b00" : kind==="error" ? "#c62828" : "#6e6e73";
+}
+
+function v41StatusText(){
+  if(!navigator.onLine) return {text:"Offline · lokale Änderungen werden später synchronisiert",kind:"offline"};
+  if(v41SyncRunning) return {text:"Synchronisierung läuft …",kind:"normal"};
+  if(typeof cloudUser!=="undefined" && cloudUser){
+    if(v41LastSync){
+      return {text:"Synchronisiert · "+new Date(v41LastSync).toLocaleString("de-DE"),kind:"ok"};
+    }
+    return {text:"Cloud verbunden",kind:"ok"};
+  }
+  return {text:"Nicht angemeldet",kind:"normal"};
+}
+
+function v41RefreshStatus(){
+  const s=v41StatusText();
+  v41SetCloudStatus(s.text,s.kind);
+  const settingsStatus=document.getElementById("cloudStatus");
+  if(settingsStatus){
+    settingsStatus.textContent=s.text;
+  }
+}
+
+async function v41AutoSync(reason="auto"){
+  if(!navigator.onLine){
+    v41RefreshStatus();
+    return;
+  }
+  if(typeof sbClient==="undefined" || !sbClient || typeof cloudUser==="undefined" || !cloudUser){
+    v41RefreshStatus();
+    return;
+  }
+  if(v41SyncRunning){
+    v41SyncQueued=true;
+    return;
+  }
+
+  v41SyncRunning=true;
+  v41LastSyncError="";
+  v41RefreshStatus();
+
+  try{
+    if(typeof syncCloud==="function"){
+      await syncCloud(false);
+    }
+    v41LastSync=localStorage.getItem("training_last_sync") || new Date().toISOString();
+    localStorage.setItem("training_last_sync",v41LastSync);
+  }catch(err){
+    v41LastSyncError=String(err?.message||err);
+    console.error("V4.1 AutoSync:",err);
+  }finally{
+    v41SyncRunning=false;
+    if(v41LastSyncError){
+      v41SetCloudStatus("Sync fehlgeschlagen · lokale Daten bleiben erhalten","error");
+    }else{
+      v41RefreshStatus();
+    }
+    if(v41SyncQueued){
+      v41SyncQueued=false;
+      setTimeout(()=>v41AutoSync("queued"),300);
+    }
+  }
+}
+
+function v41QueueSync(){
+  clearTimeout(window.__v41SyncTimer);
+  window.__v41SyncTimer=setTimeout(()=>v41AutoSync("change"),900);
+}
+
+window.addEventListener("online",()=>{
+  v41Online=true;
+  v41RefreshStatus();
+  v41AutoSync("online");
+});
+
+window.addEventListener("offline",()=>{
+  v41Online=false;
+  v41RefreshStatus();
+});
+
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"){
+    v41RefreshStatus();
+    v41AutoSync("resume");
+  }
+});
+
+window.addEventListener("focus",()=>{
+  v41RefreshStatus();
+  v41AutoSync("focus");
+});
+
+/* Preserve persistent Supabase sessions and sync immediately after auth/session restore. */
+window.addEventListener("load",()=>{
+  setTimeout(()=>{
+    v41RefreshStatus();
+    v41AutoSync("startup");
+  },1200);
+});
+
+/* Hook existing save() without changing local-first behavior. */
+if(typeof save==="function"){
+  const __v41OriginalSave=save;
+  save=function(){
+    __v41OriginalSave();
+    v41RefreshStatus();
+    v41QueueSync();
+  };
+}
+
+/* Hook manual sync button if present. */
+if(typeof syncCloud==="function"){
+  const __v41OriginalSyncCloud=syncCloud;
+  syncCloud=async function(showResult=false){
+    if(!navigator.onLine){
+      if(showResult) alert("Keine Internetverbindung. Änderungen bleiben lokal gespeichert und werden später synchronisiert.");
+      v41RefreshStatus();
+      return;
+    }
+    try{
+      const result=await __v41OriginalSyncCloud(showResult);
+      v41LastSync=localStorage.getItem("training_last_sync") || new Date().toISOString();
+      localStorage.setItem("training_last_sync",v41LastSync);
+      v41RefreshStatus();
+      return result;
+    }catch(err){
+      v41SetCloudStatus("Sync fehlgeschlagen · lokale Daten bleiben erhalten","error");
+      throw err;
+    }
+  };
+}
+
+/* Better settings copy for persistent login / automatic sync. */
+const __v41OldShowSettings = (typeof showSettings==="function") ? showSettings : null;
+showSettings=function(){
+  if(__v41OldShowSettings) __v41OldShowSettings();
+
+  const list=document.getElementById("list");
+  if(!list) return;
+
+  const current=list.innerHTML;
+  const sessionText=(typeof cloudUser!=="undefined" && cloudUser)
+    ? `Angemeldet als ${cloudUser.email||"Benutzer"}`
+    : "Nicht angemeldet";
+
+  list.innerHTML=`
+    <div class="settings-card">
+      <h3>☁️ Cloud-Synchronisierung</h3>
+      <p>${sessionText}</p>
+      <div class="statusline" id="cloudStatus">${v41StatusText().text}</div><br>
+      ${(typeof cloudUser!=="undefined" && cloudUser)
+        ? `<button onclick="v41AutoSync('manual')">Jetzt synchronisieren</button>
+           <button style="margin-left:6px;background:#8e8e93" onclick="cloudSignOut()">Abmelden</button>`
+        : `<button onclick="cloudDialog.showModal()">Per E-Mail anmelden</button>`}
+    </div>
+    <div class="settings-card">
+      <h3>🔄 Automatische Synchronisierung</h3>
+      <p>Aktiv. Die App synchronisiert beim Start, beim Zurückkehren in die App, nach lokalen Änderungen und sobald eine Internetverbindung wieder verfügbar ist.</p>
+      <div class="statusline">Lokale Änderungen bleiben offline erhalten und werden später nachgesendet.</div>
+    </div>
+    <div class="settings-card">
+      <h3>🔐 Anmeldung</h3>
+      <p>Die Supabase-Session bleibt auf diesem Gerät gespeichert. Ein neuer Magic-Link ist normalerweise erst nötig, wenn du dich abmeldest, Browser-/Website-Daten löschst oder die Session anderweitig verloren geht.</p>
+      <div class="statusline">Passkey / Face ID ist für eine spätere Version vorgesehen.</div>
+    </div>
+    <div class="settings-card">
+      <h3>🔔 Erinnerungen</h3>
+      <p>Reminder-Einstellungen werden mit synchronisiert. Die echte Push-Zustellung bleibt ein separater nächster Schritt.</p>
+    </div>
+    <div class="settings-card">
+      <h3>⭐ On-Top-Einheiten</h3>
+      <p>Zusatztrainings bleiben innerhalb des jeweiligen Trainingsplans und werden gold synchronisiert.</p>
+    </div>
+    <div class="settings-card">
+      <h3>💾 Backup</h3>
+      <button onclick="exportData()">Backup exportieren</button>
+    </div>`;
+  v41RefreshStatus();
+};
 </script>
 
 <nav class="bottomnav">
