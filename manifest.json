@@ -1,9 +1,9 @@
 {
-  "name":"Mein Trainingsplan",
-  "short_name":"Training",
-  "start_url":".",
-  "display":"standalone",
-  "background_color":"#f4f5f7",
-  "theme_color":"#111827",
-  "lang":"de"
+  "name": "Mein Training",
+  "short_name": "Mein Training",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f2f2f7",
+  "theme_color": "#007aff",
+  "lang": "de"
 }

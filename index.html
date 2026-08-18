@@ -8,31 +8,157 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   <title>Mein Trainingsplan</title>
   <style>
-    :root{--bg:#f4f5f7;--card:#fff;--text:#17202a;--muted:#6b7280;--line:#e5e7eb;--blue:#2563eb;--green:#22c55e;--red:#ef4444;--yellow:#eab308}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    header{position:sticky;top:0;z-index:5;background:#111827;color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
-    header h1{font-size:21px;margin:0 0 10px} select,button,input,textarea{font:inherit}
-    select,input,textarea{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff}
-    header select{width:100%;background:#1f2937;color:#fff;border-color:#374151}
-    main{padding:14px 14px 100px;max-width:800px;margin:auto}
-    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-    button{border:0;border-radius:12px;padding:10px 13px;background:#fff;box-shadow:0 1px 3px #0001}
-    button.primary{background:var(--blue);color:#fff}.danger{color:#b91c1c}
-    .week{margin:18px 0 8px;font-weight:700;font-size:18px}
-    .session{background:var(--card);border:1px solid var(--line);border-left:7px solid #cbd5e1;border-radius:14px;padding:12px;margin:8px 0;box-shadow:0 1px 2px #0000000a}
-    .session.done{border-left-color:var(--green)} .session.cancel{border-left-color:var(--red)} .session.move{border-left-color:var(--yellow)}
-    .top{display:flex;justify-content:space-between;gap:10px}.title{font-weight:700}.date{color:var(--muted);font-size:13px}
-    .meta{font-size:14px;color:#4b5563;margin:5px 0}.note{background:#f9fafb;border-radius:10px;padding:8px;margin-top:8px;font-size:14px;white-space:pre-wrap}
-    .actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.actions button{padding:7px 9px;font-size:13px}
-    .legend{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:8px 0 14px}
-    .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}.g{background:var(--green)}.r{background:var(--red)}.y{background:var(--yellow)}.n{background:#cbd5e1}
-    .empty{text-align:center;padding:35px;color:var(--muted)}
-    dialog{border:0;border-radius:18px;padding:0;width:min(94vw,620px);box-shadow:0 20px 60px #0004}
-    dialog::backdrop{background:#0006}.modal{padding:18px}.modal h2{margin-top:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.full{grid-column:1/-1}
-    label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600}.modal .buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
-    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.stat{background:#fff;border-radius:14px;padding:12px;text-align:center}.stat b{font-size:22px;display:block}
-    @media(max-width:520px){.grid{grid-template-columns:1fr}.full{grid-column:auto}}
-  </style>
+:root{
+  --bg:#f2f2f7;--card:#ffffff;--text:#111114;--secondary:#6e6e73;
+  --line:#d1d1d6;--blue:#007aff;--green:#34c759;--red:#ff3b30;
+  --yellow:#ffcc00;--gold:#d9a300;--goldbg:#fff8d8;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.app{min-height:100vh;padding-bottom:94px}
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:rgba(249,249,249,.94);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid rgba(60,60,67,.18);
+  padding:calc(8px + env(safe-area-inset-top)) 16px 10px
+}
+.topbar h1{font-size:17px;text-align:center;margin:0 0 9px;font-weight:700}
+.topbar select{
+  width:100%;border:0;background:rgba(118,118,128,.12);
+  border-radius:10px;padding:9px 12px;color:var(--text);outline:0
+}
+main{padding:16px 16px 30px;max-width:760px;margin:auto}
+.screen-title{
+  font-size:34px;line-height:1.08;font-weight:700;letter-spacing:-.7px;margin:5px 0 17px
+}
+.stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
+  border-radius:15px;overflow:hidden;margin-bottom:17px
+}
+.stat{background:#fff;padding:13px 7px;text-align:center}
+.stat b{font-size:22px;display:block;line-height:1.1}
+.stat span{font-size:11px;color:var(--secondary)}
+.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.toolbar button{
+  border:0;border-radius:12px;background:#fff;padding:12px;color:var(--blue);
+  font-weight:600;box-shadow:0 1px 2px #0001
+}
+.toolbar .primary{background:var(--blue);color:#fff}
+.toolbar .soft{background:var(--goldbg);color:#8a6500}
+.toolbar button.utility{background:transparent;box-shadow:none;color:var(--secondary);font-weight:500;font-size:13px}
+.viewbar{
+  display:flex;background:rgba(118,118,128,.12);padding:2px;border-radius:9px;margin:10px 0 16px
+}
+.viewbar button{
+  flex:1;border:0;background:transparent;border-radius:7px;padding:7px;
+  font-size:13px;color:var(--secondary)
+}
+.viewbar button.active{background:#fff;color:var(--text);box-shadow:0 1px 3px #0002}
+.legend{display:none}
+.week{
+  font-size:13px;font-weight:650;color:var(--secondary);text-transform:uppercase;
+  letter-spacing:.25px;margin:21px 4px 8px
+}
+.session{
+  position:relative;background:#fff;border:0;border-radius:16px;
+  padding:14px 14px 11px 18px;margin:8px 0;
+  box-shadow:0 1px 3px #0000000b;overflow:hidden
+}
+.session:before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#c7c7cc
+}
+.session.done:before{background:var(--green)}
+.session.cancel:before{background:var(--red)}
+.session.move:before{background:var(--yellow)}
+.session.topup{
+  background:linear-gradient(180deg,#fffef7,#fff);
+  box-shadow:0 0 0 1.5px var(--gold),0 3px 10px rgba(217,163,0,.13)
+}
+.session.topup:before{background:var(--gold)}
+.topup-badge{
+  display:inline-block;margin:0 0 7px;background:var(--goldbg);color:#795900;
+  border:1px solid #efd979;border-radius:8px;padding:3px 7px;
+  font-size:10px;font-weight:800;letter-spacing:.15px
+}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.title{font-weight:650;font-size:16px}
+.date{color:var(--secondary);font-size:13px;white-space:nowrap}
+.meta{font-size:13px;color:var(--secondary);margin-top:5px;line-height:1.35}
+.note{background:#f2f2f7;border-radius:10px;padding:9px;margin-top:9px;font-size:13px;white-space:pre-wrap}
+.actions{
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;border-top:1px solid #eeeef2;padding-top:9px
+}
+.actions button{border:0;background:transparent;color:var(--blue);font-size:12px;padding:3px 1px}
+.actions .donebtn{color:var(--green)}
+.actions .movebtn{color:#a57b00}
+.actions .cancelbtn{color:var(--red)}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{
+  min-height:78px;background:#fff;border-radius:11px;padding:7px;
+  box-shadow:0 1px 2px #0001
+}
+.day.today{outline:2px solid var(--blue)}
+.daynum{font-size:12px;font-weight:650}
+.dayitem{
+  margin-top:5px;border-radius:7px;padding:4px;font-size:10px;line-height:1.1;
+  background:#f2f2f7;overflow:hidden
+}
+.dayitem.done{background:#dff7e5}
+.dayitem.cancel{background:#ffe2df}
+.dayitem.move{background:#fff3c4}
+.dayitem.topup{background:var(--goldbg);box-shadow:inset 0 0 0 1px #efd979}
+.bottomnav{
+  position:fixed;z-index:30;left:0;right:0;bottom:0;
+  padding:7px 10px calc(7px + env(safe-area-inset-bottom));
+  background:rgba(249,249,249,.95);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid rgba(60,60,67,.18);
+  display:grid;grid-template-columns:repeat(4,1fr);text-align:center
+}
+.navitem{border:0;background:transparent;color:var(--secondary);font-size:10px;padding:2px}
+.navitem.active{color:var(--blue)}
+.navicon{font-size:21px;line-height:22px;display:block;margin-bottom:2px}
+dialog{
+  border:0;border-radius:20px;padding:0;width:min(94vw,620px);
+  box-shadow:0 25px 70px #0005
+}
+dialog::backdrop{background:#0006;backdrop-filter:blur(3px)}
+.modal{padding:20px}
+.modal h2{font-size:22px;margin:0 0 18px}
+.modal p.helper{font-size:13px;color:var(--secondary);line-height:1.45;margin-top:-8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.full{grid-column:1/-1}
+label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--secondary)}
+label input,label textarea,label select{
+  border:1px solid var(--line);border-radius:11px;padding:10px;background:#f9f9fb;color:var(--text);outline:0
+}
+.inline-check{
+  display:flex;flex-direction:row;align-items:center;gap:9px;
+  background:var(--goldbg);border:1px solid #efd979;border-radius:11px;padding:10px;color:#795900
+}
+.inline-check input{width:18px;height:18px;margin:0}
+.modal .buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.modal .buttons button{border:0;border-radius:11px;padding:10px 14px}
+.modal .buttons .primary{background:var(--blue);color:#fff}
+.settings-card{background:#fff;border-radius:15px;padding:15px;margin:10px 0}
+.settings-card h3{margin:0 0 5px;font-size:17px}
+.settings-card p{color:var(--secondary);font-size:13px;line-height:1.4}
+.settings-card button{border:0;border-radius:11px;background:var(--blue);color:#fff;padding:10px 14px}
+.statusline{font-size:12px;margin-top:8px;color:var(--secondary)}
+@media(max-width:520px){
+  .grid{grid-template-columns:1fr}.full{grid-column:auto}
+  .calendar{gap:3px}.day{min-height:68px;padding:5px}.dayitem{font-size:9px}
+}
+</style>
 </head>
 <body>
 <header>
@@ -40,13 +166,18 @@
   <select id="planSelect"></select>
 </header>
 <main>
-  <div class="stats" id="stats"></div>
+  <div class="screen-title">Übersicht</div><div class="stats" id="stats"></div>
   <div class="toolbar">
     <button class="primary" onclick="openSession()">＋ Training</button>
+    <button class="soft" onclick="openSession(null,true)">⭐ On Top</button>
     <button onclick="openPlan()">＋ Trainingsplan</button>
-    <button onclick="exportData()">⇩ Backup</button>
-    <button onclick="document.getElementById('importFile').click()">⇧ Import</button>
+    <button class="utility" onclick="exportData()">⇩ Backup</button>
+    <button class="utility" onclick="document.getElementById('importFile').click()">⇧ Import</button>
     <input id="importFile" type="file" accept=".json" hidden onchange="importData(event)">
+  </div>
+  <div class="viewbar">
+    <button id="listViewBtn" class="active" onclick="setView('list')">Liste</button>
+    <button id="weekViewBtn" onclick="setView('week')">Woche</button>
   </div>
   <div class="legend">
     <span><i class="dot g"></i>durchgeführt</span>
@@ -67,7 +198,18 @@
       <label class="full">Beschreibung<textarea id="sDesc" rows="3" placeholder="Dauer, Intensität, Ziel, Vorgaben …"></textarea></label>
       <label>Plan<input id="sPlan" type="text" readonly></label>
       <label>Status<select id="sStatus"><option value="open">Offen</option><option value="done">Durchgeführt</option><option value="cancel">Abgesagt / nicht durchgeführt</option><option value="move">Verschoben</option></select></label>
+      <label class="full inline-check">
+        <input id="sTopup" type="checkbox">
+        <span>⭐ Zusatztraining „On Top“ innerhalb dieses Plans</span>
+      </label>
       <label class="full">Meine Anmerkung<textarea id="sNote" rows="3" placeholder="Wie war es? Leistung, Puls, Beine, Probleme …"></textarea></label>
+      <label>Erinnerung<select id="sReminder">
+        <option value="both">Vortag + Trainingstag</option>
+        <option value="day">Nur Trainingstag</option>
+        <option value="before">Nur Vortag</option>
+        <option value="none">Keine</option>
+      </select></label>
+      <label>Uhrzeit<input id="sReminderTime" type="time" value="19:00"></label>
     </div>
     <div class="buttons"><button type="button" onclick="sessionDialog.close()">Abbrechen</button><button class="primary">Speichern</button></div>
   </form>
@@ -112,7 +254,7 @@ function render(){
 }
 function card(s){
   const d=new Date(s.date+"T12:00:00");
-  return `<div class="session ${s.status}">
+  return `<div class="session ${s.status} ${s.topup?"topup":""}">${s.topup?'<div class="topup-badge">⭐ ON TOP · ZUSATZTRAINING</div>':""}
     <div class="top"><div class="title">${esc(s.title)}</div><div class="date">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})}</div></div>
     <div class="meta">${esc(s.type||"")} ${s.desc?"· "+esc(s.desc):""}</div>
     ${s.note?`<div class="note">📝 ${esc(s.note)}</div>`:""}
@@ -121,7 +263,7 @@ function card(s){
       <button onclick="status('${s.id}','move')">🟡 Verschoben</button>
       <button onclick="status('${s.id}','cancel')">🔴 Ausgefallen</button>
       <button onclick="status('${s.id}','open')">⚪ Offen</button>
-      <button onclick="openSession('${s.id}')">✏️ Bearbeiten</button>
+      <button onclick="openSession('${s.id}')">Details</button><button onclick="moveSession('${s.id}',1)">↪ Morgen</button>
     </div>
   </div>`;
 }
@@ -157,6 +299,168 @@ function importData(e){
 function isoWeek(d){const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=x.getUTCDay()||7;x.setUTCDate(x.getUTCDate()+4-day);const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil((((x-y)/86400000)+1)/7)}
 render();
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+/* ===== V4 extensions ===== */
+let currentView = 'list';
+
+function setView(v){
+  currentView = v;
+  const lb=document.getElementById('listViewBtn'), wb=document.getElementById('weekViewBtn');
+  if(lb) lb.classList.toggle('active', v==='list');
+  if(wb) wb.classList.toggle('active', v==='week');
+  render();
+}
+
+function navTo(v){
+  document.querySelectorAll('.navitem').forEach(x=>x.classList.remove('active'));
+  if(v==='overview'){
+    const n=document.getElementById('navOverview'); if(n)n.classList.add('active');
+    currentView='list'; render(); window.scrollTo({top:0,behavior:'smooth'});
+  } else if(v==='plan'){
+    const n=document.getElementById('navPlan'); if(n)n.classList.add('active');
+    currentView='week'; render(); window.scrollTo({top:0,behavior:'smooth'});
+  } else if(v==='settings'){
+    const n=document.getElementById('navSettings'); if(n)n.classList.add('active');
+    showSettings();
+  }
+}
+
+function showSettings(){
+  const title=document.querySelector('.screen-title');
+  if(title) title.textContent='Einstellungen';
+  const vb=document.querySelector('.viewbar'); if(vb) vb.style.display='none';
+  const configured=localStorage.getItem('supabase_url')?'Verbindungsdaten gespeichert':'Noch nicht verbunden';
+  document.getElementById('list').innerHTML=`
+    <div class="settings-card">
+      <h3>☁️ Cloud-Synchronisierung</h3>
+      <p>Trainingspläne, Status, Notizen und Zusatztrainings geräteübergreifend synchronisieren.</p>
+      <div class="statusline">${configured}</div><br>
+      <button onclick="cloudDialog.showModal()">Cloud einrichten</button>
+    </div>
+    <div class="settings-card">
+      <h3>🔔 Erinnerungen</h3>
+      <p>Pro Einheit wählbar: Vortag, Trainingstag, beides oder keine Erinnerung. Standardzeit 19:00.</p>
+      <div class="statusline">Die echte Push-Zustellung benötigt den serverseitigen Push-/Scheduler-Schritt.</div>
+    </div>
+    <div class="settings-card">
+      <h3>⭐ On-Top-Einheiten</h3>
+      <p>Zusatztrainings werden dem aktuell ausgewählten Trainingsplan zugeordnet und am tatsächlichen Datum gold markiert – auch an ursprünglich freien Tagen.</p>
+    </div>`;
+}
+
+const renderV3Base = render;
+render = function(){
+  const title=document.querySelector('.screen-title');
+  if(title) title.textContent=currentView==='week'?'Wochenplan':'Übersicht';
+  const vb=document.querySelector('.viewbar'); if(vb) vb.style.display='';
+  renderV3Base();
+  if(currentView==='week') renderWeek();
+};
+
+function renderWeek(){
+  const arr=db.sessions.filter(s=>s.planId===db.activePlan).sort((a,b)=>a.date.localeCompare(b.date));
+  const byWeek={};
+  arr.forEach(s=>{
+    const d=new Date(s.date+'T12:00:00');
+    const day=(d.getDay()+6)%7;
+    const monday=new Date(d); monday.setDate(d.getDate()-day);
+    const key=monday.toISOString().slice(0,10);
+    (byWeek[key]??=[]).push(s);
+  });
+  const list=document.getElementById('list');
+  if(!arr.length){list.innerHTML='<div class="empty">Noch keine Trainings in diesem Plan.</div>';return}
+  list.innerHTML=Object.keys(byWeek).sort().map(k=>{
+    const monday=new Date(k+'T12:00:00');
+    let days='';
+    for(let i=0;i<7;i++){
+      const d=new Date(monday); d.setDate(monday.getDate()+i);
+      const ds=d.toISOString().slice(0,10);
+      const items=byWeek[k].filter(x=>x.date===ds);
+      days += `<div class="day ${ds===new Date().toISOString().slice(0,10)?'today':''}">
+        <div class="daynum">${d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit'})}</div>
+        ${items.map(x=>`<div class="dayitem ${x.status} ${x.topup?'topup':''}" onclick="openSession('${x.id}')">${x.topup?'⭐ ':''}${esc(x.title)}</div>`).join('')}
+      </div>`;
+    }
+    return `<div class="week">Woche ab ${monday.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</div><div class="calendar">${days}</div>`;
+  }).join('');
+}
+
+function openSession(id=null, forceTopup=false){
+  editId=id;
+  const s=id?db.sessions.find(x=>x.id===id):null;
+  document.getElementById("sessionHeading").textContent=s?"Training bearbeiten":(forceTopup?"On-Top-Training hinzufügen":"Training hinzufügen");
+  sDate.value=s?.date||new Date().toISOString().slice(0,10);
+  sType.value=s?.type||"";
+  sTitle.value=s?.title||"";
+  sDesc.value=s?.desc||"";
+  sNote.value=s?.note||"";
+  sStatus.value=s?.status||"open";
+  sPlan.value=db.plans.find(p=>p.id===db.activePlan)?.name||"";
+  sTopup.checked=!!(s?.topup||forceTopup);
+  sReminder.value=s?.reminder||"both";
+  sReminderTime.value=s?.reminderTime||"19:00";
+  sessionDialog.showModal();
+}
+
+function saveSession(e){
+  e.preventDefault();
+  const obj={
+    id:editId||crypto.randomUUID(),
+    planId:db.activePlan,
+    date:sDate.value,
+    type:sType.value,
+    title:sTitle.value,
+    desc:sDesc.value,
+    note:sNote.value,
+    status:sStatus.value,
+    topup:!!sTopup.checked,
+    reminder:sReminder.value,
+    reminderTime:sReminderTime.value
+  };
+  const i=db.sessions.findIndex(x=>x.id===obj.id);
+  if(i>=0) db.sessions[i]=obj; else db.sessions.push(obj);
+  sessionDialog.close(); save();
+}
+
+function moveSession(id,days=1){
+  const s=db.sessions.find(x=>x.id===id); if(!s)return;
+  const d=new Date(s.date+'T12:00:00'); d.setDate(d.getDate()+days);
+  s.date=d.toISOString().slice(0,10);
+  s.status='move';
+  save();
+}
+
+function connectCloud(e){
+  e.preventDefault();
+  const url=sbUrl.value.trim(), key=sbKey.value.trim();
+  if(!url||!key){alert('Bitte URL und Publishable Key ausfüllen.');return}
+  localStorage.setItem('supabase_url',url);
+  localStorage.setItem('supabase_key',key);
+  cloudDialog.close();
+  alert('Verbindungsdaten gespeichert. Für echte Synchronisierung müssen Authentifizierung und Datenabgleich anschließend noch aktiviert werden.');
+}
 </script>
+
+<nav class="bottomnav">
+  <button class="navitem active" id="navOverview" onclick="navTo('overview')"><span class="navicon">⌂</span>Übersicht</button>
+  <button class="navitem" id="navPlan" onclick="navTo('plan')"><span class="navicon">▦</span>Plan</button>
+  <button class="navitem" onclick="openSession()"><span class="navicon">＋</span>Training</button>
+  <button class="navitem" id="navSettings" onclick="navTo('settings')"><span class="navicon">⚙︎</span>Einstellungen</button>
+</nav>
+
+<dialog id="cloudDialog">
+  <form method="dialog" class="modal" onsubmit="connectCloud(event)">
+    <h2>☁️ Cloud-Synchronisierung</h2>
+    <p class="helper">Die V4 enthält bereits das Datenmodell und die App-Oberfläche für Supabase. Für echte Synchronisierung werden Projekt-URL und Publishable Key benötigt.</p>
+    <div class="grid">
+      <label class="full">Supabase URL<input id="sbUrl" placeholder="https://xxxx.supabase.co"></label>
+      <label class="full">Publishable Key<input id="sbKey" placeholder="sb_publishable_..."></label>
+    </div>
+    <div class="buttons">
+      <button type="button" onclick="cloudDialog.close()">Abbrechen</button>
+      <button class="primary">Speichern</button>
+    </div>
+  </form>
+</dialog>
 </body>
 </html>
