@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v5.5</title>
+<title>Training v5.6</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -203,6 +203,98 @@ dialog#sessionDialog{
   .dayitem.cancel{background:rgba(255,69,58,.18) !important}
 }
 
+
+/* ===== V5.6 Gesture-first interaction ===== */
+.session{
+  user-select:none;
+  -webkit-user-select:none;
+}
+.session .row{
+  align-items:flex-start;
+}
+.sdate{
+  cursor:pointer;
+  padding:4px 7px;
+  margin:-4px -7px -4px 0;
+  border-radius:9px;
+  transition:background .14s ease;
+}
+.sdate:active{
+  background:rgba(118,118,128,.10);
+}
+.detail-icon{
+  border:0 !important;
+  background:rgba(255,255,255,.24) !important;
+  border-radius:10px !important;
+  width:32px;height:30px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:15px !important;
+  color:var(--muted) !important;
+  padding:0 !important;
+}
+.gesture-hint{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:8px;
+  opacity:.72;
+}
+.quick-menu{
+  position:fixed;
+  z-index:130;
+  left:50%;
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(92vw,430px);
+  padding:10px;
+  border-radius:24px;
+}
+.quick-menu-title{
+  padding:7px 9px 10px;
+  font-size:13px;
+  font-weight:700;
+}
+.quick-menu button{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:13px 14px;
+  margin:4px 0;
+  text-align:left;
+  background:rgba(255,255,255,.34);
+  color:var(--text);
+}
+.quick-menu button.ok{color:var(--green)}
+.quick-menu button.warn{color:#9a7200}
+.quick-menu button.bad{color:var(--red)}
+.quick-menu button.neutral{color:var(--muted)}
+.quick-menu-backdrop{
+  position:fixed;z-index:129;inset:0;
+  background:rgba(0,0,0,.14);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.week-emoji{
+  display:inline-block;
+}
+.week-text{
+  display:inline;
+}
+@media(max-width:767px){
+  .week-text{display:none !important}
+  .dayitem{
+    text-align:center !important;
+    font-size:14px !important;
+    line-height:1.1 !important;
+    padding:6px 2px !important;
+    min-height:27px;
+  }
+  .week-emoji{
+    font-size:17px;
+    line-height:1;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -300,12 +392,25 @@ function renderList(){
  root.innerHTML=Object.entries(groups).map(([w,items])=>`<div class="week-title">${w}</div>${items.map(card).join("")}`).join("")
 }
 function card(s){
- const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");return `<article class="session glass ${s.status} ${s.topup?"topup":""}" data-session-id="${s.id}">${s.topup?'<div class="badge">⭐ ON TOP</div>':""}<div class="row"><div class="stitle">${unitEmoji(s)} ${esc(s.title)}</div><div class="sdate">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div></div><div class="meta">${esc(s.type||"")}${s.desc?" · "+esc(s.desc):""}</div>${s.note?`<div class="note">📝 ${esc(s.note)}</div>`:""}<div class="sactions"><button class="ok" onclick="setStatus('${s.id}','done')">Erledigt</button><button class="warn" onclick="setStatus('${s.id}','move')">Verschoben</button><button class="bad" onclick="setStatus('${s.id}','cancel')">Ausgefallen</button><button onclick="setStatus('${s.id}','open')">Neutral</button><button onclick="openSession('${s.id}')">Details</button><button onclick="moveTomorrow('${s.id}')">Morgen</button></div></article>`
+ const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");
+ return `<article class="session glass ${s.status} ${s.topup?"topup":""}" data-session-id="${s.id}">
+   ${s.topup?'<div class="badge">⭐ ON TOP</div>':""}
+   <div class="row">
+     <div class="stitle">${unitEmoji(s)} ${esc(s.title)}</div>
+     <div class="sdate" onclick="event.stopPropagation();openMoveMenu('${s.id}')">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div>
+   </div>
+   <div class="meta">${esc(s.type||"")}${s.desc?" · "+esc(s.desc):""}</div>
+   ${s.note?`<div class="note">📝 ${esc(s.note)}</div>`:""}
+   <div class="sactions">
+     <button class="detail-icon" title="Details" aria-label="Details" onclick="event.stopPropagation();openSession('${s.id}')">🔍</button>
+   </div>
+   <div class="gesture-hint">Tippen: erledigt · Doppeltipp: neutral · nach links wischen: Aktionen</div>
+ </article>`;
 }
 function renderWeek(){
  const arr=currentSessions(), root=document.getElementById("planContent");if(!arr.length){root.innerHTML='<div class="empty">Noch keine Einheiten in diesem Block.</div>';return}
  const by={};arr.forEach(s=>{const d=new Date(s.date+"T12:00:00"),n=(d.getDay()+6)%7,m=new Date(d);m.setDate(d.getDate()-n);const k=m.toISOString().slice(0,10);(by[k]??=[]).push(s)})
- root.innerHTML=Object.keys(by).sort().map(k=>{const m=new Date(k+"T12:00:00");let days="";for(let i=0;i<7;i++){const d=new Date(m);d.setDate(m.getDate()+i);const ds=d.toISOString().slice(0,10);const items=by[k].filter(x=>x.date===ds);days+=`<div class="day glass ${ds===new Date().toISOString().slice(0,10)?"today":""}"><div class="daynum">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit"})}</div>${items.map(x=>`<div class="dayitem ${x.status||"open"} ${x.topup?"topup":""}" onclick="openSession('${x.id}')">${x.topup?"⭐ ":""}${unitEmoji(x)} ${esc(x.title)}</div>`).join("")}</div>`}return `<div class="week-title">${esc(activePlan().name)} · Woche ab ${m.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</div><div class="calendar">${days}</div>`}).join("")
+ root.innerHTML=Object.keys(by).sort().map(k=>{const m=new Date(k+"T12:00:00");let days="";for(let i=0;i<7;i++){const d=new Date(m);d.setDate(m.getDate()+i);const ds=d.toISOString().slice(0,10);const items=by[k].filter(x=>x.date===ds);days+=`<div class="day glass ${ds===new Date().toISOString().slice(0,10)?"today":""}"><div class="daynum">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit"})}</div>${items.map(x=>`<div class="dayitem ${x.status||"open"} ${x.topup?"topup":""}" data-session-id="${x.id}"><span class="week-emoji">${x.topup?"⭐":""}${unitEmoji(x)}</span><span class="week-text"> ${esc(x.title)}</span></div>`).join("")}</div>`}return `<div class="week-title">${esc(activePlan().name)} · Woche ab ${m.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</div><div class="calendar">${days}</div>`}).join("")
 }
 
 function openSession(id=null,topup=false){
@@ -520,6 +625,167 @@ openSession=function(id=null,topup=false){
     if(h) h.focus({preventScroll:true});
     else document.activeElement?.blur?.();
   });
+};
+
+/* ===== V5.6 gesture model ===== */
+let gestureTapTimer=null;
+
+function closeQuickMenu(){
+  document.querySelector(".quick-menu-backdrop")?.remove();
+  document.querySelector(".quick-menu")?.remove();
+}
+
+function sessionActionMenu(id){
+  closeQuickMenu();
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+
+  const back=document.createElement("div");
+  back.className="quick-menu-backdrop";
+  back.onclick=closeQuickMenu;
+
+  const menu=document.createElement("div");
+  menu.className="quick-menu glass";
+  menu.innerHTML=`<div class="quick-menu-title">${unitEmoji(s)} ${esc(s.title)}</div>
+    <button class="ok" onclick="setStatus('${id}','done');closeQuickMenu()">✓ Erledigt</button>
+    <button class="neutral" onclick="neutralizeSession('${id}');closeQuickMenu()">○ Neutralisieren</button>
+    <button class="warn" onclick="openMoveMenu('${id}',true)">↪ Verschieben</button>
+    <button class="bad" onclick="setStatus('${id}','cancel');closeQuickMenu()">✕ Ausgefallen</button>
+    <button onclick="openSession('${id}');closeQuickMenu()">🔍 Details</button>
+    <button class="bad" onclick="deleteSession('${id}');closeQuickMenu()">🗑 Löschen</button>
+    <button onclick="closeQuickMenu()">Abbrechen</button>`;
+  document.body.append(back,menu);
+}
+
+function openMoveMenu(id,fromActionMenu=false){
+  if(fromActionMenu) closeQuickMenu();
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+
+  closeQuickMenu();
+  const back=document.createElement("div");
+  back.className="quick-menu-backdrop";
+  back.onclick=closeQuickMenu;
+
+  const menu=document.createElement("div");
+  menu.className="quick-menu glass";
+  menu.innerHTML=`<div class="quick-menu-title">Training verschieben</div>
+    <button class="warn" onclick="moveTomorrow('${id}');closeQuickMenu()">Morgen</button>
+    <button onclick="chooseMoveDate('${id}')">Anderes Datum / Uhrzeit …</button>
+    <button onclick="closeQuickMenu()">Abbrechen</button>`;
+  document.body.append(back,menu);
+}
+
+function chooseMoveDate(id){
+  closeQuickMenu();
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+  openSession(id);
+  requestAnimationFrame(()=>{
+    const f=document.getElementById("sDateTime");
+    if(f){
+      f.focus({preventScroll:false});
+      try{ f.showPicker?.(); }catch{}
+    }
+  });
+}
+
+function singleTapDone(id){
+  clearTimeout(gestureTapTimer);
+  gestureTapTimer=setTimeout(()=>{
+    setStatus(id,"done");
+    gestureTapTimer=null;
+  },260);
+}
+function doubleTapNeutral(id){
+  if(gestureTapTimer){
+    clearTimeout(gestureTapTimer);
+    gestureTapTimer=null;
+  }
+  neutralizeSession(id);
+}
+
+function bindListGestures(){
+  document.querySelectorAll(".session[data-session-id]").forEach(card=>{
+    if(card.dataset.v56==="1")return;
+    card.dataset.v56="1";
+    const id=card.dataset.sessionId;
+
+    let lastTap=0,startX=0,startY=0,moved=false;
+
+    card.addEventListener("click",e=>{
+      if(e.target.closest("button,.sdate"))return;
+      singleTapDone(id);
+    });
+
+    card.addEventListener("dblclick",e=>{
+      if(e.target.closest("button,.sdate"))return;
+      e.preventDefault();
+      doubleTapNeutral(id);
+    });
+
+    card.addEventListener("touchstart",e=>{
+      const t=e.changedTouches[0];
+      startX=t.clientX;startY=t.clientY;moved=false;
+      const now=Date.now();
+      if(now-lastTap<320){
+        e.preventDefault();
+        doubleTapNeutral(id);
+        lastTap=0;
+      }else{
+        lastTap=now;
+      }
+    },{passive:false});
+
+    card.addEventListener("touchmove",e=>{
+      const t=e.changedTouches[0];
+      if(Math.abs(t.clientX-startX)>12||Math.abs(t.clientY-startY)>12)moved=true;
+    },{passive:true});
+
+    card.addEventListener("touchend",e=>{
+      const t=e.changedTouches[0];
+      const dx=t.clientX-startX,dy=t.clientY-startY;
+      if(dx<-70 && Math.abs(dx)>Math.abs(dy)*1.3){
+        e.preventDefault();
+        sessionActionMenu(id);
+      }
+    },{passive:false});
+  });
+}
+
+function bindWeekGestures(){
+  document.querySelectorAll(".dayitem[data-session-id]").forEach(item=>{
+    if(item.dataset.v56==="1")return;
+    item.dataset.v56="1";
+    const id=item.dataset.sessionId;
+    let pressTimer=null,startX=0,startY=0;
+
+    item.addEventListener("touchstart",e=>{
+      const t=e.changedTouches[0];startX=t.clientX;startY=t.clientY;
+      pressTimer=setTimeout(()=>sessionActionMenu(id),520);
+    },{passive:true});
+
+    item.addEventListener("touchmove",e=>{
+      const t=e.changedTouches[0];
+      if(Math.abs(t.clientX-startX)>12||Math.abs(t.clientY-startY)>12){
+        clearTimeout(pressTimer);pressTimer=null;
+      }
+    },{passive:true});
+
+    item.addEventListener("touchend",()=>{clearTimeout(pressTimer);pressTimer=null},{passive:true});
+    item.addEventListener("mousedown",()=>{pressTimer=setTimeout(()=>sessionActionMenu(id),520)});
+    item.addEventListener("mouseup",()=>{clearTimeout(pressTimer);pressTimer=null});
+    item.addEventListener("mouseleave",()=>{clearTimeout(pressTimer);pressTimer=null});
+  });
+}
+
+const __v56RenderBase=render;
+render=function(){
+  __v56RenderBase();
+  setTimeout(()=>{
+    bindListGestures();
+    bindWeekGestures();
+  },0);
 };
 </script>
 
