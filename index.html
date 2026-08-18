@@ -530,12 +530,454 @@ label input,label textarea,label select{
   }
 }
 
+
+/* ===== V4.4 Adaptive Neutral Glass ===== */
+:root{
+  color-scheme:light dark;
+
+  --accent:#5f6368;
+  --accent-strong:#4a4d52;
+
+  --page-bg:
+    radial-gradient(circle at 18% 8%, rgba(255,255,255,.42), transparent 30%),
+    radial-gradient(circle at 82% 14%, rgba(220,224,230,.20), transparent 26%),
+    linear-gradient(180deg,#f5f5f7 0%,#eceef2 100%);
+
+  --glass-bg:rgba(255,255,255,.40);
+  --glass-bg-strong:rgba(255,255,255,.52);
+  --glass-bg-soft:rgba(255,255,255,.26);
+  --glass-border:rgba(255,255,255,.50);
+  --glass-border-subtle:rgba(255,255,255,.34);
+
+  --text-main:#1c1c1e;
+  --text-secondary:#6e6e73;
+  --text-tertiary:#8e8e93;
+
+  --surface-solid:#ffffff;
+  --field-bg:rgba(255,255,255,.48);
+
+  --shadow-soft:0 8px 24px rgba(28,28,30,.07);
+  --shadow-card:0 14px 36px rgba(28,28,30,.09),0 2px 8px rgba(28,28,30,.05);
+  --highlight:inset 0 1px 0 rgba(255,255,255,.72);
+
+  --done:#34c759;
+  --danger:#ff453a;
+  --warn:#d6a200;
+  --gold-bg:rgba(255,245,190,.48);
+  --gold-border:rgba(196,148,0,.24);
+}
+
+body{
+  color:var(--text-main) !important;
+  background:var(--page-bg) !important;
+  background-attachment:fixed !important;
+}
+
+.topbar{
+  background:rgba(245,245,247,.42) !important;
+  border-bottom:1px solid var(--glass-border-subtle) !important;
+  box-shadow:0 8px 26px rgba(28,28,30,.04) !important;
+  backdrop-filter:saturate(150%) blur(34px) !important;
+  -webkit-backdrop-filter:saturate(150%) blur(34px) !important;
+}
+
+.topbar h1,
+.screen-title,
+.title,
+.modal h2,
+.settings-card h3{
+  color:var(--text-main) !important;
+}
+
+.topbar select,
+label input,
+label textarea,
+label select{
+  color:var(--text-main) !important;
+  background:var(--field-bg) !important;
+  border:1px solid var(--glass-border) !important;
+  box-shadow:var(--highlight),0 3px 12px rgba(28,28,30,.04) !important;
+}
+
+.date,.meta,.statusline,
+label,.stat span,
+.week,
+#globalCloudStatus{
+  color:var(--text-secondary) !important;
+}
+
+.stat,
+.session,
+.day,
+.settings-card{
+  background:var(--glass-bg) !important;
+  border:1px solid var(--glass-border) !important;
+  box-shadow:var(--shadow-card),var(--highlight) !important;
+  backdrop-filter:blur(34px) saturate(145%) !important;
+  -webkit-backdrop-filter:blur(34px) saturate(145%) !important;
+}
+
+.session{
+  background:var(--glass-bg-strong) !important;
+}
+
+.note{
+  background:var(--glass-bg-soft) !important;
+  border:1px solid var(--glass-border-subtle) !important;
+  color:var(--text-main) !important;
+  backdrop-filter:blur(18px) !important;
+  -webkit-backdrop-filter:blur(18px) !important;
+}
+
+.toolbar button{
+  color:var(--accent-strong) !important;
+  background:var(--glass-bg) !important;
+  border:1px solid var(--glass-border) !important;
+  box-shadow:var(--shadow-soft),var(--highlight) !important;
+  backdrop-filter:blur(28px) saturate(140%) !important;
+  -webkit-backdrop-filter:blur(28px) saturate(140%) !important;
+}
+
+.toolbar .primary{
+  color:#fff !important;
+  background:linear-gradient(180deg,rgba(92,95,100,.94),rgba(70,72,76,.96)) !important;
+  border-color:rgba(255,255,255,.18) !important;
+  box-shadow:0 8px 18px rgba(28,28,30,.16),inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+
+.toolbar .soft{
+  background:var(--gold-bg) !important;
+  color:#7a5b00 !important;
+  border-color:var(--gold-border) !important;
+}
+
+.toolbar .utility{
+  background:var(--glass-bg-soft) !important;
+  color:var(--text-secondary) !important;
+}
+
+.viewbar{
+  background:rgba(118,118,128,.10) !important;
+  border:1px solid var(--glass-border-subtle) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.38) !important;
+  backdrop-filter:blur(22px) !important;
+  -webkit-backdrop-filter:blur(22px) !important;
+}
+.viewbar button{
+  color:var(--text-secondary) !important;
+}
+.viewbar button.active{
+  color:var(--text-main) !important;
+  background:rgba(255,255,255,.54) !important;
+  box-shadow:0 2px 10px rgba(28,28,30,.06),inset 0 1px 0 rgba(255,255,255,.72) !important;
+}
+
+.bottomnav.appnav{
+  background:rgba(245,245,247,.42) !important;
+  border-top:1px solid var(--glass-border-subtle) !important;
+  box-shadow:0 -8px 26px rgba(28,28,30,.04) !important;
+  backdrop-filter:saturate(150%) blur(34px) !important;
+  -webkit-backdrop-filter:saturate(150%) blur(34px) !important;
+}
+
+.navitem{
+  color:var(--text-secondary) !important;
+}
+.navitem.active{
+  color:var(--text-main) !important;
+}
+
+.session.done:before{background:var(--done) !important}
+.session.cancel:before{background:var(--danger) !important}
+.session.move:before{background:var(--warn) !important}
+
+.session.topup{
+  background:linear-gradient(180deg,rgba(255,251,226,.58),rgba(255,247,207,.40)) !important;
+  border-color:var(--gold-border) !important;
+  box-shadow:0 0 0 1px rgba(196,148,0,.12),var(--shadow-soft),var(--highlight) !important;
+}
+.topup-badge{
+  background:rgba(255,244,183,.56) !important;
+  color:#755700 !important;
+  border-color:rgba(196,148,0,.18) !important;
+}
+
+.modal{
+  background:rgba(248,248,250,.66) !important;
+  border:1px solid var(--glass-border) !important;
+  box-shadow:0 28px 70px rgba(28,28,30,.20),var(--highlight) !important;
+  backdrop-filter:blur(42px) saturate(150%) !important;
+  -webkit-backdrop-filter:blur(42px) saturate(150%) !important;
+}
+
+dialog::backdrop{
+  background:rgba(20,20,22,.18) !important;
+  backdrop-filter:blur(18px) saturate(110%) !important;
+  -webkit-backdrop-filter:blur(18px) saturate(110%) !important;
+}
+
+@media (min-width:1200px){
+  .bottomnav.appnav{
+    background:rgba(245,245,247,.46) !important;
+    border-right:1px solid var(--glass-border-subtle) !important;
+    box-shadow:8px 0 28px rgba(28,28,30,.04) !important;
+  }
+  .navitem:hover{
+    background:rgba(255,255,255,.28) !important;
+    border-color:var(--glass-border-subtle) !important;
+  }
+  .navitem.active{
+    background:rgba(255,255,255,.42) !important;
+    border-color:var(--glass-border) !important;
+    box-shadow:0 3px 12px rgba(28,28,30,.05),var(--highlight) !important;
+  }
+}
+
+/* Dark appearance follows the device automatically. */
+@media (prefers-color-scheme: dark){
+  :root{
+    --accent:#d0d0d4;
+    --accent-strong:#f1f1f3;
+
+    --page-bg:
+      radial-gradient(circle at 14% 8%, rgba(255,255,255,.045), transparent 28%),
+      radial-gradient(circle at 86% 16%, rgba(120,125,135,.05), transparent 26%),
+      linear-gradient(180deg,#111214 0%,#0b0c0e 100%);
+
+    --glass-bg:rgba(42,43,46,.34);
+    --glass-bg-strong:rgba(46,47,50,.42);
+    --glass-bg-soft:rgba(58,59,62,.26);
+
+    --glass-border:rgba(255,255,255,.11);
+    --glass-border-subtle:rgba(255,255,255,.07);
+
+    --text-main:#f5f5f7;
+    --text-secondary:#b0b0b5;
+    --text-tertiary:#8e8e93;
+
+    --field-bg:rgba(48,49,52,.42);
+
+    --shadow-soft:0 8px 24px rgba(0,0,0,.20);
+    --shadow-card:0 16px 38px rgba(0,0,0,.28),0 2px 8px rgba(0,0,0,.18);
+    --highlight:inset 0 1px 0 rgba(255,255,255,.08);
+
+    --gold-bg:rgba(126,97,0,.22);
+    --gold-border:rgba(255,213,79,.18);
+  }
+
+  body{
+    background:var(--page-bg) !important;
+  }
+
+  .topbar,
+  .bottomnav.appnav{
+    background:rgba(23,24,27,.46) !important;
+    border-color:var(--glass-border-subtle) !important;
+  }
+
+  .topbar select,
+  label input,
+  label textarea,
+  label select{
+    background:var(--field-bg) !important;
+    color:var(--text-main) !important;
+    border-color:var(--glass-border) !important;
+  }
+
+  .viewbar{
+    background:rgba(118,118,128,.16) !important;
+  }
+
+  .viewbar button.active{
+    background:rgba(72,73,77,.50) !important;
+  }
+
+  .toolbar .primary{
+    background:linear-gradient(180deg,rgba(108,110,116,.96),rgba(82,84,89,.98)) !important;
+  }
+
+  .session.topup{
+    background:linear-gradient(180deg,rgba(86,72,18,.30),rgba(74,62,16,.20)) !important;
+  }
+
+  .topup-badge{
+    background:rgba(116,92,16,.32) !important;
+    color:#f1d26c !important;
+    border-color:rgba(255,213,79,.16) !important;
+  }
+
+  .dayitem{
+    background:rgba(58,59,62,.44) !important;
+    color:var(--text-main) !important;
+  }
+  .dayitem.done{background:rgba(52,199,89,.20) !important}
+  .dayitem.cancel{background:rgba(255,69,58,.18) !important}
+  .dayitem.move{background:rgba(255,204,0,.18) !important}
+  .dayitem.topup{background:rgba(126,97,0,.24) !important}
+
+  .modal{
+    background:rgba(28,29,32,.70) !important;
+  }
+
+  dialog::backdrop{
+    background:rgba(0,0,0,.34) !important;
+  }
+
+  .settings-card button{
+    background:rgba(92,94,99,.92) !important;
+  }
+}
+
+/* Respect system accessibility settings. */
+@media (prefers-reduced-transparency: reduce){
+  .topbar,.session,.stat,.day,.settings-card,.bottomnav.appnav,.modal,.toolbar button{
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+
+  @media (prefers-color-scheme: light){
+    .topbar,.session,.stat,.day,.settings-card,.bottomnav.appnav,.modal,.toolbar button{
+      background:#f8f8fa !important;
+    }
+  }
+
+  @media (prefers-color-scheme: dark){
+    .topbar,.session,.stat,.day,.settings-card,.bottomnav.appnav,.modal,.toolbar button{
+      background:#1c1d20 !important;
+    }
+  }
+}
+
+
+/* ===== V5 Event / Block Navigation ===== */
+.eventbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.event-menu-btn{
+  width:42px;height:42px;flex:0 0 42px;
+  border:1px solid var(--glass-border);
+  border-radius:12px;
+  background:var(--glass-bg);
+  color:var(--text-main);
+  box-shadow:var(--shadow-soft),var(--highlight);
+  backdrop-filter:blur(24px) saturate(140%);
+  -webkit-backdrop-filter:blur(24px) saturate(140%);
+  font-size:20px;
+}
+.event-selectors{
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr);
+  gap:8px;
+  flex:1;
+}
+.event-selectors select{
+  width:100%;
+}
+
+.event-drawer-backdrop{
+  position:fixed;inset:0;z-index:79;
+  background:rgba(0,0,0,.16);
+  opacity:0;pointer-events:none;
+  transition:opacity .18s ease;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.event-drawer{
+  position:fixed;left:0;top:0;bottom:0;z-index:80;
+  width:min(86vw,360px);
+  transform:translateX(-102%);
+  transition:transform .22s ease;
+  padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));
+  background:rgba(245,245,247,.66);
+  border-right:1px solid var(--glass-border);
+  box-shadow:20px 0 50px rgba(0,0,0,.12);
+  backdrop-filter:blur(36px) saturate(150%);
+  -webkit-backdrop-filter:blur(36px) saturate(150%);
+  overflow:auto;
+}
+.event-drawer.open{transform:translateX(0)}
+.event-drawer-backdrop.open{opacity:1;pointer-events:auto}
+.event-drawer-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:12px;margin-bottom:18px;
+}
+.event-drawer-kicker{
+  font-size:10px;letter-spacing:.8px;color:var(--text-tertiary);font-weight:700;
+}
+.event-drawer-title{
+  font-size:24px;font-weight:750;letter-spacing:-.4px;color:var(--text-main);
+}
+.drawer-close{
+  border:0;background:transparent;color:var(--text-secondary);
+  font-size:28px;line-height:1;padding:0 4px;
+}
+.event-card{
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  border-radius:16px;
+  box-shadow:var(--shadow-soft),var(--highlight);
+  margin:10px 0;
+  overflow:hidden;
+}
+.event-row{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;padding:13px 14px;cursor:pointer;
+}
+.event-row.active{
+  background:rgba(255,255,255,.28);
+}
+.event-name{
+  font-weight:700;color:var(--text-main);font-size:15px;
+}
+.event-meta{
+  font-size:12px;color:var(--text-secondary);margin-top:2px;
+}
+.block-list{
+  border-top:1px solid var(--glass-border-subtle);
+}
+.block-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 14px 11px 24px;
+  color:var(--text-secondary);
+  cursor:pointer;
+}
+.block-row.active{
+  color:var(--text-main);
+  background:rgba(255,255,255,.22);
+  font-weight:650;
+}
+.block-focus{
+  font-size:11px;color:var(--text-tertiary);
+}
+.unit-emoji{
+  display:inline-block;min-width:24px;margin-right:4px;
+}
+@media (max-width:767px){
+  .event-selectors{grid-template-columns:1fr}
+}
+@media (prefers-color-scheme: dark){
+  .event-drawer{
+    background:rgba(24,25,28,.72);
+  }
+  .event-row.active,.block-row.active{
+    background:rgba(255,255,255,.06);
+  }
+}
+
 </style>
 </head>
 <body>
 <header>
   <h1>🚴 Mein Trainingsplan</h1>
-  <select id="planSelect"></select>
+  <div class="eventbar">
+      <button id="eventMenuBtn" class="event-menu-btn" onclick="toggleEventMenu()">☰</button>
+      <div class="event-selectors">
+        <select id="eventSelect" onchange="changeEvent(this.value)"></select>
+        <select id="blockSelect" onchange="changeBlock(this.value)"></select>
+      </div>
+    </div>
 </header>
 <main>
   <div class="screen-title">Übersicht</div>
@@ -609,7 +1051,7 @@ label input,label textarea,label select{
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const KEY="training_app_v2";
-let db=JSON.parse(localStorage.getItem(KEY)||'null')||{"plans": [{"id": "RADMARATHON", "name": "Radmarathon 2026/27 – Block 1", "description": "Erste sechs Wochen des gemeinsam erstellten Plans; anschließend fortführbar."}], "sessions": [{"id": "c8a6edc9-7167-4621-8474-7c2f8fa6ecbf", "planId": "RADMARATHON", "date": "2026-08-17", "type": "Indoor Rad", "title": "Grundlage / Z2", "desc": "45 min Z2 · 45 min lockere Grundlage; gleichmäßig, nicht überziehen.", "note": "", "status": "open"}, {"id": "2c412d0d-802b-4704-8ef3-fd209fe07227", "planId": "RADMARATHON", "date": "2026-08-18", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kurze Ganzkörpereinheit, Schwerpunkt Rumpf/Beine.", "note": "", "status": "open"}, {"id": "5e8d5198-bd4a-4fe4-89eb-0e07da43beb1", "planId": "RADMARATHON", "date": "2026-08-19", "type": "Indoor Rad", "title": "Tempo / Sweet Spot", "desc": "60 min · Einrollen, anschließend kontrollierte Belastungsblöcke; sauber und nicht maximal.", "note": "", "status": "open"}, {"id": "ed7eee2b-0933-4bf5-8fa3-cb7ee552c942", "planId": "RADMARATHON", "date": "2026-08-20", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Kein Radtraining. Locker bewegen/Mobilität nach Bedarf.", "note": "", "status": "open"}, {"id": "2af2c410-12d8-4d42-9406-d9170fa553cd", "planId": "RADMARATHON", "date": "2026-08-21", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Ruhige Ausdauer, gleichmäßige Trittfrequenz.", "note": "", "status": "open"}, {"id": "1bcd549c-ac74-4015-80fb-30de3d22ee8a", "planId": "RADMARATHON", "date": "2026-08-22", "type": "Outdoor Rad", "title": "Grundlagenausfahrt", "desc": "40–55 km · 40–55 km, überwiegend locker; keine harte Bergbelastung.", "note": "", "status": "open"}, {"id": "af11e453-07d4-4d3e-b0c8-569103844c2d", "planId": "RADMARATHON", "date": "2026-08-23", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Komplett frei oder Spaziergang.", "note": "", "status": "open"}, {"id": "72dc8ec5-76c9-478c-94fa-f5e03cd516bb", "planId": "RADMARATHON", "date": "2026-08-24", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Lockere Ausdauer.", "note": "", "status": "open"}, {"id": "87a8421b-7eb5-48af-8929-ea87ea8ccbc8", "planId": "RADMARATHON", "date": "2026-08-25", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kurze Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "40d41b63-8578-4962-aa1a-27a2f17b97de", "planId": "RADMARATHON", "date": "2026-08-26", "type": "Indoor Rad", "title": "Intervalle", "desc": "ca. 60 min · Strukturiertes Intervalltraining; kontrollierte Belastung.", "note": "", "status": "open"}, {"id": "01810473-5ed8-4452-acba-1d9dd50d364c", "planId": "RADMARATHON", "date": "2026-08-27", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Vor dem Urlaub keine zusätzliche Belastung erzwingen.", "note": "", "status": "open"}, {"id": "4cf54b38-afb1-45df-8317-9cada96127d9", "planId": "RADMARATHON", "date": "2026-08-28", "type": "Regeneration", "title": "Urlaub", "desc": "— · Urlaub mit Tochter. Training nur optional abends.", "note": "", "status": "open"}, {"id": "30cae4ff-df49-443d-9676-687562298aa0", "planId": "RADMARATHON", "date": "2026-08-29", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein geplantes Radtraining.", "note": "", "status": "open"}, {"id": "c63dede2-3e88-426a-9106-ad213d6f5a2d", "planId": "RADMARATHON", "date": "2026-08-30", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein geplantes Radtraining.", "note": "", "status": "open"}, {"id": "7285e693-076b-4b6e-885b-beca7aacbd3a", "planId": "RADMARATHON", "date": "2026-08-31", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining; optional kurze BetterMe-Einheit abends.", "note": "", "status": "open"}, {"id": "a4a8206b-6486-4df7-b159-01f609364a64", "planId": "RADMARATHON", "date": "2026-09-01", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "3a0a6527-d545-4eaf-a5cb-9821f892f3f4", "planId": "RADMARATHON", "date": "2026-09-02", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining; optional kurze BetterMe-Einheit.", "note": "", "status": "open"}, {"id": "d446970d-ff06-4714-a7f7-cafee7145b70", "planId": "RADMARATHON", "date": "2026-09-03", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "7c2936fb-37ed-4223-948a-b265c3890040", "planId": "RADMARATHON", "date": "2026-09-04", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "38026b75-3818-4b76-8cb5-44bdf92f1706", "planId": "RADMARATHON", "date": "2026-09-05", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "b546a015-e2c6-4f38-8bc6-00871b818911", "planId": "RADMARATHON", "date": "2026-09-06", "type": "Regeneration", "title": "Urlaub", "desc": "— · Rückkehr; noch keine harte Einheit.", "note": "", "status": "open"}, {"id": "d4a09fa6-a290-4770-8be7-3d63425ee914", "planId": "RADMARATHON", "date": "2026-09-07", "type": "Indoor Rad", "title": "Wiedereinstieg", "desc": "40–50 min Z2 · Locker wieder in den Rhythmus kommen.", "note": "", "status": "open"}, {"id": "10f81a4f-aef8-48c2-9c78-3737ede4f514", "planId": "RADMARATHON", "date": "2026-09-08", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Ganzkörper-/Core-Einheit.", "note": "", "status": "open"}, {"id": "d3165a09-5488-4018-bcdb-1e9a0f28bb4f", "planId": "RADMARATHON", "date": "2026-09-09", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "9313347a-ca03-4d75-8146-baa24e626efc", "planId": "RADMARATHON", "date": "2026-09-10", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "fde295b3-8e78-4e8f-aafe-3177b6c399f7", "planId": "RADMARATHON", "date": "2026-09-11", "type": "Indoor Rad", "title": "Intervalle", "desc": "ca. 60 min · Kurze kontrollierte Intervalle, keine Maximalbelastung.", "note": "", "status": "open"}, {"id": "5434eff2-dbba-41e6-8499-325e740770fd", "planId": "RADMARATHON", "date": "2026-09-12", "type": "Outdoor Rad", "title": "Grundlagenausfahrt", "desc": "50–60 km · 50–60 km; überwiegend Z2, Anstiege kontrolliert fahren.", "note": "", "status": "open"}, {"id": "fe5505a8-149e-49ca-a0ae-cbddf05a6d1f", "planId": "RADMARATHON", "date": "2026-09-13", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "a5fe7374-f10c-46d5-88db-0bd5c479cb45", "planId": "RADMARATHON", "date": "2026-09-14", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · Ausdauerarbeit.", "note": "", "status": "open"}, {"id": "2146ce9a-be52-4697-b6b9-e3dfa5660938", "planId": "RADMARATHON", "date": "2026-09-15", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "24dde07d-3606-4ccd-a53a-cd70fd1bf046", "planId": "RADMARATHON", "date": "2026-09-16", "type": "Indoor Rad", "title": "Schwelle / Tempo", "desc": "60–70 min · Belastungsblöcke an der oberen Ausdauer-/Tempo-Grenze.", "note": "", "status": "open"}, {"id": "5adf7eee-01bf-4922-925d-e40956abbedf", "planId": "RADMARATHON", "date": "2026-09-17", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "3b7fd233-6ce5-4ba6-bca7-74ed5cd97bb5", "planId": "RADMARATHON", "date": "2026-09-18", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min · Lockere bis moderate Ausdauer.", "note": "", "status": "open"}, {"id": "c543c676-fc84-421c-a7cc-8a022af8d68e", "planId": "RADMARATHON", "date": "2026-09-19", "type": "Indoor Rad", "title": "Lange Grundlage", "desc": "75–90 min Z2 · Längere Indoor-Einheit, gleichmäßig.", "note": "", "status": "open"}, {"id": "1ce85adb-624a-4d41-8e9e-813eeb0a1654", "planId": "RADMARATHON", "date": "2026-09-20", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "1b64215c-7f05-448f-9501-f395575b7605", "planId": "RADMARATHON", "date": "2026-09-21", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · Ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "7d0c1480-d72c-419e-9078-f685d568ba2d", "planId": "RADMARATHON", "date": "2026-09-22", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kraft/Core, nicht bis zur völligen Ermüdung.", "note": "", "status": "open"}, {"id": "6345b4ee-35b5-4e20-bfd7-d974a9892d5f", "planId": "RADMARATHON", "date": "2026-09-23", "type": "Indoor Rad", "title": "Intervalle", "desc": "60–70 min · Strukturiertes Intervalltraining.", "note": "", "status": "open"}, {"id": "6002cef1-c649-4af4-ad1e-a14c042a2ffd", "planId": "RADMARATHON", "date": "2026-09-24", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "847bc44b-3006-4429-8866-e1575a360bc7", "planId": "RADMARATHON", "date": "2026-09-25", "type": "Indoor Rad", "title": "Locker", "desc": "40–50 min · Kurze lockere Einheit.", "note": "", "status": "open"}, {"id": "e4138030-7dae-46ba-86cc-e764837f11da", "planId": "RADMARATHON", "date": "2026-09-26", "type": "Outdoor Rad", "title": "Grundlage + Anstiege", "desc": "55–65 km · 55–65 km; zwei längere Anstiege kontrolliert fahren, Fokus Ausdauer.", "note": "", "status": "open"}, {"id": "ba565f3a-2a43-4832-9b2d-c20b96c96e5a", "planId": "RADMARATHON", "date": "2026-09-27", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "993399b0-03bf-4c00-9191-4ac9d71d8902", "planId": "RADMARATHON", "date": "2026-09-28", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · 60 min ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "31fc1803-53ef-4893-8119-9b2cdbf113f5", "planId": "RADMARATHON", "date": "2026-09-29", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "bb5c578b-54d2-453b-bbf3-785736c8bf74", "planId": "RADMARATHON", "date": "2026-09-30", "type": "Indoor Rad", "title": "Tempo", "desc": "60–70 min · Kontrollierte Tempo-Blöcke.", "note": "", "status": "open"}, {"id": "9a19fe4a-c48e-4d43-a04f-e0264cdf5fee", "planId": "RADMARATHON", "date": "2026-10-01", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "dae0b3ea-22b4-45f2-a144-0f4e825dc1bc", "planId": "RADMARATHON", "date": "2026-10-02", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Locker bis moderat.", "note": "", "status": "open"}, {"id": "a327ccf9-d77c-4844-aea8-b0456cbf07f6", "planId": "RADMARATHON", "date": "2026-10-03", "type": "Indoor Rad", "title": "Lange Grundlage", "desc": "90 min Z2 · Längere Ausdauer-Einheit.", "note": "", "status": "open"}, {"id": "d82011b0-c596-4ddd-8942-c68126bcf467", "planId": "RADMARATHON", "date": "2026-10-04", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}], "activePlan": "RADMARATHON"};
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{"plans": [{"id": "RADMARATHON", "name": "🚴 Radmarathon 2026/27 – Block 1", "description": "Erste sechs Wochen des gemeinsam erstellten Plans; anschließend fortführbar."}], "sessions": [{"id": "c8a6edc9-7167-4621-8474-7c2f8fa6ecbf", "planId": "RADMARATHON", "date": "2026-08-17", "type": "Indoor Rad", "title": "Grundlage / Z2", "desc": "45 min Z2 · 45 min lockere Grundlage; gleichmäßig, nicht überziehen.", "note": "", "status": "open"}, {"id": "2c412d0d-802b-4704-8ef3-fd209fe07227", "planId": "RADMARATHON", "date": "2026-08-18", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kurze Ganzkörpereinheit, Schwerpunkt Rumpf/Beine.", "note": "", "status": "open"}, {"id": "5e8d5198-bd4a-4fe4-89eb-0e07da43beb1", "planId": "RADMARATHON", "date": "2026-08-19", "type": "Indoor Rad", "title": "Tempo / Sweet Spot", "desc": "60 min · Einrollen, anschließend kontrollierte Belastungsblöcke; sauber und nicht maximal.", "note": "", "status": "open"}, {"id": "ed7eee2b-0933-4bf5-8fa3-cb7ee552c942", "planId": "RADMARATHON", "date": "2026-08-20", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Kein Radtraining. Locker bewegen/Mobilität nach Bedarf.", "note": "", "status": "open"}, {"id": "2af2c410-12d8-4d42-9406-d9170fa553cd", "planId": "RADMARATHON", "date": "2026-08-21", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Ruhige Ausdauer, gleichmäßige Trittfrequenz.", "note": "", "status": "open"}, {"id": "1bcd549c-ac74-4015-80fb-30de3d22ee8a", "planId": "RADMARATHON", "date": "2026-08-22", "type": "Outdoor Rad", "title": "Grundlagenausfahrt", "desc": "40–55 km · 40–55 km, überwiegend locker; keine harte Bergbelastung.", "note": "", "status": "open"}, {"id": "af11e453-07d4-4d3e-b0c8-569103844c2d", "planId": "RADMARATHON", "date": "2026-08-23", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Komplett frei oder Spaziergang.", "note": "", "status": "open"}, {"id": "72dc8ec5-76c9-478c-94fa-f5e03cd516bb", "planId": "RADMARATHON", "date": "2026-08-24", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Lockere Ausdauer.", "note": "", "status": "open"}, {"id": "87a8421b-7eb5-48af-8929-ea87ea8ccbc8", "planId": "RADMARATHON", "date": "2026-08-25", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kurze Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "40d41b63-8578-4962-aa1a-27a2f17b97de", "planId": "RADMARATHON", "date": "2026-08-26", "type": "Indoor Rad", "title": "Intervalle", "desc": "ca. 60 min · Strukturiertes Intervalltraining; kontrollierte Belastung.", "note": "", "status": "open"}, {"id": "01810473-5ed8-4452-acba-1d9dd50d364c", "planId": "RADMARATHON", "date": "2026-08-27", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Vor dem Urlaub keine zusätzliche Belastung erzwingen.", "note": "", "status": "open"}, {"id": "4cf54b38-afb1-45df-8317-9cada96127d9", "planId": "RADMARATHON", "date": "2026-08-28", "type": "Regeneration", "title": "Urlaub", "desc": "— · Urlaub mit Tochter. Training nur optional abends.", "note": "", "status": "open"}, {"id": "30cae4ff-df49-443d-9676-687562298aa0", "planId": "RADMARATHON", "date": "2026-08-29", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein geplantes Radtraining.", "note": "", "status": "open"}, {"id": "c63dede2-3e88-426a-9106-ad213d6f5a2d", "planId": "RADMARATHON", "date": "2026-08-30", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein geplantes Radtraining.", "note": "", "status": "open"}, {"id": "7285e693-076b-4b6e-885b-beca7aacbd3a", "planId": "RADMARATHON", "date": "2026-08-31", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining; optional kurze BetterMe-Einheit abends.", "note": "", "status": "open"}, {"id": "a4a8206b-6486-4df7-b159-01f609364a64", "planId": "RADMARATHON", "date": "2026-09-01", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "3a0a6527-d545-4eaf-a5cb-9821f892f3f4", "planId": "RADMARATHON", "date": "2026-09-02", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining; optional kurze BetterMe-Einheit.", "note": "", "status": "open"}, {"id": "d446970d-ff06-4714-a7f7-cafee7145b70", "planId": "RADMARATHON", "date": "2026-09-03", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "7c2936fb-37ed-4223-948a-b265c3890040", "planId": "RADMARATHON", "date": "2026-09-04", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "38026b75-3818-4b76-8cb5-44bdf92f1706", "planId": "RADMARATHON", "date": "2026-09-05", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "b546a015-e2c6-4f38-8bc6-00871b818911", "planId": "RADMARATHON", "date": "2026-09-06", "type": "Regeneration", "title": "Urlaub", "desc": "— · Rückkehr; noch keine harte Einheit.", "note": "", "status": "open"}, {"id": "d4a09fa6-a290-4770-8be7-3d63425ee914", "planId": "RADMARATHON", "date": "2026-09-07", "type": "Indoor Rad", "title": "Wiedereinstieg", "desc": "40–50 min Z2 · Locker wieder in den Rhythmus kommen.", "note": "", "status": "open"}, {"id": "10f81a4f-aef8-48c2-9c78-3737ede4f514", "planId": "RADMARATHON", "date": "2026-09-08", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Ganzkörper-/Core-Einheit.", "note": "", "status": "open"}, {"id": "d3165a09-5488-4018-bcdb-1e9a0f28bb4f", "planId": "RADMARATHON", "date": "2026-09-09", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "9313347a-ca03-4d75-8146-baa24e626efc", "planId": "RADMARATHON", "date": "2026-09-10", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "fde295b3-8e78-4e8f-aafe-3177b6c399f7", "planId": "RADMARATHON", "date": "2026-09-11", "type": "Indoor Rad", "title": "Intervalle", "desc": "ca. 60 min · Kurze kontrollierte Intervalle, keine Maximalbelastung.", "note": "", "status": "open"}, {"id": "5434eff2-dbba-41e6-8499-325e740770fd", "planId": "RADMARATHON", "date": "2026-09-12", "type": "Outdoor Rad", "title": "Grundlagenausfahrt", "desc": "50–60 km · 50–60 km; überwiegend Z2, Anstiege kontrolliert fahren.", "note": "", "status": "open"}, {"id": "fe5505a8-149e-49ca-a0ae-cbddf05a6d1f", "planId": "RADMARATHON", "date": "2026-09-13", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "a5fe7374-f10c-46d5-88db-0bd5c479cb45", "planId": "RADMARATHON", "date": "2026-09-14", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · Ausdauerarbeit.", "note": "", "status": "open"}, {"id": "2146ce9a-be52-4697-b6b9-e3dfa5660938", "planId": "RADMARATHON", "date": "2026-09-15", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "24dde07d-3606-4ccd-a53a-cd70fd1bf046", "planId": "RADMARATHON", "date": "2026-09-16", "type": "Indoor Rad", "title": "Schwelle / Tempo", "desc": "60–70 min · Belastungsblöcke an der oberen Ausdauer-/Tempo-Grenze.", "note": "", "status": "open"}, {"id": "5adf7eee-01bf-4922-925d-e40956abbedf", "planId": "RADMARATHON", "date": "2026-09-17", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "3b7fd233-6ce5-4ba6-bca7-74ed5cd97bb5", "planId": "RADMARATHON", "date": "2026-09-18", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min · Lockere bis moderate Ausdauer.", "note": "", "status": "open"}, {"id": "c543c676-fc84-421c-a7cc-8a022af8d68e", "planId": "RADMARATHON", "date": "2026-09-19", "type": "Indoor Rad", "title": "Lange Grundlage", "desc": "75–90 min Z2 · Längere Indoor-Einheit, gleichmäßig.", "note": "", "status": "open"}, {"id": "1ce85adb-624a-4d41-8e9e-813eeb0a1654", "planId": "RADMARATHON", "date": "2026-09-20", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "1b64215c-7f05-448f-9501-f395575b7605", "planId": "RADMARATHON", "date": "2026-09-21", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · Ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "7d0c1480-d72c-419e-9078-f685d568ba2d", "planId": "RADMARATHON", "date": "2026-09-22", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kraft/Core, nicht bis zur völligen Ermüdung.", "note": "", "status": "open"}, {"id": "6345b4ee-35b5-4e20-bfd7-d974a9892d5f", "planId": "RADMARATHON", "date": "2026-09-23", "type": "Indoor Rad", "title": "Intervalle", "desc": "60–70 min · Strukturiertes Intervalltraining.", "note": "", "status": "open"}, {"id": "6002cef1-c649-4af4-ad1e-a14c042a2ffd", "planId": "RADMARATHON", "date": "2026-09-24", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "847bc44b-3006-4429-8866-e1575a360bc7", "planId": "RADMARATHON", "date": "2026-09-25", "type": "Indoor Rad", "title": "Locker", "desc": "40–50 min · Kurze lockere Einheit.", "note": "", "status": "open"}, {"id": "e4138030-7dae-46ba-86cc-e764837f11da", "planId": "RADMARATHON", "date": "2026-09-26", "type": "Outdoor Rad", "title": "Grundlage + Anstiege", "desc": "55–65 km · 55–65 km; zwei längere Anstiege kontrolliert fahren, Fokus Ausdauer.", "note": "", "status": "open"}, {"id": "ba565f3a-2a43-4832-9b2d-c20b96c96e5a", "planId": "RADMARATHON", "date": "2026-09-27", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "993399b0-03bf-4c00-9191-4ac9d71d8902", "planId": "RADMARATHON", "date": "2026-09-28", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · 60 min ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "31fc1803-53ef-4893-8119-9b2cdbf113f5", "planId": "RADMARATHON", "date": "2026-09-29", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "bb5c578b-54d2-453b-bbf3-785736c8bf74", "planId": "RADMARATHON", "date": "2026-09-30", "type": "Indoor Rad", "title": "Tempo", "desc": "60–70 min · Kontrollierte Tempo-Blöcke.", "note": "", "status": "open"}, {"id": "9a19fe4a-c48e-4d43-a04f-e0264cdf5fee", "planId": "RADMARATHON", "date": "2026-10-01", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "dae0b3ea-22b4-45f2-a144-0f4e825dc1bc", "planId": "RADMARATHON", "date": "2026-10-02", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Locker bis moderat.", "note": "", "status": "open"}, {"id": "a327ccf9-d77c-4844-aea8-b0456cbf07f6", "planId": "RADMARATHON", "date": "2026-10-03", "type": "Indoor Rad", "title": "Lange Grundlage", "desc": "90 min Z2 · Längere Ausdauer-Einheit.", "note": "", "status": "open"}, {"id": "d82011b0-c596-4ddd-8942-c68126bcf467", "planId": "RADMARATHON", "date": "2026-10-04", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}], "activePlan": "RADMARATHON"};
 if(!db.activePlan) db.activePlan=db.plans[0].id;
 let editId=null;
 
@@ -1345,6 +1787,455 @@ showSettings=function(){
     </div>`;
   v41RefreshStatus();
 };
+
+/* ===== V4.5 Auth + Details Fix ===== */
+const V45_REMEMBER_KEY="meintraining_remember_login";
+const V45_AUTH_STORAGE_KEY="meintraining-auth-v45";
+let v45AuthSubscription=null;
+
+function v45RememberPreference(){
+  const raw=localStorage.getItem(V45_REMEMBER_KEY);
+  return raw===null ? true : raw==="true";
+}
+function v45StorageAdapter(remember){
+  const store=remember?localStorage:sessionStorage;
+  return {
+    getItem:key=>store.getItem(key),
+    setItem:(key,value)=>store.setItem(key,value),
+    removeItem:key=>store.removeItem(key)
+  };
+}
+function v45BuildClient(remember){
+  return window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true,
+      storage:v45StorageAdapter(remember),
+      storageKey:V45_AUTH_STORAGE_KEY
+    }
+  });
+}
+function v45AttachAuthEvents(){
+  if(v45AuthSubscription?.unsubscribe) v45AuthSubscription.unsubscribe();
+  const res=sbClient.auth.onAuthStateChange((event,session)=>{
+    cloudUser=session?.user||null;
+    setTimeout(async()=>{
+      if(event==="PASSWORD_RECOVERY"){
+        const dlg=document.getElementById("passwordDialog");
+        if(dlg && !dlg.open) dlg.showModal();
+      }
+      if(cloudUser){
+        migrateLegacyPlanIdsForUser();
+        try{await syncCloud(false)}catch(e){console.error(e)}
+      }
+      if(typeof v41RefreshStatus==="function") v41RefreshStatus();
+    },0);
+  });
+  v45AuthSubscription=res?.data?.subscription||null;
+}
+async function initCloud(){
+  normalizeLocalData();
+  try{
+    sbClient=v45BuildClient(v45RememberPreference());
+    v45AttachAuthEvents();
+    const {data,error}=await sbClient.auth.getSession();
+    if(error) console.error(error);
+    cloudUser=data?.session?.user||null;
+    if(cloudUser){
+      migrateLegacyPlanIdsForUser();
+      await syncCloud(false);
+    }
+    if(typeof v41RefreshStatus==="function") v41RefreshStatus();
+  }catch(err){console.error("Cloud init:",err)}
+}
+async function v45RebuildClientForLogin(remember){
+  localStorage.setItem(V45_REMEMBER_KEY,String(remember));
+  if(v45AuthSubscription?.unsubscribe) v45AuthSubscription.unsubscribe();
+  sbClient=v45BuildClient(remember);
+  v45AttachAuthEvents();
+}
+async function loginWithPassword(e){
+  e.preventDefault();
+  const email=cloudEmail.value.trim();
+  const password=cloudPassword.value;
+  const remember=rememberLogin.checked;
+  cloudDialogStatus.textContent="Anmeldung läuft …";
+  try{
+    await v45RebuildClientForLogin(remember);
+    const {data,error}=await sbClient.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    cloudUser=data?.session?.user||data?.user||null;
+    cloudDialog.close();
+    if(cloudUser){
+      migrateLegacyPlanIdsForUser();
+      await syncCloud(false);
+    }
+  }catch(err){
+    cloudDialogStatus.textContent="Anmeldung fehlgeschlagen: "+(err?.message||err);
+  }
+}
+async function sendPasswordReset(){
+  const email=cloudEmail.value.trim();
+  if(!email){cloudDialogStatus.textContent="Bitte zuerst die E-Mail-Adresse eingeben.";return}
+  try{
+    const redirectTo=window.location.origin+window.location.pathname;
+    const {error}=await sbClient.auth.resetPasswordForEmail(email,{redirectTo});
+    if(error) throw error;
+    cloudDialogStatus.textContent="E-Mail gesendet. Öffne den Link und lege ein neues Passwort fest.";
+  }catch(err){
+    cloudDialogStatus.textContent="Fehler: "+(err?.message||err);
+  }
+}
+async function sendMagicLinkFallback(){
+  const email=cloudEmail.value.trim();
+  if(!email){cloudDialogStatus.textContent="Bitte zuerst die E-Mail-Adresse eingeben.";return}
+  try{
+    const redirectTo=window.location.origin+window.location.pathname;
+    const {error}=await sbClient.auth.signInWithOtp({email,options:{emailRedirectTo:redirectTo}});
+    if(error) throw error;
+    cloudDialogStatus.textContent="Magic-Link gesendet.";
+  }catch(err){
+    cloudDialogStatus.textContent="Fehler: "+(err?.message||err);
+  }
+}
+async function finishPasswordReset(e){
+  e.preventDefault();
+  if(newPassword.value!==newPassword2.value){
+    passwordDialogStatus.textContent="Die Passwörter stimmen nicht überein.";return;
+  }
+  try{
+    const {error}=await sbClient.auth.updateUser({password:newPassword.value});
+    if(error) throw error;
+    passwordDialogStatus.textContent="Passwort gespeichert.";
+    setTimeout(()=>passwordDialog.close(),500);
+  }catch(err){
+    passwordDialogStatus.textContent="Fehler: "+(err?.message||err);
+  }
+}
+function v45OpenLogin(){
+  rememberLogin.checked=v45RememberPreference();
+  cloudDialogStatus.textContent="";
+  cloudDialog.showModal();
+}
+
+const __v45ShowSettingsBase=showSettings;
+showSettings=function(){
+  __v45ShowSettingsBase();
+  const loginBtn=[...document.querySelectorAll(".settings-card button")]
+    .find(b=>/Per E-Mail anmelden|anmelden/i.test(b.textContent||""));
+  if(loginBtn && !cloudUser){
+    loginBtn.textContent="Mit E-Mail + Passwort anmelden";
+    loginBtn.setAttribute("onclick","v45OpenLogin()");
+  }
+};
+
+/* Keep current list/week view when opening activity details. */
+let v45ViewBeforeDetails="list";
+const __v45OpenSessionBase=openSession;
+openSession=function(id=null,forceTopup=false){
+  v45ViewBeforeDetails=currentView||"list";
+  __v45OpenSessionBase(id,forceTopup);
+};
+const __v45SaveSessionBase=saveSession;
+saveSession=function(e){
+  const keep=v45ViewBeforeDetails||currentView||"list";
+  __v45SaveSessionBase(e);
+  currentView=keep;
+  const lb=document.getElementById("listViewBtn");
+  const wb=document.getElementById("weekViewBtn");
+  if(lb) lb.classList.toggle("active",currentView==="list");
+  if(wb) wb.classList.toggle("active",currentView==="week");
+  render();
+};
+document.addEventListener("DOMContentLoaded",()=>{
+  const dlg=document.getElementById("sessionDialog");
+  if(dlg){
+    dlg.addEventListener("close",()=>{
+      currentView=v45ViewBeforeDetails||currentView||"list";
+      const lb=document.getElementById("listViewBtn");
+      const wb=document.getElementById("weekViewBtn");
+      if(lb) lb.classList.toggle("active",currentView==="list");
+      if(wb) wb.classList.toggle("active",currentView==="week");
+    });
+  }
+});
+
+/* ===== V4.7 Plan sport icons ===== */
+function planSportEmoji(name=""){
+  const n=String(name).toLowerCase();
+  if(/lauf|running|run|marathon/.test(n) && !/radmarathon/.test(n)) return "🏃";
+  if(/ski|skitour|langlauf/.test(n)) return "⛷️";
+  if(/schwimm|swim/.test(n)) return "🏊";
+  if(/rad|bike|cycling|rennrad/.test(n)) return "🚴";
+  return "🏋️";
+}
+function planDisplayName(name=""){
+  const clean=String(name).replace(/^(🚴|🏃|⛷️|🏊|🏋️)\s*/u,"");
+  return planSportEmoji(clean)+" "+clean;
+}
+
+/* ===== V5 Event -> Block -> Sessions ===== */
+function unitEmoji(type="",title=""){
+  const t=(String(type)+" "+String(title)).toLowerCase();
+  if(/betterme|calisthenics|kraft|core/.test(t)) return "💪";
+  if(/ruhe|ruhetag|regeneration|erholung/.test(t)) return "😴";
+  if(/mobilität|mobility|stretch/.test(t)) return "🧘";
+  if(/indoor|zwift|merach/.test(t) && /rad|bike|cycling/.test(t)) return "🚲";
+  if(/outdoor/.test(t) && /rad|bike|cycling/.test(t)) return "🚴";
+  if(/rad|rennrad|bike|cycling/.test(t)) return "🚴";
+  if(/lauf|running|run/.test(t)) return "🏃";
+  if(/schwimm|swim/.test(t)) return "🏊";
+  if(/ski|skitour|langlauf/.test(t)) return "⛷️";
+  if(/koppel|brick/.test(t)) return "🚴🏃";
+  return "🏋️";
+}
+function decorateUnitTitle(s){
+  const emoji=unitEmoji(s.type,s.title);
+  const clean=String(s.title||"").replace(/^(🚴|🚲|🏃|🏊|⛷️|💪|😴|🧘|🏋️|🚴🏃)\s*/u,"");
+  return `${s.topup?"⭐ ":""}${emoji} ${clean}`;
+}
+
+function ensureV5Model(){
+  if(!db.events) db.events=[];
+  if(!db.blocks) db.blocks=[];
+
+  // Migrate old single-plan structure once.
+  if(!db.v5Migrated){
+    const oldPlans=[...(db.plans||[])];
+    const oldActive=db.activePlan;
+
+    // Create the requested current event.
+    const eventId="event-mondsee-2027";
+    db.events=[{
+      id:eventId,
+      name:"🚴 Mondsee Radmarathon 2027 – Route Typ C",
+      sport:"cycling",
+      description:"Mondsee Radmarathon 2027 · Route Typ C"
+    }];
+
+    const blockId="block-mondsee-2027-1";
+    db.blocks=[{
+      id:blockId,
+      eventId,
+      name:"Block 1 · Grundlagen",
+      focus:"Grundlagen",
+      order:1
+    }];
+
+    (db.sessions||[]).forEach(s=>{
+      s.eventId=eventId;
+      s.blockId=blockId;
+    });
+
+    db.activeEvent=eventId;
+    db.activeBlock=blockId;
+    db.v5Migrated=true;
+    localStorage.setItem(KEY,JSON.stringify(db));
+  }
+
+  if(!db.activeEvent && db.events.length) db.activeEvent=db.events[0].id;
+  if(!db.activeBlock){
+    const first=db.blocks.find(b=>b.eventId===db.activeEvent);
+    if(first) db.activeBlock=first.id;
+  }
+}
+
+function activeEventObj(){ return db.events.find(e=>e.id===db.activeEvent); }
+function activeBlockObj(){ return db.blocks.find(b=>b.id===db.activeBlock); }
+
+function renderEventSelectors(){
+  const es=document.getElementById("eventSelect");
+  const bs=document.getElementById("blockSelect");
+  if(!es||!bs) return;
+
+  es.innerHTML=db.events.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join("");
+  es.value=db.activeEvent;
+
+  const blocks=db.blocks.filter(b=>b.eventId===db.activeEvent).sort((a,b)=>a.order-b.order);
+  bs.innerHTML=blocks.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("");
+  if(!blocks.some(b=>b.id===db.activeBlock) && blocks.length) db.activeBlock=blocks[0].id;
+  bs.value=db.activeBlock||"";
+}
+
+function changeEvent(id){
+  db.activeEvent=id;
+  const first=db.blocks.filter(b=>b.eventId===id).sort((a,b)=>a.order-b.order)[0];
+  db.activeBlock=first?.id||null;
+  localStorage.setItem(KEY,JSON.stringify(db));
+  render();
+}
+function changeBlock(id){
+  db.activeBlock=id;
+  localStorage.setItem(KEY,JSON.stringify(db));
+  render();
+}
+
+function toggleEventMenu(){
+  document.getElementById("eventDrawer").classList.add("open");
+  document.getElementById("eventDrawerBackdrop").classList.add("open");
+  renderEventDrawer();
+}
+function closeEventMenu(){
+  document.getElementById("eventDrawer").classList.remove("open");
+  document.getElementById("eventDrawerBackdrop").classList.remove("open");
+}
+function renderEventDrawer(){
+  const root=document.getElementById("eventDrawerContent");
+  if(!root) return;
+  root.innerHTML=db.events.map(e=>{
+    const blocks=db.blocks.filter(b=>b.eventId===e.id).sort((a,b)=>a.order-b.order);
+    return `<div class="event-card">
+      <div class="event-row ${e.id===db.activeEvent?"active":""}" onclick="selectEventFromDrawer('${e.id}')">
+        <div>
+          <div class="event-name">${esc(e.name)}</div>
+          <div class="event-meta">${blocks.length} Block${blocks.length===1?"":"e"}</div>
+        </div>
+        <div>›</div>
+      </div>
+      <div class="block-list">
+        ${blocks.map(b=>`<div class="block-row ${b.id===db.activeBlock?"active":""}" onclick="selectBlockFromDrawer('${e.id}','${b.id}')">
+          <div>
+            <div>${esc(b.name)}</div>
+            <div class="block-focus">${esc(b.focus||"")}</div>
+          </div>
+          <div>›</div>
+        </div>`).join("")}
+      </div>
+    </div>`;
+  }).join("");
+}
+function selectEventFromDrawer(eventId){
+  changeEvent(eventId);
+  renderEventDrawer();
+}
+function selectBlockFromDrawer(eventId,blockId){
+  db.activeEvent=eventId;
+  db.activeBlock=blockId;
+  localStorage.setItem(KEY,JSON.stringify(db));
+  closeEventMenu();
+  render();
+}
+
+const __v5RenderBase=render;
+render=function(){
+  ensureV5Model();
+  renderEventSelectors();
+  __v5RenderBase();
+
+  // Filter visible sessions to current event+block after base render.
+  const arr=db.sessions
+    .filter(s=>s.eventId===db.activeEvent && s.blockId===db.activeBlock)
+    .sort((a,b)=>a.date.localeCompare(b.date));
+
+  const list=document.getElementById("list");
+  if(!list) return;
+
+  // Re-render current block in list view with decorated emojis.
+  if(currentView!=="week"){
+    if(!arr.length){
+      list.innerHTML='<div class="empty">Noch keine Trainings in diesem Block.</div>';
+      return;
+    }
+    const groups={};
+    arr.forEach(s=>{
+      const d=new Date(s.date+"T12:00:00");
+      const key=`KW ${isoWeek(d)} · ${d.toLocaleDateString("de-DE",{month:"long",year:"numeric"})}`;
+      (groups[key]??=[]).push(s);
+    });
+    list.innerHTML=Object.entries(groups).map(([w,items])=>`<div class="week">${w}</div>`+
+      items.map(s=>{
+        const d=new Date(s.date+"T12:00:00");
+        return `<div class="session ${s.status} ${s.topup?"topup":""}">
+          ${s.topup?'<div class="topup-badge">⭐ ON TOP · ZUSATZTRAINING</div>':""}
+          <div class="top">
+            <div class="title"><span class="unit-emoji">${unitEmoji(s.type,s.title)}</span>${esc(String(s.title||"").replace(/^(🚴|🚲|🏃|🏊|⛷️|💪|😴|🧘|🏋️|🚴🏃)\s*/u,""))}</div>
+            <div class="date">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})}</div>
+          </div>
+          <div class="meta">${esc(s.type||"")} ${s.desc?"· "+esc(s.desc):""}</div>
+          ${s.note?`<div class="note">📝 ${esc(s.note)}</div>`:""}
+          <div class="actions">
+            <button class="donebtn" onclick="status('${s.id}','done')">🟢 Erledigt</button>
+            <button class="movebtn" onclick="status('${s.id}','move')">🟡 Verschoben</button>
+            <button class="cancelbtn" onclick="status('${s.id}','cancel')">🔴 Ausgefallen</button>
+            <button onclick="status('${s.id}','open')">⚪ Offen</button>
+            <button onclick="openSession('${s.id}')">Details</button>
+            <button onclick="moveSession('${s.id}',1)">↪ Morgen</button>
+          </div>
+        </div>`;
+      }).join("")
+    ).join("");
+  }
+};
+
+const __v5RenderWeekBase=renderWeek;
+renderWeek=function(){
+  ensureV5Model();
+  const arr=db.sessions
+    .filter(s=>s.eventId===db.activeEvent && s.blockId===db.activeBlock)
+    .sort((a,b)=>a.date.localeCompare(b.date));
+  const byWeek={};
+  arr.forEach(s=>{
+    const d=new Date(s.date+'T12:00:00');
+    const day=(d.getDay()+6)%7;
+    const monday=new Date(d);monday.setDate(d.getDate()-day);
+    const key=monday.toISOString().slice(0,10);
+    (byWeek[key]??=[]).push(s);
+  });
+  const list=document.getElementById('list');
+  if(!arr.length){list.innerHTML='<div class="empty">Noch keine Trainings in diesem Block.</div>';return}
+  list.innerHTML=Object.keys(byWeek).sort().map(k=>{
+    const monday=new Date(k+'T12:00:00');
+    let days='';
+    for(let i=0;i<7;i++){
+      const d=new Date(monday);d.setDate(monday.getDate()+i);
+      const ds=d.toISOString().slice(0,10);
+      const items=byWeek[k].filter(x=>x.date===ds);
+      days+=`<div class="day ${ds===new Date().toISOString().slice(0,10)?'today':''}">
+        <div class="daynum">${d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit'})}</div>
+        ${items.map(x=>`<div class="dayitem ${x.status} ${x.topup?'topup':''}" onclick="openSession('${x.id}')">${x.topup?'⭐ ':''}${unitEmoji(x.type,x.title)} ${esc(String(x.title||"").replace(/^(🚴|🚲|🏃|🏊|⛷️|💪|😴|🧘|🏋️|🚴🏃)\s*/u,""))}</div>`).join('')}
+      </div>`;
+    }
+    return `<div class="week">${activeBlockObj()?.name||"Block"} · Woche ab ${monday.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</div><div class="calendar">${days}</div>`;
+  }).join('');
+};
+
+const __v5OpenSessionBase=openSession;
+openSession=function(id=null,forceTopup=false){
+  __v5OpenSessionBase(id,forceTopup);
+  const s=id?db.sessions.find(x=>x.id===id):null;
+  if(s){
+    s.eventId=s.eventId||db.activeEvent;
+    s.blockId=s.blockId||db.activeBlock;
+  }
+};
+
+const __v5SaveSessionBase=saveSession;
+saveSession=function(e){
+  // replicate save while attaching event/block
+  e.preventDefault();
+  const obj={
+    id:editId||crypto.randomUUID(),
+    planId:db.activePlan,
+    eventId:db.activeEvent,
+    blockId:db.activeBlock,
+    date:sDate.value,
+    type:sType.value,
+    title:sTitle.value,
+    desc:sDesc.value,
+    note:sNote.value,
+    status:sStatus.value,
+    topup:!!sTopup.checked,
+    reminder:sReminder.value,
+    reminderTime:sReminderTime.value,
+    updatedAt:new Date().toISOString()
+  };
+  const i=db.sessions.findIndex(x=>x.id===obj.id);
+  if(i>=0)db.sessions[i]=obj;else db.sessions.push(obj);
+  sessionDialog.close();save();
+};
+
+ensureV5Model();
 </script>
 
 <nav class="bottomnav appnav">
@@ -1354,21 +2245,64 @@ showSettings=function(){
   <button class="navitem" id="navSettings" onclick="navTo('settings')"><span class="navicon">⚙︎</span>Einstellungen</button>
 </nav>
 
+
 <dialog id="cloudDialog">
-  <form method="dialog" class="modal" onsubmit="sendMagicLink(event)">
-    <h2>☁️ Cloud-Anmeldung</h2>
-    <p class="helper">Melde dich per E-Mail an. Supabase sendet dir einen sicheren Magic-Link; ein eigenes App-Passwort ist nicht nötig.</p>
+  <form method="dialog" class="modal" onsubmit="loginWithPassword(event)">
+    <h2>☁️ Anmelden</h2>
+    <p class="helper">Standardmäßig mit E-Mail und Passwort. Magic-Link bleibt als Fallback verfügbar.</p>
     <div class="grid">
       <label class="full">E-Mail
         <input id="cloudEmail" type="email" autocomplete="email" required placeholder="name@beispiel.at">
       </label>
+      <label class="full">Passwort
+        <input id="cloudPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Passwort">
+      </label>
+      <label class="full" style="display:flex;flex-direction:row;align-items:center;gap:10px">
+        <input id="rememberLogin" type="checkbox" checked style="width:18px;height:18px">
+        <span>Angemeldet bleiben</span>
+      </label>
     </div>
     <div id="cloudDialogStatus" class="statusline"></div>
-    <div class="buttons">
+    <div class="buttons" style="flex-wrap:wrap">
+      <button type="button" onclick="sendPasswordReset()">Passwort festlegen / vergessen</button>
+      <button type="button" onclick="sendMagicLinkFallback()">Magic-Link</button>
       <button type="button" onclick="cloudDialog.close()">Abbrechen</button>
-      <button class="primary">Magic-Link senden</button>
+      <button class="primary">Anmelden</button>
     </div>
   </form>
 </dialog>
+
+<dialog id="passwordDialog">
+  <form method="dialog" class="modal" onsubmit="finishPasswordReset(event)">
+    <h2>🔐 Neues Passwort</h2>
+    <p class="helper">Lege ein Passwort für deinen bestehenden Supabase-Benutzer fest.</p>
+    <div class="grid">
+      <label class="full">Neues Passwort
+        <input id="newPassword" type="password" autocomplete="new-password" required minlength="8">
+      </label>
+      <label class="full">Passwort wiederholen
+        <input id="newPassword2" type="password" autocomplete="new-password" required minlength="8">
+      </label>
+    </div>
+    <div id="passwordDialogStatus" class="statusline"></div>
+    <div class="buttons">
+      <button type="button" onclick="passwordDialog.close()">Abbrechen</button>
+      <button class="primary">Passwort speichern</button>
+    </div>
+  </form>
+</dialog>
+
+
+<div id="eventDrawerBackdrop" class="event-drawer-backdrop" onclick="closeEventMenu()"></div>
+<aside id="eventDrawer" class="event-drawer">
+  <div class="event-drawer-header">
+    <div>
+      <div class="event-drawer-kicker">TRAINING</div>
+      <div class="event-drawer-title">Events & Blöcke</div>
+    </div>
+    <button onclick="closeEventMenu()" class="drawer-close">×</button>
+  </div>
+  <div id="eventDrawerContent"></div>
+</aside>
 </body>
 </html>

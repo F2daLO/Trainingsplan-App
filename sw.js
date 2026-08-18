@@ -1,4 +1,4 @@
-const CACHE="training-app-v4-3-glass";
+const CACHE="training-app-v5-event-block";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 self.addEventListener("install",e=>{
   self.skipWaiting();
