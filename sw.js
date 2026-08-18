@@ -1,4 +1,4 @@
-const CACHE="training-app-v4-1-autosync";
+const CACHE="training-app-v4-3-glass";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 self.addEventListener("install",e=>{
   self.skipWaiting();
