@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v5.3</title>
+<title>Training v5.5</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -114,6 +114,95 @@ dialog::backdrop{background:rgba(10,10,12,.22);backdrop-filter:blur(14px);-webki
 @media(min-width:1200px){.nav button{width:98px!important;min-width:98px!important;height:72px!important;font-size:11px!important}}
 @media(prefers-color-scheme:dark){.session.done{background:rgba(52,199,89,.12)!important}.session.cancel{background:rgba(255,69,58,.10)!important}.session.move{background:rgba(214,162,0,.10)!important}.session.topup{background:rgba(201,151,0,.11)!important}}
 
+
+/* ===== V5.4 Status Reset + Responsive Details ===== */
+dialog#sessionDialog{
+  width:min(94vw,760px) !important;
+  max-width:760px !important;
+  max-height:min(92dvh,900px) !important;
+  margin:auto !important;
+}
+#sessionDialog .modal{
+  width:100% !important;
+  max-height:min(92dvh,900px) !important;
+  overflow:auto !important;
+  -webkit-overflow-scrolling:touch;
+  padding:22px !important;
+}
+#sessionDialog .grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+.session{touch-action:pan-y}
+.action-sheet{
+  position:fixed;z-index:120;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(92vw,420px);padding:10px;border-radius:22px
+}
+.action-sheet h3{margin:6px 8px 10px;font-size:15px}
+.action-sheet button{
+  width:100%;border:0;border-radius:14px;padding:13px;margin:4px 0;
+  background:rgba(255,255,255,.40);color:var(--text)
+}
+.action-sheet button.danger{color:var(--red)}
+.action-sheet button.neutral{color:var(--muted)}
+.action-sheet-backdrop{
+  position:fixed;z-index:119;inset:0;background:rgba(0,0,0,.15);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)
+}
+@media(max-width:767px){
+  dialog#sessionDialog{
+    width:calc(100vw - 12px) !important;
+    max-width:none !important;
+    max-height:calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important
+  }
+  #sessionDialog .modal{
+    max-height:calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    padding:16px !important;border-radius:24px !important
+  }
+  #sessionDialog .grid{grid-template-columns:1fr !important;gap:10px !important}
+}
+@media(min-width:768px) and (max-width:1199px){
+  dialog#sessionDialog{width:min(90vw,700px) !important}
+}
+
+
+/* ===== V5.5 Week status colors ===== */
+.dayitem.open{
+  background:rgba(160,160,165,.12) !important;
+  border:1px solid rgba(160,160,165,.14) !important;
+}
+.dayitem.done{
+  background:rgba(52,199,89,.14) !important;
+  border:1px solid rgba(52,199,89,.18) !important;
+}
+.dayitem.move{
+  background:rgba(214,162,0,.14) !important;
+  border:1px solid rgba(214,162,0,.18) !important;
+}
+.dayitem.cancel{
+  background:rgba(255,69,58,.13) !important;
+  border:1px solid rgba(255,69,58,.17) !important;
+}
+.dayitem.topup{
+  box-shadow:inset 0 0 0 1px rgba(201,151,0,.22);
+}
+.dayitem.done.topup{
+  background:
+    linear-gradient(180deg,rgba(255,239,159,.18),rgba(52,199,89,.12)) !important;
+}
+.dayitem.move.topup{
+  background:
+    linear-gradient(180deg,rgba(255,239,159,.20),rgba(214,162,0,.12)) !important;
+}
+.dayitem.cancel.topup{
+  background:
+    linear-gradient(180deg,rgba(255,239,159,.18),rgba(255,69,58,.11)) !important;
+}
+@media(prefers-color-scheme:dark){
+  .dayitem.open{background:rgba(160,160,165,.16) !important}
+  .dayitem.done{background:rgba(52,199,89,.20) !important}
+  .dayitem.move{background:rgba(214,162,0,.19) !important}
+  .dayitem.cancel{background:rgba(255,69,58,.18) !important}
+}
+
 </style>
 </head>
 <body>
@@ -127,7 +216,7 @@ dialog::backdrop{background:rgba(10,10,12,.22);backdrop-filter:blur(14px);-webki
 </nav>
 
 <dialog id="sessionDialog"><form class="modal glass" onsubmit="saveSession(event)">
-<h2 id="sessionHeading">Training</h2><p class="helper">Datum und Uhrzeit werden für neue Einheiten automatisch auf jetzt gesetzt.</p>
+<h2 id="sessionHeading" tabindex="-1">Training</h2><p class="helper">Datum und Uhrzeit werden für neue Einheiten automatisch auf jetzt gesetzt.</p>
 <div class="grid">
 <label>Datum & Uhrzeit<input id="sDateTime" type="datetime-local" required></label>
 <label>Trainingsart<select id="sType"><option>Indoor Rad</option><option>Outdoor Rad</option><option>Kraft / BetterMe</option><option>Regeneration</option><option>Laufen</option><option>Schwimmen</option><option>Ski / Skitour</option><option>Mobilität</option><option>Sonstiges</option></select></label>
@@ -211,12 +300,12 @@ function renderList(){
  root.innerHTML=Object.entries(groups).map(([w,items])=>`<div class="week-title">${w}</div>${items.map(card).join("")}`).join("")
 }
 function card(s){
- const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");return `<article class="session glass ${s.status} ${s.topup?"topup":""}">${s.topup?'<div class="badge">⭐ ON TOP</div>':""}<div class="row"><div class="stitle">${unitEmoji(s)} ${esc(s.title)}</div><div class="sdate">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div></div><div class="meta">${esc(s.type||"")}${s.desc?" · "+esc(s.desc):""}</div>${s.note?`<div class="note">📝 ${esc(s.note)}</div>`:""}<div class="sactions"><button class="ok" onclick="setStatus('${s.id}','done')">Erledigt</button><button class="warn" onclick="setStatus('${s.id}','move')">Verschoben</button><button class="bad" onclick="setStatus('${s.id}','cancel')">Ausgefallen</button><button onclick="openSession('${s.id}')">Details</button><button onclick="moveTomorrow('${s.id}')">Morgen</button></div></article>`
+ const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");return `<article class="session glass ${s.status} ${s.topup?"topup":""}" data-session-id="${s.id}">${s.topup?'<div class="badge">⭐ ON TOP</div>':""}<div class="row"><div class="stitle">${unitEmoji(s)} ${esc(s.title)}</div><div class="sdate">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div></div><div class="meta">${esc(s.type||"")}${s.desc?" · "+esc(s.desc):""}</div>${s.note?`<div class="note">📝 ${esc(s.note)}</div>`:""}<div class="sactions"><button class="ok" onclick="setStatus('${s.id}','done')">Erledigt</button><button class="warn" onclick="setStatus('${s.id}','move')">Verschoben</button><button class="bad" onclick="setStatus('${s.id}','cancel')">Ausgefallen</button><button onclick="setStatus('${s.id}','open')">Neutral</button><button onclick="openSession('${s.id}')">Details</button><button onclick="moveTomorrow('${s.id}')">Morgen</button></div></article>`
 }
 function renderWeek(){
  const arr=currentSessions(), root=document.getElementById("planContent");if(!arr.length){root.innerHTML='<div class="empty">Noch keine Einheiten in diesem Block.</div>';return}
  const by={};arr.forEach(s=>{const d=new Date(s.date+"T12:00:00"),n=(d.getDay()+6)%7,m=new Date(d);m.setDate(d.getDate()-n);const k=m.toISOString().slice(0,10);(by[k]??=[]).push(s)})
- root.innerHTML=Object.keys(by).sort().map(k=>{const m=new Date(k+"T12:00:00");let days="";for(let i=0;i<7;i++){const d=new Date(m);d.setDate(m.getDate()+i);const ds=d.toISOString().slice(0,10);const items=by[k].filter(x=>x.date===ds);days+=`<div class="day glass ${ds===new Date().toISOString().slice(0,10)?"today":""}"><div class="daynum">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit"})}</div>${items.map(x=>`<div class="dayitem ${x.topup?"topup":""}" onclick="openSession('${x.id}')">${x.topup?"⭐ ":""}${unitEmoji(x)} ${esc(x.title)}</div>`).join("")}</div>`}return `<div class="week-title">${esc(activePlan().name)} · Woche ab ${m.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</div><div class="calendar">${days}</div>`}).join("")
+ root.innerHTML=Object.keys(by).sort().map(k=>{const m=new Date(k+"T12:00:00");let days="";for(let i=0;i<7;i++){const d=new Date(m);d.setDate(m.getDate()+i);const ds=d.toISOString().slice(0,10);const items=by[k].filter(x=>x.date===ds);days+=`<div class="day glass ${ds===new Date().toISOString().slice(0,10)?"today":""}"><div class="daynum">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit"})}</div>${items.map(x=>`<div class="dayitem ${x.status||"open"} ${x.topup?"topup":""}" onclick="openSession('${x.id}')">${x.topup?"⭐ ":""}${unitEmoji(x)} ${esc(x.title)}</div>`).join("")}</div>`}return `<div class="week-title">${esc(activePlan().name)} · Woche ab ${m.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</div><div class="calendar">${days}</div>`}).join("")
 }
 
 function openSession(id=null,topup=false){
@@ -347,6 +436,91 @@ async function passwordReset(){
   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
   loginStatus.textContent=error?error.message:"Recovery-Mail gesendet. Öffne den Link; danach erscheint automatisch das Formular für ein neues Passwort.";
 }
+
+/* ===== V5.4 gestures / status reset / details focus fix ===== */
+function neutralizeSession(id){
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+  s.status="open";
+  s.updatedAt=new Date().toISOString();
+  persist();
+}
+function deleteSession(id){
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+  if(!confirm(`Training "${s.title}" wirklich löschen?`)) return;
+  db.sessions=db.sessions.filter(x=>x.id!==id);
+  persist();
+}
+function closeActionSheet(){
+  document.querySelector(".action-sheet-backdrop")?.remove();
+  document.querySelector(".action-sheet")?.remove();
+}
+function showSessionActions(id){
+  closeActionSheet();
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+  const back=document.createElement("div");
+  back.className="action-sheet-backdrop";
+  back.onclick=closeActionSheet;
+  const sheet=document.createElement("div");
+  sheet.className="action-sheet glass";
+  sheet.innerHTML=`<h3>${esc(s.title)}</h3>
+    <button class="neutral" onclick="neutralizeSession('${id}');closeActionSheet()">○ Neutralisieren</button>
+    <button class="danger" onclick="deleteSession('${id}');closeActionSheet()">🗑 Löschen</button>
+    <button onclick="closeActionSheet()">Abbrechen</button>`;
+  document.body.append(back,sheet);
+}
+function bindSessionGestures(){
+  document.querySelectorAll(".session[data-session-id]").forEach(card=>{
+    if(card.dataset.gesturesBound==="1")return;
+    card.dataset.gesturesBound="1";
+    const id=card.dataset.sessionId;
+
+    card.addEventListener("dblclick",e=>{
+      if(e.target.closest("button"))return;
+      neutralizeSession(id);
+    });
+
+    let lastTap=0,startX=0,startY=0;
+    card.addEventListener("touchstart",e=>{
+      const t=e.changedTouches[0];
+      startX=t.clientX;startY=t.clientY;
+      const now=Date.now();
+      if(now-lastTap<330){
+        e.preventDefault();
+        neutralizeSession(id);
+        lastTap=0;
+      }else lastTap=now;
+    },{passive:false});
+
+    card.addEventListener("touchend",e=>{
+      const t=e.changedTouches[0];
+      const dx=t.clientX-startX,dy=t.clientY-startY;
+      if(Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.35){
+        showSessionActions(id);
+      }
+    },{passive:true});
+  });
+}
+
+const __v54RenderBase=render;
+render=function(){
+  __v54RenderBase();
+  setTimeout(bindSessionGestures,0);
+};
+
+const __v54OpenSessionBase=openSession;
+openSession=function(id=null,topup=false){
+  const keepView=planView;
+  __v54OpenSessionBase(id,topup);
+  planView=keepView;
+  requestAnimationFrame(()=>{
+    const h=document.getElementById("sessionHeading");
+    if(h) h.focus({preventScroll:true});
+    else document.activeElement?.blur?.();
+  });
+};
 </script>
 
 <dialog id="passwordDialog">
