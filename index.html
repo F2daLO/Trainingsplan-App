@@ -1,2308 +1,262 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#111827">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <title>Mein Trainingsplan</title>
-  <style>
-:root{
-  --bg:#f2f2f7;--card:#ffffff;--text:#111114;--secondary:#6e6e73;
-  --line:#d1d1d6;--blue:#007aff;--green:#34c759;--red:#ff3b30;
-  --yellow:#ffcc00;--gold:#d9a300;--goldbg:#fff8d8;
-}
-*{box-sizing:border-box}
-html{background:var(--bg)}
-body{
-  margin:0;background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
-  -webkit-font-smoothing:antialiased;
-}
-button,input,textarea,select{font:inherit}
-button{cursor:pointer}
-.app{min-height:100vh;padding-bottom:94px}
-.topbar{
-  position:sticky;top:0;z-index:20;
-  background:rgba(249,249,249,.94);
-  backdrop-filter:saturate(180%) blur(20px);
-  -webkit-backdrop-filter:saturate(180%) blur(20px);
-  border-bottom:1px solid rgba(60,60,67,.18);
-  padding:calc(8px + env(safe-area-inset-top)) 16px 10px
-}
-.topbar h1{font-size:17px;text-align:center;margin:0 0 9px;font-weight:700}
-.topbar select{
-  width:100%;border:0;background:rgba(118,118,128,.12);
-  border-radius:10px;padding:9px 12px;color:var(--text);outline:0
-}
-main{padding:16px 16px 30px;max-width:760px;margin:auto}
-.screen-title{
-  font-size:34px;line-height:1.08;font-weight:700;letter-spacing:-.7px;margin:5px 0 17px
-}
-.stats{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
-  border-radius:15px;overflow:hidden;margin-bottom:17px
-}
-.stat{background:#fff;padding:13px 7px;text-align:center}
-.stat b{font-size:22px;display:block;line-height:1.1}
-.stat span{font-size:11px;color:var(--secondary)}
-.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
-.toolbar button{
-  border:0;border-radius:12px;background:#fff;padding:12px;color:var(--blue);
-  font-weight:600;box-shadow:0 1px 2px #0001
-}
-.toolbar .primary{background:var(--blue);color:#fff}
-.toolbar .soft{background:var(--goldbg);color:#8a6500}
-.toolbar button.utility{background:transparent;box-shadow:none;color:var(--secondary);font-weight:500;font-size:13px}
-.viewbar{
-  display:flex;background:rgba(118,118,128,.12);padding:2px;border-radius:9px;margin:10px 0 16px
-}
-.viewbar button{
-  flex:1;border:0;background:transparent;border-radius:7px;padding:7px;
-  font-size:13px;color:var(--secondary)
-}
-.viewbar button.active{background:#fff;color:var(--text);box-shadow:0 1px 3px #0002}
-.legend{display:none}
-.week{
-  font-size:13px;font-weight:650;color:var(--secondary);text-transform:uppercase;
-  letter-spacing:.25px;margin:21px 4px 8px
-}
-.session{
-  position:relative;background:#fff;border:0;border-radius:16px;
-  padding:14px 14px 11px 18px;margin:8px 0;
-  box-shadow:0 1px 3px #0000000b;overflow:hidden
-}
-.session:before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#c7c7cc
-}
-.session.done:before{background:var(--green)}
-.session.cancel:before{background:var(--red)}
-.session.move:before{background:var(--yellow)}
-.session.topup{
-  background:linear-gradient(180deg,#fffef7,#fff);
-  box-shadow:0 0 0 1.5px var(--gold),0 3px 10px rgba(217,163,0,.13)
-}
-.session.topup:before{background:var(--gold)}
-.topup-badge{
-  display:inline-block;margin:0 0 7px;background:var(--goldbg);color:#795900;
-  border:1px solid #efd979;border-radius:8px;padding:3px 7px;
-  font-size:10px;font-weight:800;letter-spacing:.15px
-}
-.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.title{font-weight:650;font-size:16px}
-.date{color:var(--secondary);font-size:13px;white-space:nowrap}
-.meta{font-size:13px;color:var(--secondary);margin-top:5px;line-height:1.35}
-.note{background:#f2f2f7;border-radius:10px;padding:9px;margin-top:9px;font-size:13px;white-space:pre-wrap}
-.actions{
-  display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;border-top:1px solid #eeeef2;padding-top:9px
-}
-.actions button{border:0;background:transparent;color:var(--blue);font-size:12px;padding:3px 1px}
-.actions .donebtn{color:var(--green)}
-.actions .movebtn{color:#a57b00}
-.actions .cancelbtn{color:var(--red)}
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.day{
-  min-height:78px;background:#fff;border-radius:11px;padding:7px;
-  box-shadow:0 1px 2px #0001
-}
-.day.today{outline:2px solid var(--blue)}
-.daynum{font-size:12px;font-weight:650}
-.dayitem{
-  margin-top:5px;border-radius:7px;padding:4px;font-size:10px;line-height:1.1;
-  background:#f2f2f7;overflow:hidden
-}
-.dayitem.done{background:#dff7e5}
-.dayitem.cancel{background:#ffe2df}
-.dayitem.move{background:#fff3c4}
-.dayitem.topup{background:var(--goldbg);box-shadow:inset 0 0 0 1px #efd979}
-.bottomnav{
-  position:fixed;z-index:30;left:0;right:0;bottom:0;
-  padding:7px 10px calc(7px + env(safe-area-inset-bottom));
-  background:rgba(249,249,249,.95);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-top:1px solid rgba(60,60,67,.18);
-  display:grid;grid-template-columns:repeat(4,1fr);text-align:center
-}
-.navitem{border:0;background:transparent;color:var(--secondary);font-size:10px;padding:2px}
-.navitem.active{color:var(--blue)}
-.navicon{font-size:21px;line-height:22px;display:block;margin-bottom:2px}
-dialog{
-  border:0;border-radius:20px;padding:0;width:min(94vw,620px);
-  box-shadow:0 25px 70px #0005
-}
-dialog::backdrop{background:#0006;backdrop-filter:blur(3px)}
-.modal{padding:20px}
-.modal h2{font-size:22px;margin:0 0 18px}
-.modal p.helper{font-size:13px;color:var(--secondary);line-height:1.45;margin-top:-8px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.full{grid-column:1/-1}
-label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:600;color:var(--secondary)}
-label input,label textarea,label select{
-  border:1px solid var(--line);border-radius:11px;padding:10px;background:#f9f9fb;color:var(--text);outline:0
-}
-.inline-check{
-  display:flex;flex-direction:row;align-items:center;gap:9px;
-  background:var(--goldbg);border:1px solid #efd979;border-radius:11px;padding:10px;color:#795900
-}
-.inline-check input{width:18px;height:18px;margin:0}
-.modal .buttons{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
-.modal .buttons button{border:0;border-radius:11px;padding:10px 14px}
-.modal .buttons .primary{background:var(--blue);color:#fff}
-.settings-card{background:#fff;border-radius:15px;padding:15px;margin:10px 0}
-.settings-card h3{margin:0 0 5px;font-size:17px}
-.settings-card p{color:var(--secondary);font-size:13px;line-height:1.4}
-.settings-card button{border:0;border-radius:11px;background:var(--blue);color:#fff;padding:10px 14px}
-.statusline{font-size:12px;margin-top:8px;color:var(--secondary)}
-@media(max-width:520px){
-  .grid{grid-template-columns:1fr}.full{grid-column:auto}
-  .calendar{gap:3px}.day{min-height:68px;padding:5px}.dayitem{font-size:9px}
-}
-
-/* ===== V4.2 Responsive UI ===== */
-
-/* iOS Safari zooms focused inputs below 16px. Keep form controls >=16px. */
-input, select, textarea,
-label input, label select, label textarea {
-  font-size:16px !important;
-}
-
-/* Prevent accidental text autosizing / horizontal layout drift. */
-html {
-  -webkit-text-size-adjust:100%;
-  text-size-adjust:100%;
-}
-body {
-  overflow-x:hidden;
-}
-img, svg {
-  max-width:100%;
-}
-main, .app, .topbar, .bottomnav, dialog, .modal {
-  max-width:100%;
-}
-dialog {
-  max-height:88dvh;
-}
-.modal {
-  max-height:88dvh;
-  overflow:auto;
-  -webkit-overflow-scrolling:touch;
-}
-
-/* Mobile / iPhone */
-@media (max-width: 767px) {
-  .app {
-    padding-bottom:94px;
-  }
-  main {
-    width:100%;
-    padding-left:14px;
-    padding-right:14px;
-  }
-  .screen-title {
-    font-size:32px;
-  }
-  .toolbar {
-    grid-template-columns:1fr 1fr;
-  }
-  .stats {
-    grid-template-columns:repeat(3,minmax(0,1fr));
-  }
-  .calendar {
-    grid-template-columns:repeat(7,minmax(0,1fr));
-  }
-  .day {
-    min-width:0;
-  }
-  .dayitem {
-    word-break:break-word;
-  }
-}
-
-/* iPad / tablet: keep bottom navigation, give content more breathing room. */
-@media (min-width:768px) and (max-width:1199px) {
-  .app {
-    padding-bottom:96px;
-  }
-  main {
-    width:min(100%, 980px);
-    padding:24px 28px 36px;
-  }
-  .topbar {
-    padding-left:28px;
-    padding-right:28px;
-  }
-  .toolbar {
-    grid-template-columns:repeat(3,1fr);
-  }
-  .screen-title {
-    font-size:38px;
-  }
-  .calendar {
-    gap:8px;
-  }
-  .day {
-    min-height:96px;
-  }
-}
-
-/* Desktop: permanent left sidebar, no bottom bar. */
-@media (min-width:1200px) {
-  body {
-    background:#f2f2f7;
-  }
-
-  .app {
-    padding-bottom:0;
-    padding-left:220px;
-  }
-
-  .topbar {
-    left:220px;
-    width:calc(100% - 220px);
-    padding-left:34px;
-    padding-right:34px;
-  }
-
-  .topbar h1 {
-    text-align:left;
-    font-size:15px;
-    color:#6e6e73;
-    margin-bottom:8px;
-  }
-
-  .topbar select {
-    width:min(420px,100%);
-  }
-
-  main {
-    max-width:1280px;
-    margin:0 auto;
-    padding:30px 40px 48px;
-  }
-
-  .screen-title {
-    font-size:42px;
-    margin-bottom:22px;
-  }
-
-  .bottomnav.appnav {
-    position:fixed;
-    left:0;
-    top:0;
-    bottom:0;
-    right:auto;
-    width:220px;
-    height:100dvh;
-    padding:28px 16px;
-    display:flex;
-    flex-direction:column;
-    align-items:stretch;
-    justify-content:flex-start;
-    gap:8px;
-    text-align:left;
-    background:rgba(249,249,249,.96);
-    border-top:0;
-    border-right:1px solid rgba(60,60,67,.18);
-    box-shadow:1px 0 0 rgba(255,255,255,.6);
-    z-index:40;
-  }
-
-  .bottomnav.appnav::before {
-    content:"Mein Training";
-    display:block;
-    font-size:20px;
-    font-weight:700;
-    letter-spacing:-.25px;
-    padding:6px 10px 20px;
-    color:#111114;
-  }
-
-  .navitem {
-    display:flex;
-    align-items:center;
-    gap:12px;
-    width:100%;
-    text-align:left;
-    font-size:15px;
-    line-height:1;
-    padding:12px 14px;
-    border-radius:11px;
-  }
-
-  .navitem:hover {
-    background:rgba(118,118,128,.08);
-  }
-
-  .navitem.active {
-    background:rgba(0,122,255,.10);
-    color:#007aff;
-    font-weight:650;
-  }
-
-  .navicon {
-    width:24px;
-    margin:0;
-    font-size:20px;
-    line-height:20px;
-    text-align:center;
-  }
-
-  .stats {
-    grid-template-columns:repeat(3,minmax(160px,1fr));
-  }
-
-  .toolbar {
-    display:flex;
-    flex-wrap:wrap;
-  }
-
-  .toolbar button {
-    min-width:150px;
-  }
-
-  .viewbar {
-    width:320px;
-  }
-
-  .calendar {
-    gap:10px;
-  }
-
-  .day {
-    min-height:118px;
-    padding:10px;
-  }
-
-  .daynum {
-    font-size:13px;
-  }
-
-  .dayitem {
-    font-size:11px;
-    padding:6px;
-  }
-
-  dialog {
-    width:min(680px,calc(100vw - 280px));
-  }
-}
-
-/* Very wide desktop: center content without stretching cards excessively. */
-@media (min-width:1600px) {
-  main {
-    max-width:1400px;
-  }
-}
-
-
-/* ===== V4.3 Apple Glass-inspired visual layer ===== */
-:root{
-  --glass-bg:rgba(255,255,255,.58);
-  --glass-bg-strong:rgba(255,255,255,.72);
-  --glass-border:rgba(255,255,255,.56);
-  --glass-shadow:0 10px 30px rgba(31,38,52,.10),0 2px 8px rgba(31,38,52,.06);
-  --glass-shadow-soft:0 4px 14px rgba(31,38,52,.07);
-  --glass-highlight:inset 0 1px 0 rgba(255,255,255,.72);
-}
-body{
-  background:
-    radial-gradient(circle at 12% 10%, rgba(0,122,255,.08), transparent 28%),
-    radial-gradient(circle at 88% 16%, rgba(90,200,250,.10), transparent 24%),
-    linear-gradient(180deg,#f5f7fb 0%,#eef1f6 100%);
-  background-attachment:fixed;
-}
-.topbar{
-  background:rgba(246,248,252,.62) !important;
-  border-bottom:1px solid rgba(255,255,255,.65) !important;
-  box-shadow:0 8px 24px rgba(31,38,52,.05);
-  backdrop-filter:saturate(180%) blur(28px) !important;
-  -webkit-backdrop-filter:saturate(180%) blur(28px) !important;
-}
-.topbar select{
-  background:rgba(255,255,255,.54) !important;
-  border:1px solid rgba(255,255,255,.65) !important;
-  box-shadow:var(--glass-highlight),0 3px 12px rgba(31,38,52,.05);
-}
-.stats{background:transparent !important;gap:10px !important;overflow:visible !important}
-.stat{
-  border-radius:18px;background:var(--glass-bg) !important;border:1px solid var(--glass-border);
-  box-shadow:var(--glass-shadow-soft),var(--glass-highlight);
-  backdrop-filter:blur(24px) saturate(160%);
-  -webkit-backdrop-filter:blur(24px) saturate(160%);
-}
-.toolbar button{
-  border:1px solid var(--glass-border) !important;background:var(--glass-bg) !important;
-  box-shadow:var(--glass-shadow-soft),var(--glass-highlight) !important;
-  backdrop-filter:blur(22px) saturate(160%);
-  -webkit-backdrop-filter:blur(22px) saturate(160%);
-  transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
-}
-.toolbar button:active{transform:scale(.985)}
-.toolbar .primary{
-  background:linear-gradient(180deg,rgba(20,132,255,.96),rgba(0,122,255,.94)) !important;
-  color:white !important;border-color:rgba(255,255,255,.22) !important;
-  box-shadow:0 8px 18px rgba(0,122,255,.22),inset 0 1px 0 rgba(255,255,255,.28) !important;
-}
-.toolbar .soft{
-  background:linear-gradient(180deg,rgba(255,246,196,.90),rgba(255,236,149,.84)) !important;
-  border-color:rgba(255,255,255,.55) !important;
-}
-.toolbar .utility{background:rgba(255,255,255,.34) !important}
-.viewbar{
-  background:rgba(118,118,128,.12) !important;border:1px solid rgba(255,255,255,.55);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.45);
-  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-}
-.viewbar button.active{
-  background:rgba(255,255,255,.82) !important;
-  box-shadow:0 2px 10px rgba(31,38,52,.08),inset 0 1px 0 rgba(255,255,255,.9) !important;
-}
-.session{
-  background:var(--glass-bg-strong) !important;border:1px solid var(--glass-border) !important;
-  box-shadow:var(--glass-shadow),var(--glass-highlight) !important;
-  backdrop-filter:blur(26px) saturate(165%);
-  -webkit-backdrop-filter:blur(26px) saturate(165%);
-}
-.session.topup{
-  background:linear-gradient(180deg,rgba(255,253,240,.86),rgba(255,250,224,.72)) !important;
-  box-shadow:0 0 0 1px rgba(217,163,0,.35),0 10px 28px rgba(128,93,0,.10),var(--glass-highlight) !important;
-}
-.note{
-  background:rgba(242,242,247,.62) !important;border:1px solid rgba(255,255,255,.55);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-}
-.day{
-  background:var(--glass-bg) !important;border:1px solid var(--glass-border);
-  box-shadow:var(--glass-shadow-soft),var(--glass-highlight) !important;
-  backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);
-}
-.day.today{
-  outline:2px solid rgba(0,122,255,.78) !important;
-  box-shadow:0 0 0 5px rgba(0,122,255,.08),var(--glass-shadow-soft) !important;
-}
-.bottomnav.appnav{
-  background:rgba(247,248,251,.64) !important;border-top:1px solid rgba(255,255,255,.65) !important;
-  box-shadow:0 -8px 24px rgba(31,38,52,.06);
-  backdrop-filter:saturate(180%) blur(28px) !important;
-  -webkit-backdrop-filter:saturate(180%) blur(28px) !important;
-}
-.settings-card{
-  background:var(--glass-bg) !important;border:1px solid var(--glass-border);
-  box-shadow:var(--glass-shadow-soft),var(--glass-highlight);
-  backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);
-}
-dialog{background:transparent !important;box-shadow:none !important}
-dialog::backdrop{
-  background:rgba(20,24,32,.28) !important;
-  backdrop-filter:blur(14px) saturate(120%) !important;
-  -webkit-backdrop-filter:blur(14px) saturate(120%) !important;
-}
-.modal{
-  background:rgba(249,250,253,.80);border:1px solid rgba(255,255,255,.68);border-radius:24px;
-  box-shadow:0 24px 60px rgba(31,38,52,.22),inset 0 1px 0 rgba(255,255,255,.82);
-  backdrop-filter:blur(32px) saturate(170%);-webkit-backdrop-filter:blur(32px) saturate(170%);
-}
-label input,label textarea,label select{
-  background:rgba(255,255,255,.66) !important;border:1px solid rgba(255,255,255,.74) !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 8px rgba(31,38,52,.04);
-}
-@media (min-width:1200px){
-  .bottomnav.appnav{
-    background:rgba(247,248,251,.70) !important;
-    border-right:1px solid rgba(255,255,255,.72) !important;
-    box-shadow:8px 0 28px rgba(31,38,52,.06) !important;
-  }
-  .navitem{border:1px solid transparent}
-  .navitem:hover{
-    background:rgba(255,255,255,.48) !important;
-    border-color:rgba(255,255,255,.58);
-  }
-  .navitem.active{
-    background:rgba(255,255,255,.72) !important;border-color:rgba(255,255,255,.72);
-    box-shadow:0 3px 12px rgba(31,38,52,.06),inset 0 1px 0 rgba(255,255,255,.86);
-  }
-}
-@media (prefers-reduced-transparency: reduce){
-  .topbar,.session,.stat,.day,.settings-card,.bottomnav.appnav,.modal,.toolbar button{
-    backdrop-filter:none !important;-webkit-backdrop-filter:none !important;background:#fff !important;
-  }
-}
-
-
-/* ===== V4.4 Adaptive Neutral Glass ===== */
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111214">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Training</title>
+<style>
 :root{
   color-scheme:light dark;
-
-  --accent:#5f6368;
-  --accent-strong:#4a4d52;
-
-  --page-bg:
-    radial-gradient(circle at 18% 8%, rgba(255,255,255,.42), transparent 30%),
-    radial-gradient(circle at 82% 14%, rgba(220,224,230,.20), transparent 26%),
-    linear-gradient(180deg,#f5f5f7 0%,#eceef2 100%);
-
-  --glass-bg:rgba(255,255,255,.40);
-  --glass-bg-strong:rgba(255,255,255,.52);
-  --glass-bg-soft:rgba(255,255,255,.26);
-  --glass-border:rgba(255,255,255,.50);
-  --glass-border-subtle:rgba(255,255,255,.34);
-
-  --text-main:#1c1c1e;
-  --text-secondary:#6e6e73;
-  --text-tertiary:#8e8e93;
-
-  --surface-solid:#ffffff;
-  --field-bg:rgba(255,255,255,.48);
-
-  --shadow-soft:0 8px 24px rgba(28,28,30,.07);
-  --shadow-card:0 14px 36px rgba(28,28,30,.09),0 2px 8px rgba(28,28,30,.05);
-  --highlight:inset 0 1px 0 rgba(255,255,255,.72);
-
-  --done:#34c759;
-  --danger:#ff453a;
-  --warn:#d6a200;
-  --gold-bg:rgba(255,245,190,.48);
-  --gold-border:rgba(196,148,0,.24);
+  --bg:#eef0f4;--text:#1c1c1e;--muted:#76767d;--glass:rgba(255,255,255,.34);
+  --glass2:rgba(255,255,255,.48);--border:rgba(255,255,255,.48);--shadow:0 16px 42px rgba(20,22,28,.10);
+  --green:#34c759;--red:#ff453a;--yellow:#d6a200;--gold:#c99700;
 }
-
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{
-  color:var(--text-main) !important;
-  background:var(--page-bg) !important;
-  background-attachment:fixed !important;
+  margin:0;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  background:
+    radial-gradient(circle at 10% 5%,rgba(255,255,255,.58),transparent 28%),
+    radial-gradient(circle at 88% 16%,rgba(210,214,222,.28),transparent 28%),
+    linear-gradient(180deg,#f4f5f7,#e9ebef);
+  min-height:100vh;overflow-x:hidden;
 }
-
-.topbar{
-  background:rgba(245,245,247,.42) !important;
-  border-bottom:1px solid var(--glass-border-subtle) !important;
-  box-shadow:0 8px 26px rgba(28,28,30,.04) !important;
-  backdrop-filter:saturate(150%) blur(34px) !important;
-  -webkit-backdrop-filter:saturate(150%) blur(34px) !important;
+button,input,textarea,select{font:inherit} input,textarea,select{font-size:16px}
+button{cursor:pointer}
+.shell{min-height:100vh;padding-bottom:104px}
+main{max-width:1120px;margin:auto;padding:24px 16px 36px}
+.glass{
+  background:var(--glass);border:1px solid var(--border);box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,.55);
+  backdrop-filter:blur(32px) saturate(145%);-webkit-backdrop-filter:blur(32px) saturate(145%);
 }
-
-.topbar h1,
-.screen-title,
-.title,
-.modal h2,
-.settings-card h3{
-  color:var(--text-main) !important;
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:4px 0 18px}
+.page-title{font-size:32px;font-weight:760;letter-spacing:-.7px}.cloud{font-size:12px;color:var(--muted);text-align:right}
+.event-grid{display:grid;grid-template-columns:1fr;gap:14px}
+.event-card{border-radius:22px;padding:20px;min-height:128px;display:flex;flex-direction:column;justify-content:space-between}
+.event-card h2{font-size:20px;line-height:1.2;margin:0 0 8px}.event-card p{margin:0;color:var(--muted);font-size:13px}
+.event-card .foot{display:flex;justify-content:space-between;align-items:end;margin-top:20px}
+.event-card .blocks{font-size:12px;color:var(--muted)} .chev{font-size:24px}
+.plan-head{border-radius:22px;padding:18px;margin-bottom:14px}
+.plan-event{font-weight:720;font-size:18px;margin-bottom:10px}
+.plan-controls{display:flex;gap:10px;flex-wrap:wrap}
+select,input,textarea{border:1px solid var(--border);background:rgba(255,255,255,.42);color:var(--text);border-radius:13px;padding:11px 12px;outline:0}
+.segment{display:flex;gap:2px;padding:3px;border-radius:12px;background:rgba(118,118,128,.11);width:max-content}
+.segment button{border:0;background:transparent;color:var(--muted);padding:8px 13px;border-radius:9px}
+.segment button.active{background:rgba(255,255,255,.55);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.actions-top{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.pill{border:1px solid var(--border);background:var(--glass);color:var(--text);border-radius:14px;padding:10px 13px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.pill.primary{background:rgba(70,72,76,.86);color:#fff}.pill.gold{background:rgba(255,242,174,.50);color:#715500}
+.week-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.35px;margin:22px 4px 8px}
+.session{position:relative;border-radius:19px;padding:15px 15px 13px 19px;margin:8px 0}
+.session:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#c7c7cc}
+.session.done:before{background:var(--green)}.session.cancel:before{background:var(--red)}.session.move:before{background:var(--yellow)}
+.session.topup{outline:1px solid rgba(201,151,0,.40);background:rgba(255,248,214,.34)}
+.session.topup:before{background:var(--gold)}
+.badge{display:inline-block;font-size:10px;font-weight:750;border-radius:8px;padding:3px 7px;margin-bottom:7px;background:rgba(255,239,159,.55);color:#755700}
+.row{display:flex;justify-content:space-between;gap:10px}.stitle{font-weight:690}.sdate{font-size:12px;color:var(--muted);white-space:nowrap}
+.meta{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.35}.note{margin-top:9px;padding:9px;border-radius:11px;background:rgba(255,255,255,.24);font-size:13px}
+.sactions{display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid rgba(127,127,127,.10);padding-top:10px;margin-top:11px}
+.sactions button{border:0;background:transparent;padding:2px;color:var(--muted);font-size:12px}.sactions .ok{color:var(--green)}.sactions .bad{color:var(--red)}.sactions .warn{color:#9a7200}
+.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.day{border-radius:15px;padding:8px;min-height:84px}
+.day.today{outline:2px solid rgba(100,100,105,.48)}.daynum{font-size:11px;font-weight:700}
+.dayitem{font-size:9px;margin-top:5px;padding:5px;border-radius:7px;background:rgba(255,255,255,.30);overflow:hidden}.dayitem.topup{background:rgba(255,239,159,.35)}
+.settings-card{border-radius:20px;padding:17px;margin:10px 0}.settings-card h3{margin:0 0 5px}.settings-card p{color:var(--muted);font-size:13px;line-height:1.45}
+.empty{text-align:center;color:var(--muted);padding:50px}
+.nav{
+  position:fixed;z-index:50;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  display:flex;gap:8px;pointer-events:none
 }
-
-.topbar select,
-label input,
-label textarea,
-label select{
-  color:var(--text-main) !important;
-  background:var(--field-bg) !important;
-  border:1px solid var(--glass-border) !important;
-  box-shadow:var(--highlight),0 3px 12px rgba(28,28,30,.04) !important;
+.nav button{
+  pointer-events:auto;border:1px solid var(--border);background:rgba(245,245,247,.42);color:var(--muted);
+  width:68px;height:58px;border-radius:18px;box-shadow:0 10px 28px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.58);
+  backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);
+  font-size:10px
 }
-
-.date,.meta,.statusline,
-label,.stat span,
-.week,
-#globalCloudStatus{
-  color:var(--text-secondary) !important;
+.nav button span{display:block;font-size:20px;line-height:22px}.nav button.active{color:var(--text);background:rgba(255,255,255,.54)}
+dialog{border:0;padding:0;background:transparent;width:min(94vw,620px);max-height:88dvh}
+dialog::backdrop{background:rgba(10,10,12,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.modal{border-radius:24px;padding:20px;max-height:88dvh;overflow:auto}.modal h2{margin:0 0 8px}.helper{font-size:13px;color:var(--muted);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}label{font-size:12px;color:var(--muted);font-weight:650;display:flex;flex-direction:column;gap:6px}
+.inline{flex-direction:row;align-items:center;background:rgba(255,246,195,.30);padding:10px;border-radius:12px}.inline input{width:18px;height:18px}
+.buttons{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px}.buttons button{border:0;border-radius:12px;padding:10px 13px}.buttons .primary{background:#55575c;color:#fff}
+@media(min-width:768px) and (max-width:1199px){main{padding:28px 28px 40px}.event-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1200px){
+  .shell{padding:0 0 0 126px}.nav{left:18px;top:50%;bottom:auto;transform:translateY(-50%);flex-direction:column}
+  .nav button{width:88px;height:68px}.event-grid{grid-template-columns:repeat(2,1fr)} main{padding:34px 40px 48px}
 }
-
-.stat,
-.session,
-.day,
-.settings-card{
-  background:var(--glass-bg) !important;
-  border:1px solid var(--glass-border) !important;
-  box-shadow:var(--shadow-card),var(--highlight) !important;
-  backdrop-filter:blur(34px) saturate(145%) !important;
-  -webkit-backdrop-filter:blur(34px) saturate(145%) !important;
+@media(prefers-color-scheme:dark){
+  :root{--text:#f3f3f5;--muted:#aaaab0;--glass:rgba(42,43,47,.30);--glass2:rgba(48,49,53,.42);--border:rgba(255,255,255,.10);--shadow:0 18px 44px rgba(0,0,0,.28)}
+  body{background:radial-gradient(circle at 15% 7%,rgba(255,255,255,.04),transparent 28%),linear-gradient(180deg,#131416,#0b0c0e)}
+  select,input,textarea{background:rgba(56,57,61,.42)}.segment button.active,.nav button.active{background:rgba(78,79,84,.50)}
+  .nav button{background:rgba(32,33,36,.44)}.session.topup{background:rgba(90,72,15,.20)}.modal{background:rgba(30,31,34,.72)}
 }
-
-.session{
-  background:var(--glass-bg-strong) !important;
-}
-
-.note{
-  background:var(--glass-bg-soft) !important;
-  border:1px solid var(--glass-border-subtle) !important;
-  color:var(--text-main) !important;
-  backdrop-filter:blur(18px) !important;
-  -webkit-backdrop-filter:blur(18px) !important;
-}
-
-.toolbar button{
-  color:var(--accent-strong) !important;
-  background:var(--glass-bg) !important;
-  border:1px solid var(--glass-border) !important;
-  box-shadow:var(--shadow-soft),var(--highlight) !important;
-  backdrop-filter:blur(28px) saturate(140%) !important;
-  -webkit-backdrop-filter:blur(28px) saturate(140%) !important;
-}
-
-.toolbar .primary{
-  color:#fff !important;
-  background:linear-gradient(180deg,rgba(92,95,100,.94),rgba(70,72,76,.96)) !important;
-  border-color:rgba(255,255,255,.18) !important;
-  box-shadow:0 8px 18px rgba(28,28,30,.16),inset 0 1px 0 rgba(255,255,255,.18) !important;
-}
-
-.toolbar .soft{
-  background:var(--gold-bg) !important;
-  color:#7a5b00 !important;
-  border-color:var(--gold-border) !important;
-}
-
-.toolbar .utility{
-  background:var(--glass-bg-soft) !important;
-  color:var(--text-secondary) !important;
-}
-
-.viewbar{
-  background:rgba(118,118,128,.10) !important;
-  border:1px solid var(--glass-border-subtle) !important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.38) !important;
-  backdrop-filter:blur(22px) !important;
-  -webkit-backdrop-filter:blur(22px) !important;
-}
-.viewbar button{
-  color:var(--text-secondary) !important;
-}
-.viewbar button.active{
-  color:var(--text-main) !important;
-  background:rgba(255,255,255,.54) !important;
-  box-shadow:0 2px 10px rgba(28,28,30,.06),inset 0 1px 0 rgba(255,255,255,.72) !important;
-}
-
-.bottomnav.appnav{
-  background:rgba(245,245,247,.42) !important;
-  border-top:1px solid var(--glass-border-subtle) !important;
-  box-shadow:0 -8px 26px rgba(28,28,30,.04) !important;
-  backdrop-filter:saturate(150%) blur(34px) !important;
-  -webkit-backdrop-filter:saturate(150%) blur(34px) !important;
-}
-
-.navitem{
-  color:var(--text-secondary) !important;
-}
-.navitem.active{
-  color:var(--text-main) !important;
-}
-
-.session.done:before{background:var(--done) !important}
-.session.cancel:before{background:var(--danger) !important}
-.session.move:before{background:var(--warn) !important}
-
-.session.topup{
-  background:linear-gradient(180deg,rgba(255,251,226,.58),rgba(255,247,207,.40)) !important;
-  border-color:var(--gold-border) !important;
-  box-shadow:0 0 0 1px rgba(196,148,0,.12),var(--shadow-soft),var(--highlight) !important;
-}
-.topup-badge{
-  background:rgba(255,244,183,.56) !important;
-  color:#755700 !important;
-  border-color:rgba(196,148,0,.18) !important;
-}
-
-.modal{
-  background:rgba(248,248,250,.66) !important;
-  border:1px solid var(--glass-border) !important;
-  box-shadow:0 28px 70px rgba(28,28,30,.20),var(--highlight) !important;
-  backdrop-filter:blur(42px) saturate(150%) !important;
-  -webkit-backdrop-filter:blur(42px) saturate(150%) !important;
-}
-
-dialog::backdrop{
-  background:rgba(20,20,22,.18) !important;
-  backdrop-filter:blur(18px) saturate(110%) !important;
-  -webkit-backdrop-filter:blur(18px) saturate(110%) !important;
-}
-
-@media (min-width:1200px){
-  .bottomnav.appnav{
-    background:rgba(245,245,247,.46) !important;
-    border-right:1px solid var(--glass-border-subtle) !important;
-    box-shadow:8px 0 28px rgba(28,28,30,.04) !important;
-  }
-  .navitem:hover{
-    background:rgba(255,255,255,.28) !important;
-    border-color:var(--glass-border-subtle) !important;
-  }
-  .navitem.active{
-    background:rgba(255,255,255,.42) !important;
-    border-color:var(--glass-border) !important;
-    box-shadow:0 3px 12px rgba(28,28,30,.05),var(--highlight) !important;
-  }
-}
-
-/* Dark appearance follows the device automatically. */
-@media (prefers-color-scheme: dark){
-  :root{
-    --accent:#d0d0d4;
-    --accent-strong:#f1f1f3;
-
-    --page-bg:
-      radial-gradient(circle at 14% 8%, rgba(255,255,255,.045), transparent 28%),
-      radial-gradient(circle at 86% 16%, rgba(120,125,135,.05), transparent 26%),
-      linear-gradient(180deg,#111214 0%,#0b0c0e 100%);
-
-    --glass-bg:rgba(42,43,46,.34);
-    --glass-bg-strong:rgba(46,47,50,.42);
-    --glass-bg-soft:rgba(58,59,62,.26);
-
-    --glass-border:rgba(255,255,255,.11);
-    --glass-border-subtle:rgba(255,255,255,.07);
-
-    --text-main:#f5f5f7;
-    --text-secondary:#b0b0b5;
-    --text-tertiary:#8e8e93;
-
-    --field-bg:rgba(48,49,52,.42);
-
-    --shadow-soft:0 8px 24px rgba(0,0,0,.20);
-    --shadow-card:0 16px 38px rgba(0,0,0,.28),0 2px 8px rgba(0,0,0,.18);
-    --highlight:inset 0 1px 0 rgba(255,255,255,.08);
-
-    --gold-bg:rgba(126,97,0,.22);
-    --gold-border:rgba(255,213,79,.18);
-  }
-
-  body{
-    background:var(--page-bg) !important;
-  }
-
-  .topbar,
-  .bottomnav.appnav{
-    background:rgba(23,24,27,.46) !important;
-    border-color:var(--glass-border-subtle) !important;
-  }
-
-  .topbar select,
-  label input,
-  label textarea,
-  label select{
-    background:var(--field-bg) !important;
-    color:var(--text-main) !important;
-    border-color:var(--glass-border) !important;
-  }
-
-  .viewbar{
-    background:rgba(118,118,128,.16) !important;
-  }
-
-  .viewbar button.active{
-    background:rgba(72,73,77,.50) !important;
-  }
-
-  .toolbar .primary{
-    background:linear-gradient(180deg,rgba(108,110,116,.96),rgba(82,84,89,.98)) !important;
-  }
-
-  .session.topup{
-    background:linear-gradient(180deg,rgba(86,72,18,.30),rgba(74,62,16,.20)) !important;
-  }
-
-  .topup-badge{
-    background:rgba(116,92,16,.32) !important;
-    color:#f1d26c !important;
-    border-color:rgba(255,213,79,.16) !important;
-  }
-
-  .dayitem{
-    background:rgba(58,59,62,.44) !important;
-    color:var(--text-main) !important;
-  }
-  .dayitem.done{background:rgba(52,199,89,.20) !important}
-  .dayitem.cancel{background:rgba(255,69,58,.18) !important}
-  .dayitem.move{background:rgba(255,204,0,.18) !important}
-  .dayitem.topup{background:rgba(126,97,0,.24) !important}
-
-  .modal{
-    background:rgba(28,29,32,.70) !important;
-  }
-
-  dialog::backdrop{
-    background:rgba(0,0,0,.34) !important;
-  }
-
-  .settings-card button{
-    background:rgba(92,94,99,.92) !important;
-  }
-}
-
-/* Respect system accessibility settings. */
-@media (prefers-reduced-transparency: reduce){
-  .topbar,.session,.stat,.day,.settings-card,.bottomnav.appnav,.modal,.toolbar button{
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
-  }
-
-  @media (prefers-color-scheme: light){
-    .topbar,.session,.stat,.day,.settings-card,.bottomnav.appnav,.modal,.toolbar button{
-      background:#f8f8fa !important;
-    }
-  }
-
-  @media (prefers-color-scheme: dark){
-    .topbar,.session,.stat,.day,.settings-card,.bottomnav.appnav,.modal,.toolbar button{
-      background:#1c1d20 !important;
-    }
-  }
-}
-
-
-/* ===== V5 Event / Block Navigation ===== */
-.eventbar{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.event-menu-btn{
-  width:42px;height:42px;flex:0 0 42px;
-  border:1px solid var(--glass-border);
-  border-radius:12px;
-  background:var(--glass-bg);
-  color:var(--text-main);
-  box-shadow:var(--shadow-soft),var(--highlight);
-  backdrop-filter:blur(24px) saturate(140%);
-  -webkit-backdrop-filter:blur(24px) saturate(140%);
-  font-size:20px;
-}
-.event-selectors{
-  display:grid;
-  grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr);
-  gap:8px;
-  flex:1;
-}
-.event-selectors select{
-  width:100%;
-}
-
-.event-drawer-backdrop{
-  position:fixed;inset:0;z-index:79;
-  background:rgba(0,0,0,.16);
-  opacity:0;pointer-events:none;
-  transition:opacity .18s ease;
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-}
-.event-drawer{
-  position:fixed;left:0;top:0;bottom:0;z-index:80;
-  width:min(86vw,360px);
-  transform:translateX(-102%);
-  transition:transform .22s ease;
-  padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom));
-  background:rgba(245,245,247,.66);
-  border-right:1px solid var(--glass-border);
-  box-shadow:20px 0 50px rgba(0,0,0,.12);
-  backdrop-filter:blur(36px) saturate(150%);
-  -webkit-backdrop-filter:blur(36px) saturate(150%);
-  overflow:auto;
-}
-.event-drawer.open{transform:translateX(0)}
-.event-drawer-backdrop.open{opacity:1;pointer-events:auto}
-.event-drawer-header{
-  display:flex;align-items:flex-start;justify-content:space-between;
-  gap:12px;margin-bottom:18px;
-}
-.event-drawer-kicker{
-  font-size:10px;letter-spacing:.8px;color:var(--text-tertiary);font-weight:700;
-}
-.event-drawer-title{
-  font-size:24px;font-weight:750;letter-spacing:-.4px;color:var(--text-main);
-}
-.drawer-close{
-  border:0;background:transparent;color:var(--text-secondary);
-  font-size:28px;line-height:1;padding:0 4px;
-}
-.event-card{
-  background:var(--glass-bg);
-  border:1px solid var(--glass-border);
-  border-radius:16px;
-  box-shadow:var(--shadow-soft),var(--highlight);
-  margin:10px 0;
-  overflow:hidden;
-}
-.event-row{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:10px;padding:13px 14px;cursor:pointer;
-}
-.event-row.active{
-  background:rgba(255,255,255,.28);
-}
-.event-name{
-  font-weight:700;color:var(--text-main);font-size:15px;
-}
-.event-meta{
-  font-size:12px;color:var(--text-secondary);margin-top:2px;
-}
-.block-list{
-  border-top:1px solid var(--glass-border-subtle);
-}
-.block-row{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:11px 14px 11px 24px;
-  color:var(--text-secondary);
-  cursor:pointer;
-}
-.block-row.active{
-  color:var(--text-main);
-  background:rgba(255,255,255,.22);
-  font-weight:650;
-}
-.block-focus{
-  font-size:11px;color:var(--text-tertiary);
-}
-.unit-emoji{
-  display:inline-block;min-width:24px;margin-right:4px;
-}
-@media (max-width:767px){
-  .event-selectors{grid-template-columns:1fr}
-}
-@media (prefers-color-scheme: dark){
-  .event-drawer{
-    background:rgba(24,25,28,.72);
-  }
-  .event-row.active,.block-row.active{
-    background:rgba(255,255,255,.06);
-  }
-}
-
 </style>
 </head>
 <body>
-<header>
-  <h1>🚴 Mein Trainingsplan</h1>
-  <div class="eventbar">
-      <button id="eventMenuBtn" class="event-menu-btn" onclick="toggleEventMenu()">☰</button>
-      <div class="event-selectors">
-        <select id="eventSelect" onchange="changeEvent(this.value)"></select>
-        <select id="blockSelect" onchange="changeBlock(this.value)"></select>
-      </div>
-    </div>
-</header>
-<main>
-  <div class="screen-title">Übersicht</div>
-<div id="globalCloudStatus" style="margin:-8px 0 14px;font-size:12px;color:#6e6e73;white-space:normal;overflow-wrap:anywhere">
-  ☁️ Cloud wird geprüft …
-</div><div class="stats" id="stats"></div>
-  <div class="toolbar">
-    <button class="primary" onclick="openSession()">＋ Training</button>
-    <button class="soft" onclick="openSession(null,true)">⭐ On Top</button>
-    <button onclick="openPlan()">＋ Trainingsplan</button>
-    <button class="utility" onclick="exportData()">⇩ Backup</button>
-    <button class="utility" onclick="document.getElementById('importFile').click()">⇧ Import</button>
-    <input id="importFile" type="file" accept=".json" hidden onchange="importData(event)">
-  </div>
-  <div class="viewbar">
-    <button id="listViewBtn" class="active" onclick="setView('list')">Liste</button>
-    <button id="weekViewBtn" onclick="setView('week')">Woche</button>
-  </div>
-  <div class="legend">
-    <span><i class="dot g"></i>durchgeführt</span>
-    <span><i class="dot r"></i>abgesagt/nicht durchgeführt</span>
-    <span><i class="dot y"></i>verschoben</span>
-    <span><i class="dot n"></i>offen</span>
-  </div>
-  <div id="list"></div>
-</main>
+<div class="shell"><main id="main"></main></div>
 
-<dialog id="sessionDialog">
-  <form method="dialog" class="modal" onsubmit="saveSession(event)">
-    <h2 id="sessionHeading">Training</h2>
-    <div class="grid">
-      <label>Datum<input id="sDate" type="date" required></label>
-      <label>Trainingsart<input id="sType" list="types" placeholder="z. B. Indoor, Outdoor, Kraft"></label>
-      <label class="full">Titel<input id="sTitle" required placeholder="z. B. Grundlagenausdauer"></label>
-      <label class="full">Beschreibung<textarea id="sDesc" rows="3" placeholder="Dauer, Intensität, Ziel, Vorgaben …"></textarea></label>
-      <label>Plan<input id="sPlan" type="text" readonly></label>
-      <label>Status<select id="sStatus"><option value="open">Offen</option><option value="done">Durchgeführt</option><option value="cancel">Abgesagt / nicht durchgeführt</option><option value="move">Verschoben</option></select></label>
-      <label class="full inline-check">
-        <input id="sTopup" type="checkbox">
-        <span>⭐ Zusatztraining „On Top“ innerhalb dieses Plans</span>
-      </label>
-      <label class="full">Meine Anmerkung<textarea id="sNote" rows="3" placeholder="Wie war es? Leistung, Puls, Beine, Probleme …"></textarea></label>
-      <label>Erinnerung<select id="sReminder">
-        <option value="both">Vortag + Trainingstag</option>
-        <option value="day">Nur Trainingstag</option>
-        <option value="before">Nur Vortag</option>
-        <option value="none">Keine</option>
-      </select></label>
-      <label>Uhrzeit<input id="sReminderTime" type="time" value="19:00"></label>
-    </div>
-    <div class="buttons"><button type="button" onclick="sessionDialog.close()">Abbrechen</button><button class="primary">Speichern</button></div>
-  </form>
-</dialog>
+<nav class="nav">
+<button id="navOverview" class="active" onclick="go('overview')"><span>⌂</span>Übersicht</button>
+<button id="navPlan" onclick="go('plan')"><span>▤</span>Plan</button>
+<button onclick="openSession()"><span>＋</span>Training</button>
+<button id="navSettings" onclick="go('settings')"><span>⚙︎</span>Einstellungen</button>
+</nav>
 
-<dialog id="planDialog">
-  <form method="dialog" class="modal" onsubmit="savePlan(event)">
-    <h2>Neuen Trainingsplan anlegen</h2>
-    <div class="grid">
-      <label class="full">Name<input id="pName" required placeholder="z. B. Radmarathon Juni 2027"></label>
-      <label class="full">Beschreibung<textarea id="pDesc" rows="3" placeholder="Ziel, Zeitraum, Besonderheiten …"></textarea></label>
-    </div>
-    <div class="buttons"><button type="button" onclick="planDialog.close()">Abbrechen</button><button class="primary">Anlegen</button></div>
-  </form>
-</dialog>
+<dialog id="sessionDialog"><form class="modal glass" onsubmit="saveSession(event)">
+<h2 id="sessionHeading">Training</h2><p class="helper">Datum und Uhrzeit werden für neue Einheiten automatisch auf jetzt gesetzt.</p>
+<div class="grid">
+<label>Datum & Uhrzeit<input id="sDateTime" type="datetime-local" required></label>
+<label>Trainingsart<select id="sType"><option>Indoor Rad</option><option>Outdoor Rad</option><option>Kraft / BetterMe</option><option>Regeneration</option><option>Laufen</option><option>Schwimmen</option><option>Ski / Skitour</option><option>Mobilität</option><option>Sonstiges</option></select></label>
+<label class="full">Titel<input id="sTitle" required></label>
+<label class="full">Beschreibung<textarea id="sDesc" rows="3"></textarea></label>
+<label>Status<select id="sStatus"><option value="open">Offen</option><option value="done">Durchgeführt</option><option value="cancel">Ausgefallen</option><option value="move">Verschoben</option></select></label>
+<label>Erinnerung<select id="sReminder"><option value="both">Vortag + Trainingstag</option><option value="day">Nur Trainingstag</option><option value="before">Nur Vortag</option><option value="none">Keine</option></select></label>
+<label>Erinnerungszeit<input id="sReminderTime" type="time" value="19:00"></label>
+<label class="full inline"><input id="sTopup" type="checkbox"> ⭐ On-Top-Zusatztraining</label>
+<label class="full">Notiz<textarea id="sNote" rows="3"></textarea></label>
+</div><div class="buttons"><button type="button" onclick="sessionDialog.close()">Abbrechen</button><button class="primary">Speichern</button></div>
+</form></dialog>
 
-<datalist id="types">
-  <option>Indoor Rad</option><option>Outdoor Rad</option><option>Grundlage</option><option>Intervalle</option>
-  <option>Regeneration</option><option>Kraft / BetterMe</option><option>Mobilität</option><option>Sonstiges</option>
-</datalist>
+<dialog id="loginDialog"><form class="modal glass" onsubmit="login(event)">
+<h2>Cloud anmelden</h2><p class="helper">E-Mail + Passwort. Die Session bleibt auf Wunsch auf diesem Gerät gespeichert.</p>
+<div class="grid">
+<label class="full">E-Mail<input id="loginEmail" type="email" required autocomplete="email"></label>
+<label class="full">Passwort<input id="loginPassword" type="password" required autocomplete="current-password"></label>
+<label class="full inline"><input id="rememberLogin" type="checkbox" checked> Angemeldet bleiben</label>
+</div><div id="loginStatus" class="helper"></div>
+<div class="buttons"><button type="button" onclick="passwordReset()">Passwort vergessen</button><button type="button" onclick="loginDialog.close()">Abbrechen</button><button class="primary">Anmelden</button></div>
+</form></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const KEY="training_app_v2";
-let db=JSON.parse(localStorage.getItem(KEY)||'null')||{"plans": [{"id": "RADMARATHON", "name": "🚴 Radmarathon 2026/27 – Block 1", "description": "Erste sechs Wochen des gemeinsam erstellten Plans; anschließend fortführbar."}], "sessions": [{"id": "c8a6edc9-7167-4621-8474-7c2f8fa6ecbf", "planId": "RADMARATHON", "date": "2026-08-17", "type": "Indoor Rad", "title": "Grundlage / Z2", "desc": "45 min Z2 · 45 min lockere Grundlage; gleichmäßig, nicht überziehen.", "note": "", "status": "open"}, {"id": "2c412d0d-802b-4704-8ef3-fd209fe07227", "planId": "RADMARATHON", "date": "2026-08-18", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kurze Ganzkörpereinheit, Schwerpunkt Rumpf/Beine.", "note": "", "status": "open"}, {"id": "5e8d5198-bd4a-4fe4-89eb-0e07da43beb1", "planId": "RADMARATHON", "date": "2026-08-19", "type": "Indoor Rad", "title": "Tempo / Sweet Spot", "desc": "60 min · Einrollen, anschließend kontrollierte Belastungsblöcke; sauber und nicht maximal.", "note": "", "status": "open"}, {"id": "ed7eee2b-0933-4bf5-8fa3-cb7ee552c942", "planId": "RADMARATHON", "date": "2026-08-20", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Kein Radtraining. Locker bewegen/Mobilität nach Bedarf.", "note": "", "status": "open"}, {"id": "2af2c410-12d8-4d42-9406-d9170fa553cd", "planId": "RADMARATHON", "date": "2026-08-21", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Ruhige Ausdauer, gleichmäßige Trittfrequenz.", "note": "", "status": "open"}, {"id": "1bcd549c-ac74-4015-80fb-30de3d22ee8a", "planId": "RADMARATHON", "date": "2026-08-22", "type": "Outdoor Rad", "title": "Grundlagenausfahrt", "desc": "40–55 km · 40–55 km, überwiegend locker; keine harte Bergbelastung.", "note": "", "status": "open"}, {"id": "af11e453-07d4-4d3e-b0c8-569103844c2d", "planId": "RADMARATHON", "date": "2026-08-23", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Komplett frei oder Spaziergang.", "note": "", "status": "open"}, {"id": "72dc8ec5-76c9-478c-94fa-f5e03cd516bb", "planId": "RADMARATHON", "date": "2026-08-24", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Lockere Ausdauer.", "note": "", "status": "open"}, {"id": "87a8421b-7eb5-48af-8929-ea87ea8ccbc8", "planId": "RADMARATHON", "date": "2026-08-25", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kurze Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "40d41b63-8578-4962-aa1a-27a2f17b97de", "planId": "RADMARATHON", "date": "2026-08-26", "type": "Indoor Rad", "title": "Intervalle", "desc": "ca. 60 min · Strukturiertes Intervalltraining; kontrollierte Belastung.", "note": "", "status": "open"}, {"id": "01810473-5ed8-4452-acba-1d9dd50d364c", "planId": "RADMARATHON", "date": "2026-08-27", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Vor dem Urlaub keine zusätzliche Belastung erzwingen.", "note": "", "status": "open"}, {"id": "4cf54b38-afb1-45df-8317-9cada96127d9", "planId": "RADMARATHON", "date": "2026-08-28", "type": "Regeneration", "title": "Urlaub", "desc": "— · Urlaub mit Tochter. Training nur optional abends.", "note": "", "status": "open"}, {"id": "30cae4ff-df49-443d-9676-687562298aa0", "planId": "RADMARATHON", "date": "2026-08-29", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein geplantes Radtraining.", "note": "", "status": "open"}, {"id": "c63dede2-3e88-426a-9106-ad213d6f5a2d", "planId": "RADMARATHON", "date": "2026-08-30", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein geplantes Radtraining.", "note": "", "status": "open"}, {"id": "7285e693-076b-4b6e-885b-beca7aacbd3a", "planId": "RADMARATHON", "date": "2026-08-31", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining; optional kurze BetterMe-Einheit abends.", "note": "", "status": "open"}, {"id": "a4a8206b-6486-4df7-b159-01f609364a64", "planId": "RADMARATHON", "date": "2026-09-01", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "3a0a6527-d545-4eaf-a5cb-9821f892f3f4", "planId": "RADMARATHON", "date": "2026-09-02", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining; optional kurze BetterMe-Einheit.", "note": "", "status": "open"}, {"id": "d446970d-ff06-4714-a7f7-cafee7145b70", "planId": "RADMARATHON", "date": "2026-09-03", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "7c2936fb-37ed-4223-948a-b265c3890040", "planId": "RADMARATHON", "date": "2026-09-04", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "38026b75-3818-4b76-8cb5-44bdf92f1706", "planId": "RADMARATHON", "date": "2026-09-05", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open"}, {"id": "b546a015-e2c6-4f38-8bc6-00871b818911", "planId": "RADMARATHON", "date": "2026-09-06", "type": "Regeneration", "title": "Urlaub", "desc": "— · Rückkehr; noch keine harte Einheit.", "note": "", "status": "open"}, {"id": "d4a09fa6-a290-4770-8be7-3d63425ee914", "planId": "RADMARATHON", "date": "2026-09-07", "type": "Indoor Rad", "title": "Wiedereinstieg", "desc": "40–50 min Z2 · Locker wieder in den Rhythmus kommen.", "note": "", "status": "open"}, {"id": "10f81a4f-aef8-48c2-9c78-3737ede4f514", "planId": "RADMARATHON", "date": "2026-09-08", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Ganzkörper-/Core-Einheit.", "note": "", "status": "open"}, {"id": "d3165a09-5488-4018-bcdb-1e9a0f28bb4f", "planId": "RADMARATHON", "date": "2026-09-09", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "9313347a-ca03-4d75-8146-baa24e626efc", "planId": "RADMARATHON", "date": "2026-09-10", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "fde295b3-8e78-4e8f-aafe-3177b6c399f7", "planId": "RADMARATHON", "date": "2026-09-11", "type": "Indoor Rad", "title": "Intervalle", "desc": "ca. 60 min · Kurze kontrollierte Intervalle, keine Maximalbelastung.", "note": "", "status": "open"}, {"id": "5434eff2-dbba-41e6-8499-325e740770fd", "planId": "RADMARATHON", "date": "2026-09-12", "type": "Outdoor Rad", "title": "Grundlagenausfahrt", "desc": "50–60 km · 50–60 km; überwiegend Z2, Anstiege kontrolliert fahren.", "note": "", "status": "open"}, {"id": "fe5505a8-149e-49ca-a0ae-cbddf05a6d1f", "planId": "RADMARATHON", "date": "2026-09-13", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "a5fe7374-f10c-46d5-88db-0bd5c479cb45", "planId": "RADMARATHON", "date": "2026-09-14", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · Ausdauerarbeit.", "note": "", "status": "open"}, {"id": "2146ce9a-be52-4697-b6b9-e3dfa5660938", "planId": "RADMARATHON", "date": "2026-09-15", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "24dde07d-3606-4ccd-a53a-cd70fd1bf046", "planId": "RADMARATHON", "date": "2026-09-16", "type": "Indoor Rad", "title": "Schwelle / Tempo", "desc": "60–70 min · Belastungsblöcke an der oberen Ausdauer-/Tempo-Grenze.", "note": "", "status": "open"}, {"id": "5adf7eee-01bf-4922-925d-e40956abbedf", "planId": "RADMARATHON", "date": "2026-09-17", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "3b7fd233-6ce5-4ba6-bca7-74ed5cd97bb5", "planId": "RADMARATHON", "date": "2026-09-18", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min · Lockere bis moderate Ausdauer.", "note": "", "status": "open"}, {"id": "c543c676-fc84-421c-a7cc-8a022af8d68e", "planId": "RADMARATHON", "date": "2026-09-19", "type": "Indoor Rad", "title": "Lange Grundlage", "desc": "75–90 min Z2 · Längere Indoor-Einheit, gleichmäßig.", "note": "", "status": "open"}, {"id": "1ce85adb-624a-4d41-8e9e-813eeb0a1654", "planId": "RADMARATHON", "date": "2026-09-20", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "1b64215c-7f05-448f-9501-f395575b7605", "planId": "RADMARATHON", "date": "2026-09-21", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · Ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "7d0c1480-d72c-419e-9078-f685d568ba2d", "planId": "RADMARATHON", "date": "2026-09-22", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kraft/Core, nicht bis zur völligen Ermüdung.", "note": "", "status": "open"}, {"id": "6345b4ee-35b5-4e20-bfd7-d974a9892d5f", "planId": "RADMARATHON", "date": "2026-09-23", "type": "Indoor Rad", "title": "Intervalle", "desc": "60–70 min · Strukturiertes Intervalltraining.", "note": "", "status": "open"}, {"id": "6002cef1-c649-4af4-ad1e-a14c042a2ffd", "planId": "RADMARATHON", "date": "2026-09-24", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "847bc44b-3006-4429-8866-e1575a360bc7", "planId": "RADMARATHON", "date": "2026-09-25", "type": "Indoor Rad", "title": "Locker", "desc": "40–50 min · Kurze lockere Einheit.", "note": "", "status": "open"}, {"id": "e4138030-7dae-46ba-86cc-e764837f11da", "planId": "RADMARATHON", "date": "2026-09-26", "type": "Outdoor Rad", "title": "Grundlage + Anstiege", "desc": "55–65 km · 55–65 km; zwei längere Anstiege kontrolliert fahren, Fokus Ausdauer.", "note": "", "status": "open"}, {"id": "ba565f3a-2a43-4832-9b2d-c20b96c96e5a", "planId": "RADMARATHON", "date": "2026-09-27", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "993399b0-03bf-4c00-9191-4ac9d71d8902", "planId": "RADMARATHON", "date": "2026-09-28", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · 60 min ruhige Ausdauer.", "note": "", "status": "open"}, {"id": "31fc1803-53ef-4893-8119-9b2cdbf113f5", "planId": "RADMARATHON", "date": "2026-09-29", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Kraft-/Core-Einheit.", "note": "", "status": "open"}, {"id": "bb5c578b-54d2-453b-bbf3-785736c8bf74", "planId": "RADMARATHON", "date": "2026-09-30", "type": "Indoor Rad", "title": "Tempo", "desc": "60–70 min · Kontrollierte Tempo-Blöcke.", "note": "", "status": "open"}, {"id": "9a19fe4a-c48e-4d43-a04f-e0264cdf5fee", "planId": "RADMARATHON", "date": "2026-10-01", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}, {"id": "dae0b3ea-22b4-45f2-a144-0f4e825dc1bc", "planId": "RADMARATHON", "date": "2026-10-02", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Locker bis moderat.", "note": "", "status": "open"}, {"id": "a327ccf9-d77c-4844-aea8-b0456cbf07f6", "planId": "RADMARATHON", "date": "2026-10-03", "type": "Indoor Rad", "title": "Lange Grundlage", "desc": "90 min Z2 · Längere Ausdauer-Einheit.", "note": "", "status": "open"}, {"id": "d82011b0-c596-4ddd-8942-c68126bcf467", "planId": "RADMARATHON", "date": "2026-10-04", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open"}], "activePlan": "RADMARATHON"};
-if(!db.activePlan) db.activePlan=db.plans[0].id;
-let editId=null;
+const KEY="meintraining-v51";
+const SUPABASE_URL="https://vhbhocfjzrgdcekjuime.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_iI79yd8iQ0R7hT500Ijtpw_jAWZMu14";
+const INITIAL_DB={"events": [{"id": "event-mondsee-2027", "name": "🚴 Mondsee Radmarathon 2027 – Route Typ C", "sport": "cycling", "description": "Mondsee Radmarathon 2027 · Route Typ C"}], "plans": [{"id": "MONDSEE-B1", "eventId": "event-mondsee-2027", "name": "Block 1 · Grundlagen", "focus": "Grundlagen", "description": "Grundlagenblock des Mondsee Radmarathon 2027 – Route Typ C"}], "sessions": [{"id": "c8a6edc9-7167-4621-8474-7c2f8fa6ecbf", "planId": "MONDSEE-B1", "date": "2026-08-17", "type": "Indoor Rad", "title": "Grundlage / Z2", "desc": "45 min Z2 · 45 min lockere Grundlage; gleichmäßig, nicht überziehen.", "note": "", "status": "open", "scheduledAt": "2026-08-17T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "2c412d0d-802b-4704-8ef3-fd209fe07227", "planId": "MONDSEE-B1", "date": "2026-08-18", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kurze Ganzkörpereinheit, Schwerpunkt Rumpf/Beine.", "note": "", "status": "open", "scheduledAt": "2026-08-18T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "5e8d5198-bd4a-4fe4-89eb-0e07da43beb1", "planId": "MONDSEE-B1", "date": "2026-08-19", "type": "Indoor Rad", "title": "Tempo / Sweet Spot", "desc": "60 min · Einrollen, anschließend kontrollierte Belastungsblöcke; sauber und nicht maximal.", "note": "", "status": "open", "scheduledAt": "2026-08-19T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "ed7eee2b-0933-4bf5-8fa3-cb7ee552c942", "planId": "MONDSEE-B1", "date": "2026-08-20", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Kein Radtraining. Locker bewegen/Mobilität nach Bedarf.", "note": "", "status": "open", "scheduledAt": "2026-08-20T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "2af2c410-12d8-4d42-9406-d9170fa553cd", "planId": "MONDSEE-B1", "date": "2026-08-21", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Ruhige Ausdauer, gleichmäßige Trittfrequenz.", "note": "", "status": "open", "scheduledAt": "2026-08-21T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "1bcd549c-ac74-4015-80fb-30de3d22ee8a", "planId": "MONDSEE-B1", "date": "2026-08-22", "type": "Outdoor Rad", "title": "Grundlagenausfahrt", "desc": "40–55 km · 40–55 km, überwiegend locker; keine harte Bergbelastung.", "note": "", "status": "open", "scheduledAt": "2026-08-22T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "af11e453-07d4-4d3e-b0c8-569103844c2d", "planId": "MONDSEE-B1", "date": "2026-08-23", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Komplett frei oder Spaziergang.", "note": "", "status": "open", "scheduledAt": "2026-08-23T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "72dc8ec5-76c9-478c-94fa-f5e03cd516bb", "planId": "MONDSEE-B1", "date": "2026-08-24", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Lockere Ausdauer.", "note": "", "status": "open", "scheduledAt": "2026-08-24T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "87a8421b-7eb5-48af-8929-ea87ea8ccbc8", "planId": "MONDSEE-B1", "date": "2026-08-25", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kurze Kraft-/Core-Einheit.", "note": "", "status": "open", "scheduledAt": "2026-08-25T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "40d41b63-8578-4962-aa1a-27a2f17b97de", "planId": "MONDSEE-B1", "date": "2026-08-26", "type": "Indoor Rad", "title": "Intervalle", "desc": "ca. 60 min · Strukturiertes Intervalltraining; kontrollierte Belastung.", "note": "", "status": "open", "scheduledAt": "2026-08-26T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "01810473-5ed8-4452-acba-1d9dd50d364c", "planId": "MONDSEE-B1", "date": "2026-08-27", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Vor dem Urlaub keine zusätzliche Belastung erzwingen.", "note": "", "status": "open", "scheduledAt": "2026-08-27T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "4cf54b38-afb1-45df-8317-9cada96127d9", "planId": "MONDSEE-B1", "date": "2026-08-28", "type": "Regeneration", "title": "Urlaub", "desc": "— · Urlaub mit Tochter. Training nur optional abends.", "note": "", "status": "open", "scheduledAt": "2026-08-28T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "30cae4ff-df49-443d-9676-687562298aa0", "planId": "MONDSEE-B1", "date": "2026-08-29", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein geplantes Radtraining.", "note": "", "status": "open", "scheduledAt": "2026-08-29T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "c63dede2-3e88-426a-9106-ad213d6f5a2d", "planId": "MONDSEE-B1", "date": "2026-08-30", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein geplantes Radtraining.", "note": "", "status": "open", "scheduledAt": "2026-08-30T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "7285e693-076b-4b6e-885b-beca7aacbd3a", "planId": "MONDSEE-B1", "date": "2026-08-31", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining; optional kurze BetterMe-Einheit abends.", "note": "", "status": "open", "scheduledAt": "2026-08-31T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "a4a8206b-6486-4df7-b159-01f609364a64", "planId": "MONDSEE-B1", "date": "2026-09-01", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open", "scheduledAt": "2026-09-01T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "3a0a6527-d545-4eaf-a5cb-9821f892f3f4", "planId": "MONDSEE-B1", "date": "2026-09-02", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining; optional kurze BetterMe-Einheit.", "note": "", "status": "open", "scheduledAt": "2026-09-02T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "d446970d-ff06-4714-a7f7-cafee7145b70", "planId": "MONDSEE-B1", "date": "2026-09-03", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open", "scheduledAt": "2026-09-03T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "7c2936fb-37ed-4223-948a-b265c3890040", "planId": "MONDSEE-B1", "date": "2026-09-04", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open", "scheduledAt": "2026-09-04T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "38026b75-3818-4b76-8cb5-44bdf92f1706", "planId": "MONDSEE-B1", "date": "2026-09-05", "type": "Regeneration", "title": "Urlaub", "desc": "— · Kein Pflichttraining.", "note": "", "status": "open", "scheduledAt": "2026-09-05T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "b546a015-e2c6-4f38-8bc6-00871b818911", "planId": "MONDSEE-B1", "date": "2026-09-06", "type": "Regeneration", "title": "Urlaub", "desc": "— · Rückkehr; noch keine harte Einheit.", "note": "", "status": "open", "scheduledAt": "2026-09-06T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "d4a09fa6-a290-4770-8be7-3d63425ee914", "planId": "MONDSEE-B1", "date": "2026-09-07", "type": "Indoor Rad", "title": "Wiedereinstieg", "desc": "40–50 min Z2 · Locker wieder in den Rhythmus kommen.", "note": "", "status": "open", "scheduledAt": "2026-09-07T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "10f81a4f-aef8-48c2-9c78-3737ede4f514", "planId": "MONDSEE-B1", "date": "2026-09-08", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Ganzkörper-/Core-Einheit.", "note": "", "status": "open", "scheduledAt": "2026-09-08T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "d3165a09-5488-4018-bcdb-1e9a0f28bb4f", "planId": "MONDSEE-B1", "date": "2026-09-09", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Ruhige Ausdauer.", "note": "", "status": "open", "scheduledAt": "2026-09-09T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "9313347a-ca03-4d75-8146-baa24e626efc", "planId": "MONDSEE-B1", "date": "2026-09-10", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open", "scheduledAt": "2026-09-10T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "fde295b3-8e78-4e8f-aafe-3177b6c399f7", "planId": "MONDSEE-B1", "date": "2026-09-11", "type": "Indoor Rad", "title": "Intervalle", "desc": "ca. 60 min · Kurze kontrollierte Intervalle, keine Maximalbelastung.", "note": "", "status": "open", "scheduledAt": "2026-09-11T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "5434eff2-dbba-41e6-8499-325e740770fd", "planId": "MONDSEE-B1", "date": "2026-09-12", "type": "Outdoor Rad", "title": "Grundlagenausfahrt", "desc": "50–60 km · 50–60 km; überwiegend Z2, Anstiege kontrolliert fahren.", "note": "", "status": "open", "scheduledAt": "2026-09-12T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "fe5505a8-149e-49ca-a0ae-cbddf05a6d1f", "planId": "MONDSEE-B1", "date": "2026-09-13", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open", "scheduledAt": "2026-09-13T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "a5fe7374-f10c-46d5-88db-0bd5c479cb45", "planId": "MONDSEE-B1", "date": "2026-09-14", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · Ausdauerarbeit.", "note": "", "status": "open", "scheduledAt": "2026-09-14T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "2146ce9a-be52-4697-b6b9-e3dfa5660938", "planId": "MONDSEE-B1", "date": "2026-09-15", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Kraft-/Core-Einheit.", "note": "", "status": "open", "scheduledAt": "2026-09-15T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "24dde07d-3606-4ccd-a53a-cd70fd1bf046", "planId": "MONDSEE-B1", "date": "2026-09-16", "type": "Indoor Rad", "title": "Schwelle / Tempo", "desc": "60–70 min · Belastungsblöcke an der oberen Ausdauer-/Tempo-Grenze.", "note": "", "status": "open", "scheduledAt": "2026-09-16T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "5adf7eee-01bf-4922-925d-e40956abbedf", "planId": "MONDSEE-B1", "date": "2026-09-17", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open", "scheduledAt": "2026-09-17T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "3b7fd233-6ce5-4ba6-bca7-74ed5cd97bb5", "planId": "MONDSEE-B1", "date": "2026-09-18", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min · Lockere bis moderate Ausdauer.", "note": "", "status": "open", "scheduledAt": "2026-09-18T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "c543c676-fc84-421c-a7cc-8a022af8d68e", "planId": "MONDSEE-B1", "date": "2026-09-19", "type": "Indoor Rad", "title": "Lange Grundlage", "desc": "75–90 min Z2 · Längere Indoor-Einheit, gleichmäßig.", "note": "", "status": "open", "scheduledAt": "2026-09-19T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "1ce85adb-624a-4d41-8e9e-813eeb0a1654", "planId": "MONDSEE-B1", "date": "2026-09-20", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open", "scheduledAt": "2026-09-20T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "1b64215c-7f05-448f-9501-f395575b7605", "planId": "MONDSEE-B1", "date": "2026-09-21", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · Ruhige Ausdauer.", "note": "", "status": "open", "scheduledAt": "2026-09-21T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "7d0c1480-d72c-419e-9078-f685d568ba2d", "planId": "MONDSEE-B1", "date": "2026-09-22", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Kraft/Core, nicht bis zur völligen Ermüdung.", "note": "", "status": "open", "scheduledAt": "2026-09-22T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "6345b4ee-35b5-4e20-bfd7-d974a9892d5f", "planId": "MONDSEE-B1", "date": "2026-09-23", "type": "Indoor Rad", "title": "Intervalle", "desc": "60–70 min · Strukturiertes Intervalltraining.", "note": "", "status": "open", "scheduledAt": "2026-09-23T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "6002cef1-c649-4af4-ad1e-a14c042a2ffd", "planId": "MONDSEE-B1", "date": "2026-09-24", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open", "scheduledAt": "2026-09-24T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "847bc44b-3006-4429-8866-e1575a360bc7", "planId": "MONDSEE-B1", "date": "2026-09-25", "type": "Indoor Rad", "title": "Locker", "desc": "40–50 min · Kurze lockere Einheit.", "note": "", "status": "open", "scheduledAt": "2026-09-25T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "e4138030-7dae-46ba-86cc-e764837f11da", "planId": "MONDSEE-B1", "date": "2026-09-26", "type": "Outdoor Rad", "title": "Grundlage + Anstiege", "desc": "55–65 km · 55–65 km; zwei längere Anstiege kontrolliert fahren, Fokus Ausdauer.", "note": "", "status": "open", "scheduledAt": "2026-09-26T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "ba565f3a-2a43-4832-9b2d-c20b96c96e5a", "planId": "MONDSEE-B1", "date": "2026-09-27", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open", "scheduledAt": "2026-09-27T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "993399b0-03bf-4c00-9191-4ac9d71d8902", "planId": "MONDSEE-B1", "date": "2026-09-28", "type": "Indoor Rad", "title": "Grundlage", "desc": "60 min Z2 · 60 min ruhige Ausdauer.", "note": "", "status": "open", "scheduledAt": "2026-09-28T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "31fc1803-53ef-4893-8119-9b2cdbf113f5", "planId": "MONDSEE-B1", "date": "2026-09-29", "type": "Kraft / BetterMe", "title": "BetterMe", "desc": "20–30 min · Moderate Kraft-/Core-Einheit.", "note": "", "status": "open", "scheduledAt": "2026-09-29T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "bb5c578b-54d2-453b-bbf3-785736c8bf74", "planId": "MONDSEE-B1", "date": "2026-09-30", "type": "Indoor Rad", "title": "Tempo", "desc": "60–70 min · Kontrollierte Tempo-Blöcke.", "note": "", "status": "open", "scheduledAt": "2026-09-30T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "9a19fe4a-c48e-4d43-a04f-e0264cdf5fee", "planId": "MONDSEE-B1", "date": "2026-10-01", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open", "scheduledAt": "2026-10-01T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "dae0b3ea-22b4-45f2-a144-0f4e825dc1bc", "planId": "MONDSEE-B1", "date": "2026-10-02", "type": "Indoor Rad", "title": "Grundlage", "desc": "50–60 min Z2 · Locker bis moderat.", "note": "", "status": "open", "scheduledAt": "2026-10-02T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "a327ccf9-d77c-4844-aea8-b0456cbf07f6", "planId": "MONDSEE-B1", "date": "2026-10-03", "type": "Indoor Rad", "title": "Lange Grundlage", "desc": "90 min Z2 · Längere Ausdauer-Einheit.", "note": "", "status": "open", "scheduledAt": "2026-10-03T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}, {"id": "d82011b0-c596-4ddd-8942-c68126bcf467", "planId": "MONDSEE-B1", "date": "2026-10-04", "type": "Regeneration", "title": "Ruhetag", "desc": "— · Erholung.", "note": "", "status": "open", "scheduledAt": "2026-10-04T19:00", "topup": false, "reminder": "both", "reminderTime": "19:00", "updatedAt": "2026-08-17T00:00:00.000Z"}], "activeEvent": "event-mondsee-2027", "activePlan": "MONDSEE-B1"};
+let db=JSON.parse(localStorage.getItem(KEY)||"null")||structuredClone(INITIAL_DB);
+let screen="overview", planView="list", editId=null, sb=null, cloudUser=null, syncing=false, lastSync=localStorage.getItem("mt_last_sync")||"";
 
-function save(){localStorage.setItem(KEY,JSON.stringify(db)); render();}
-function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
-function render(){
-  const ps=document.getElementById("planSelect");
-  ps.innerHTML=db.plans.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
-  ps.value=db.activePlan; ps.onchange=()=>{db.activePlan=ps.value;save()};
-  const arr=db.sessions.filter(s=>s.planId===db.activePlan).sort((a,b)=>a.date.localeCompare(b.date));
-  const done=arr.filter(s=>s.status==="done").length, cancel=arr.filter(s=>s.status==="cancel").length;
-  document.getElementById("stats").innerHTML=`<div class="stat"><b>${arr.length}</b>Trainings</div><div class="stat"><b>${done}</b>erledigt</div><div class="stat"><b>${cancel}</b>ausgefallen</div>`;
-  const list=document.getElementById("list");
-  if(!arr.length){list.innerHTML='<div class="empty">Noch keine Trainings in diesem Plan.<br>Über „＋ Training“ kannst du sie anlegen.</div>';return}
-  const groups={};
-  arr.forEach(s=>{const d=new Date(s.date+"T12:00:00"), key=`KW ${isoWeek(d)} · ${d.toLocaleDateString("de-DE",{month:"long",year:"numeric"})}`;(groups[key]??=[]).push(s)});
-  list.innerHTML=Object.entries(groups).map(([w,items])=>`<div class="week">${w}</div>`+items.map(card).join("")).join("");
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function nowLocal(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)}
+function isoWeek(d){const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=x.getUTCDay()||7;x.setUTCDate(x.getUTCDate()+4-day);const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil((((x-y)/86400000)+1)/7)}
+function isUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||""))}
+function activeEvent(){return db.events.find(e=>e.id===db.activeEvent)||db.events[0]}
+function activePlan(){return db.plans.find(p=>p.id===db.activePlan)||db.plans.find(p=>p.eventId===db.activeEvent)}
+function unitEmoji(s){const t=((s.type||"")+" "+(s.title||"")).toLowerCase();if(/betterme|kraft|core|calis/.test(t))return"💪";if(/ruhe|regeneration|erholung|urlaub/.test(t))return"😴";if(/mobil/.test(t))return"🧘";if(/indoor/.test(t)&&/rad|bike/.test(t))return"🚲";if(/outdoor/.test(t)&&/rad|bike/.test(t))return"🚴";if(/rad|bike|rennrad/.test(t))return"🚴";if(/lauf|run/.test(t))return"🏃";if(/schwimm|swim/.test(t))return"🏊";if(/ski/.test(t))return"⛷️";return"🏋️"}
+
+function persist(){localStorage.setItem(KEY,JSON.stringify(db));render();queueSync()}
+function go(s){screen=s;document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));if(s==="overview")navOverview.classList.add("active");if(s==="plan")navPlan.classList.add("active");if(s==="settings")navSettings.classList.add("active");render()}
+function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===id);if(p)db.activePlan=p.id;localStorage.setItem(KEY,JSON.stringify(db));screen="plan";go("plan")}
+function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
+
+function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div></div>`}
+
+function renderOverview(){
+ const cards=db.events.map(e=>{const blocks=db.plans.filter(p=>p.eventId===e.id);return `<article class="event-card glass" onclick="selectEvent('${e.id}')"><div><h2>${esc(e.name)}</h2><p>${esc(e.description||"")}</p></div><div class="foot"><div class="blocks">${blocks.length} Block${blocks.length===1?"":"e"}</div><div class="chev">›</div></div></article>`}).join("");
+ main.innerHTML=head("Übersicht")+`<div class="event-grid">${cards||'<div class="empty">Noch keine Events.</div>'}</div>`;
+}
+
+function renderPlan(){
+ const e=activeEvent(), p=activePlan();if(!e||!p){main.innerHTML=head("Plan")+'<div class="empty">Kein Plan ausgewählt.</div>';return}
+ const blocks=db.plans.filter(x=>x.eventId===e.id);
+ const controls=`<section class="plan-head glass"><div class="plan-event">${esc(e.name)}</div><div class="plan-controls"><select onchange="selectPlan(this.value)">${blocks.map(b=>`<option value="${b.id}" ${b.id===p.id?"selected":""}>${esc(b.name)}</option>`).join("")}</select><div class="segment"><button class="${planView==="list"?"active":""}" onclick="planView='list';render()">Liste</button><button class="${planView==="week"?"active":""}" onclick="planView='week';render()">Woche</button></div></div></section>
+ <div class="actions-top"><button class="pill primary" onclick="openSession()">＋ Training</button><button class="pill gold" onclick="openSession(null,true)">⭐ On Top</button></div>`;
+ main.innerHTML=head("Plan")+controls+`<div id="planContent"></div>`;
+ if(planView==="list")renderList();else renderWeek();
+}
+
+function currentSessions(){return db.sessions.filter(s=>s.planId===db.activePlan).sort((a,b)=>a.date.localeCompare(b.date))}
+function renderList(){
+ const arr=currentSessions(), root=document.getElementById("planContent");if(!arr.length){root.innerHTML='<div class="empty">Noch keine Einheiten in diesem Block.</div>';return}
+ const groups={};arr.forEach(s=>{const d=new Date(s.date+"T12:00:00"),k=`KW ${isoWeek(d)} · ${d.toLocaleDateString("de-DE",{month:"long",year:"numeric"})}`;(groups[k]??=[]).push(s)})
+ root.innerHTML=Object.entries(groups).map(([w,items])=>`<div class="week-title">${w}</div>${items.map(card).join("")}`).join("")
 }
 function card(s){
-  const d=new Date(s.date+"T12:00:00");
-  return `<div class="session ${s.status} ${s.topup?"topup":""}">${s.topup?'<div class="topup-badge">⭐ ON TOP · ZUSATZTRAINING</div>':""}
-    <div class="top"><div class="title">${esc(s.title)}</div><div class="date">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})}</div></div>
-    <div class="meta">${esc(s.type||"")} ${s.desc?"· "+esc(s.desc):""}</div>
-    ${s.note?`<div class="note">📝 ${esc(s.note)}</div>`:""}
-    <div class="actions">
-      <button onclick="status('${s.id}','done')">🟢 Erledigt</button>
-      <button onclick="status('${s.id}','move')">🟡 Verschoben</button>
-      <button onclick="status('${s.id}','cancel')">🔴 Ausgefallen</button>
-      <button onclick="status('${s.id}','open')">⚪ Offen</button>
-      <button onclick="openSession('${s.id}')">Details</button><button onclick="moveSession('${s.id}',1)">↪ Morgen</button>
-    </div>
-  </div>`;
+ const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");return `<article class="session glass ${s.status} ${s.topup?"topup":""}">${s.topup?'<div class="badge">⭐ ON TOP</div>':""}<div class="row"><div class="stitle">${unitEmoji(s)} ${esc(s.title)}</div><div class="sdate">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div></div><div class="meta">${esc(s.type||"")}${s.desc?" · "+esc(s.desc):""}</div>${s.note?`<div class="note">📝 ${esc(s.note)}</div>`:""}<div class="sactions"><button class="ok" onclick="setStatus('${s.id}','done')">Erledigt</button><button class="warn" onclick="setStatus('${s.id}','move')">Verschoben</button><button class="bad" onclick="setStatus('${s.id}','cancel')">Ausgefallen</button><button onclick="openSession('${s.id}')">Details</button><button onclick="moveTomorrow('${s.id}')">Morgen</button></div></article>`
 }
-function status(id,st){const s=db.sessions.find(x=>x.id===id);s.status=st;save();}
-function openSession(id=null){
-  editId=id; const s=id?db.sessions.find(x=>x.id===id):null;
-  document.getElementById("sessionHeading").textContent=s?"Training bearbeiten":"Training hinzufügen";
-  sDate.value=s?.date||new Date().toISOString().slice(0,10); sType.value=s?.type||"";
-  sTitle.value=s?.title||""; sDesc.value=s?.desc||""; sNote.value=s?.note||"";
-  sStatus.value=s?.status||"open"; sPlan.value=db.plans.find(p=>p.id===db.activePlan)?.name||"";
-  sessionDialog.showModal();
-}
-function saveSession(e){
-  e.preventDefault();
-  const obj={id:editId||crypto.randomUUID(),planId:db.activePlan,date:sDate.value,type:sType.value,title:sTitle.value,desc:sDesc.value,note:sNote.value,status:sStatus.value};
-  const i=db.sessions.findIndex(x=>x.id===obj.id); if(i>=0) db.sessions[i]=obj; else db.sessions.push(obj);
-  sessionDialog.close();save();
-}
-function openPlan(){pName.value="";pDesc.value="";planDialog.showModal();}
-function savePlan(e){
-  e.preventDefault(); const p={id:crypto.randomUUID(),name:pName.value,description:pDesc.value};
-  db.plans.push(p);db.activePlan=p.id;planDialog.close();save();
-}
-function exportData(){
-  const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);a.download="trainingsplan-backup.json";a.click();URL.revokeObjectURL(a.href);
-}
-function importData(e){
-  const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.plans||!x.sessions)throw 0;db=x;save();alert("Backup importiert.");}catch{alert("Ungültige Backup-Datei.");}};
-  r.readAsText(f);e.target.value="";
-}
-function isoWeek(d){const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=x.getUTCDay()||7;x.setUTCDate(x.getUTCDate()+4-day);const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return Math.ceil((((x-y)/86400000)+1)/7)}
-render();
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
-
-/* ===== V4 extensions ===== */
-let currentView = 'list';
-
-function setView(v){
-  currentView = v;
-  const lb=document.getElementById('listViewBtn'), wb=document.getElementById('weekViewBtn');
-  if(lb) lb.classList.toggle('active', v==='list');
-  if(wb) wb.classList.toggle('active', v==='week');
-  render();
-}
-
-function navTo(v){
-  document.querySelectorAll('.navitem').forEach(x=>x.classList.remove('active'));
-  if(v==='overview'){
-    const n=document.getElementById('navOverview'); if(n)n.classList.add('active');
-    currentView='list'; render(); window.scrollTo({top:0,behavior:'smooth'});
-  } else if(v==='plan'){
-    const n=document.getElementById('navPlan'); if(n)n.classList.add('active');
-    currentView='week'; render(); window.scrollTo({top:0,behavior:'smooth'});
-  } else if(v==='settings'){
-    const n=document.getElementById('navSettings'); if(n)n.classList.add('active');
-    showSettings();
-  }
-}
-
-function showSettings(){
-  const title=document.querySelector('.screen-title');
-  if(title) title.textContent='Einstellungen';
-  const vb=document.querySelector('.viewbar'); if(vb) vb.style.display='none';
-  const configured=localStorage.getItem('supabase_url')?'Verbindungsdaten gespeichert':'Noch nicht verbunden';
-  document.getElementById('list').innerHTML=`
-    <div class="settings-card">
-      <h3>☁️ Cloud-Synchronisierung</h3>
-      <p>Trainingspläne, Status, Notizen und Zusatztrainings geräteübergreifend synchronisieren.</p>
-      <div class="statusline">${configured}</div><br>
-      <button onclick="cloudDialog.showModal()">Cloud einrichten</button>
-    </div>
-    <div class="settings-card">
-      <h3>🔔 Erinnerungen</h3>
-      <p>Pro Einheit wählbar: Vortag, Trainingstag, beides oder keine Erinnerung. Standardzeit 19:00.</p>
-      <div class="statusline">Die echte Push-Zustellung benötigt den serverseitigen Push-/Scheduler-Schritt.</div>
-    </div>
-    <div class="settings-card">
-      <h3>⭐ On-Top-Einheiten</h3>
-      <p>Zusatztrainings werden dem aktuell ausgewählten Trainingsplan zugeordnet und am tatsächlichen Datum gold markiert – auch an ursprünglich freien Tagen.</p>
-    </div>`;
-}
-
-const renderV3Base = render;
-render = function(){
-  const title=document.querySelector('.screen-title');
-  if(title) title.textContent=currentView==='week'?'Wochenplan':'Übersicht';
-  const vb=document.querySelector('.viewbar'); if(vb) vb.style.display='';
-  renderV3Base();
-  if(currentView==='week') renderWeek();
-};
-
 function renderWeek(){
-  const arr=db.sessions.filter(s=>s.planId===db.activePlan).sort((a,b)=>a.date.localeCompare(b.date));
-  const byWeek={};
-  arr.forEach(s=>{
-    const d=new Date(s.date+'T12:00:00');
-    const day=(d.getDay()+6)%7;
-    const monday=new Date(d); monday.setDate(d.getDate()-day);
-    const key=monday.toISOString().slice(0,10);
-    (byWeek[key]??=[]).push(s);
-  });
-  const list=document.getElementById('list');
-  if(!arr.length){list.innerHTML='<div class="empty">Noch keine Trainings in diesem Plan.</div>';return}
-  list.innerHTML=Object.keys(byWeek).sort().map(k=>{
-    const monday=new Date(k+'T12:00:00');
-    let days='';
-    for(let i=0;i<7;i++){
-      const d=new Date(monday); d.setDate(monday.getDate()+i);
-      const ds=d.toISOString().slice(0,10);
-      const items=byWeek[k].filter(x=>x.date===ds);
-      days += `<div class="day ${ds===new Date().toISOString().slice(0,10)?'today':''}">
-        <div class="daynum">${d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit'})}</div>
-        ${items.map(x=>`<div class="dayitem ${x.status} ${x.topup?'topup':''}" onclick="openSession('${x.id}')">${x.topup?'⭐ ':''}${esc(x.title)}</div>`).join('')}
-      </div>`;
-    }
-    return `<div class="week">Woche ab ${monday.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</div><div class="calendar">${days}</div>`;
-  }).join('');
+ const arr=currentSessions(), root=document.getElementById("planContent");if(!arr.length){root.innerHTML='<div class="empty">Noch keine Einheiten in diesem Block.</div>';return}
+ const by={};arr.forEach(s=>{const d=new Date(s.date+"T12:00:00"),n=(d.getDay()+6)%7,m=new Date(d);m.setDate(d.getDate()-n);const k=m.toISOString().slice(0,10);(by[k]??=[]).push(s)})
+ root.innerHTML=Object.keys(by).sort().map(k=>{const m=new Date(k+"T12:00:00");let days="";for(let i=0;i<7;i++){const d=new Date(m);d.setDate(m.getDate()+i);const ds=d.toISOString().slice(0,10);const items=by[k].filter(x=>x.date===ds);days+=`<div class="day glass ${ds===new Date().toISOString().slice(0,10)?"today":""}"><div class="daynum">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit"})}</div>${items.map(x=>`<div class="dayitem ${x.topup?"topup":""}" onclick="openSession('${x.id}')">${x.topup?"⭐ ":""}${unitEmoji(x)} ${esc(x.title)}</div>`).join("")}</div>`}return `<div class="week-title">${esc(activePlan().name)} · Woche ab ${m.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</div><div class="calendar">${days}</div>`}).join("")
 }
 
-function openSession(id=null, forceTopup=false){
-  editId=id;
-  const s=id?db.sessions.find(x=>x.id===id):null;
-  document.getElementById("sessionHeading").textContent=s?"Training bearbeiten":(forceTopup?"On-Top-Training hinzufügen":"Training hinzufügen");
-  sDate.value=s?.date||new Date().toISOString().slice(0,10);
-  sType.value=s?.type||"";
-  sTitle.value=s?.title||"";
-  sDesc.value=s?.desc||"";
-  sNote.value=s?.note||"";
-  sStatus.value=s?.status||"open";
-  sPlan.value=db.plans.find(p=>p.id===db.activePlan)?.name||"";
-  sTopup.checked=!!(s?.topup||forceTopup);
-  sReminder.value=s?.reminder||"both";
-  sReminderTime.value=s?.reminderTime||"19:00";
-  sessionDialog.showModal();
+function openSession(id=null,topup=false){
+ editId=id;const s=id?db.sessions.find(x=>x.id===id):null;
+ sessionHeading.textContent=s?"Training bearbeiten":(topup?"On-Top-Training":"Training hinzufügen");
+ sDateTime.value=s?.scheduledAt||nowLocal();sType.value=s?.type||"Indoor Rad";sTitle.value=s?.title||"";sDesc.value=s?.desc||"";sStatus.value=s?.status||"open";sReminder.value=s?.reminder||"both";sReminderTime.value=s?.reminderTime||"19:00";sTopup.checked=!!(s?.topup||topup);sNote.value=s?.note||"";sessionDialog.showModal()
 }
-
 function saveSession(e){
-  e.preventDefault();
-  const obj={
-    id:editId||crypto.randomUUID(),
-    planId:db.activePlan,
-    date:sDate.value,
-    type:sType.value,
-    title:sTitle.value,
-    desc:sDesc.value,
-    note:sNote.value,
-    status:sStatus.value,
-    topup:!!sTopup.checked,
-    reminder:sReminder.value,
-    reminderTime:sReminderTime.value
-  };
-  const i=db.sessions.findIndex(x=>x.id===obj.id);
-  if(i>=0) db.sessions[i]=obj; else db.sessions.push(obj);
-  sessionDialog.close(); save();
+ e.preventDefault();const scheduledAt=sDateTime.value||nowLocal(),date=scheduledAt.slice(0,10);
+ const obj={id:editId||crypto.randomUUID(),planId:db.activePlan,date,scheduledAt,type:sType.value,title:sTitle.value,desc:sDesc.value,note:sNote.value,status:sStatus.value,topup:sTopup.checked,reminder:sReminder.value,reminderTime:sReminderTime.value,updatedAt:new Date().toISOString()};
+ const i=db.sessions.findIndex(x=>x.id===obj.id);if(i>=0)db.sessions[i]=obj;else db.sessions.push(obj);sessionDialog.close();persist()
+}
+function setStatus(id,status){const s=db.sessions.find(x=>x.id===id);if(!s)return;s.status=status;s.updatedAt=new Date().toISOString();persist()}
+function moveTomorrow(id){const s=db.sessions.find(x=>x.id===id);if(!s)return;const d=new Date((s.scheduledAt||s.date+"T19:00")+":00");d.setDate(d.getDate()+1);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());s.scheduledAt=d.toISOString().slice(0,16);s.date=s.scheduledAt.slice(0,10);s.status="move";s.updatedAt=new Date().toISOString();persist()}
+
+function renderSettings(){
+ main.innerHTML=head("Einstellungen")+`<section class="settings-card glass"><h3>☁️ Cloud</h3><p id="settingsCloud">Status wird geprüft …</p>${cloudUser?'<button class="pill" onclick="syncCloud(true)">Jetzt synchronisieren</button> <button class="pill" onclick="logout()">Abmelden</button>':'<button class="pill primary" onclick="loginDialog.showModal()">Mit E-Mail + Passwort anmelden</button>'}</section><section class="settings-card glass"><h3>🔄 Automatische Synchronisierung</h3><p>Beim Start, beim Zurückkehren zur App, nach Änderungen und sobald wieder Internet verfügbar ist.</p></section><section class="settings-card glass"><h3>💾 Backup</h3><p>Lokale Sicherung zusätzlich zur Cloud.</p><button class="pill" onclick="exportBackup()">Backup exportieren</button></section>`
 }
 
-function moveSession(id,days=1){
-  const s=db.sessions.find(x=>x.id===id); if(!s)return;
-  const d=new Date(s.date+'T12:00:00'); d.setDate(d.getDate()+days);
-  s.date=d.toISOString().slice(0,10);
-  s.status='move';
-  save();
+function updateCloud(){
+ const text=!navigator.onLine?"⚠️ Offline":syncing?"☁️ Synchronisierung …":cloudUser?(lastSync?`☁️ Synchronisiert · ${new Date(lastSync).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}`:`☁️ Verbunden`):"☁️ Nicht angemeldet";
+ const el=document.getElementById("cloudStatus");if(el)el.textContent=text;const se=document.getElementById("settingsCloud");if(se)se.textContent=text
 }
+function exportBackup(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:"application/json"}));a.download="mein-training-backup.json";a.click();URL.revokeObjectURL(a.href)}
 
-function connectCloud(e){
-  e.preventDefault();
-  const url=sbUrl.value.trim(), key=sbKey.value.trim();
-  if(!url||!key){alert('Bitte URL und Publishable Key ausfüllen.');return}
-  localStorage.setItem('supabase_url',url);
-  localStorage.setItem('supabase_key',key);
-  cloudDialog.close();
-  alert('Verbindungsdaten gespeichert. Für echte Synchronisierung müssen Authentifizierung und Datenabgleich anschließend noch aktiviert werden.');
-}
+function packDesc(s){return "__MT__"+JSON.stringify({desc:s.desc||"",scheduledAt:s.scheduledAt||s.date+"T19:00"})}
+function unpackDesc(v){if(String(v||"").startsWith("__MT__")){try{return JSON.parse(String(v).slice(6))}catch{}}return{desc:v||"",scheduledAt:null}}
+function planRemote(p){return{id:p.id,user_id:cloudUser.id,name:p.name,description:"__MTP__"+JSON.stringify({eventId:p.eventId,focus:p.focus||"",description:p.description||"",eventName:db.events.find(e=>e.id===p.eventId)?.name||""})}}
+function planLocal(r){let meta={};if(String(r.description||"").startsWith("__MTP__"))try{meta=JSON.parse(String(r.description).slice(7))}catch{};if(meta.eventId&&!db.events.some(e=>e.id===meta.eventId))db.events.push({id:meta.eventId,name:meta.eventName||"Event",description:""});return{id:r.id,eventId:meta.eventId||db.activeEvent,name:r.name,focus:meta.focus||"",description:meta.description||""}}
+function sessionRemote(s){return{id:s.id,user_id:cloudUser.id,plan_id:s.planId,training_date:s.date,training_type:s.type||"",title:s.title||"",description:packDesc(s),note:s.note||"",status:s.status||"open",topup:!!s.topup,reminder:s.reminder||"both",reminder_time:s.reminderTime||"19:00",updated_at:s.updatedAt||"2026-08-17T00:00:00.000Z"}}
+function sessionLocal(r){const d=unpackDesc(r.description);return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",type:r.training_type||"",title:r.title||"",desc:d.desc||"",note:r.note||"",status:r.status||"open",topup:!!r.topup,reminder:r.reminder||"both",reminderTime:String(r.reminder_time||"19:00").slice(0,5),updatedAt:r.updated_at||"2026-08-17T00:00:00.000Z"}}
 
-/* ===== Supabase Sync – V4 Sync ===== */
-const SUPABASE_URL = "https://vhbhocfjzrgdcekjuime.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_iI79yd8iQ0R7hT500Ijtpw_jAWZMu14";
-let sbClient = null;
-let cloudUser = null;
-let syncInProgress = false;
-let syncTimer = null;
-let lastSyncAt = localStorage.getItem("training_last_sync") || "";
-
-function isUuid(v){
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||""));
-}
-
-function isoNow(){ return new Date().toISOString(); }
-function legacyTime(){ return "2026-08-17T00:00:00.000Z"; }
-
-function normalizeLocalData(){
-  db.plans.forEach(p=>{
-    if(!p.updatedAt) p.updatedAt = legacyTime();
-  });
-  db.sessions.forEach(s=>{
-    if(!isUuid(s.id)) s.id = crypto.randomUUID();
-    if(!s.updatedAt) s.updatedAt = legacyTime();
-    if(typeof s.topup!=="boolean") s.topup=false;
-    if(!s.reminder) s.reminder="both";
-    if(!s.reminderTime) s.reminderTime="19:00";
-  });
-  localStorage.setItem(KEY,JSON.stringify(db));
-}
-
-function migrateLegacyPlanIdsForUser(){
-  if(!cloudUser) return;
-  const mapping={};
-  db.plans.forEach(p=>{
-    if(p.id==="RADMARATHON"){
-      mapping[p.id]=cloudUser.id;
-      p.id=cloudUser.id;
-      p.updatedAt=p.updatedAt||legacyTime();
-    } else if(!isUuid(p.id)){
-      const newId=crypto.randomUUID();
-      mapping[p.id]=newId;
-      p.id=newId;
-    }
-  });
-  if(Object.keys(mapping).length){
-    db.sessions.forEach(s=>{ if(mapping[s.planId]) s.planId=mapping[s.planId]; });
-    if(mapping[db.activePlan]) db.activePlan=mapping[db.activePlan];
-    localStorage.setItem(KEY,JSON.stringify(db));
-    render();
-  }
-}
-
-function cloudStatusText(){
-  if(!sbClient) return "Supabase konnte nicht geladen werden.";
-  if(!cloudUser) return "Nicht angemeldet";
-  return `Angemeldet als ${cloudUser.email||"Benutzer"}${lastSyncAt?` · Sync: ${new Date(lastSyncAt).toLocaleString("de-DE")}`:""}`;
-}
-
-function showSettings(){
-  const title=document.querySelector('.screen-title');
-  if(title) title.textContent='Einstellungen';
-  const vb=document.querySelector('.viewbar'); if(vb) vb.style.display='none';
-  const list=document.getElementById('list');
-  list.innerHTML=`
-    <div class="settings-card">
-      <h3>☁️ Cloud-Synchronisierung</h3>
-      <p>Status, Notizen, verschobene Einheiten, Trainingspläne und goldene On-Top-Einheiten werden über Supabase synchronisiert.</p>
-      <div class="statusline" id="cloudStatus">${cloudStatusText()}</div><br>
-      ${cloudUser
-        ? `<button onclick="syncCloud(true)">Jetzt synchronisieren</button>
-           <button style="margin-left:6px;background:#8e8e93" onclick="cloudSignOut()">Abmelden</button>`
-        : `<button onclick="cloudDialog.showModal()">Per E-Mail anmelden</button>`}
-    </div>
-    <div class="settings-card">
-      <h3>🔔 Erinnerungen</h3>
-      <p>Die Auswahl Vortag / Trainingstag / beides / keine sowie die Uhrzeit wird bereits mit der Cloud synchronisiert.</p>
-      <div class="statusline">Die tatsächliche iPhone-Push-Zustellung folgt im nächsten Schritt über Scheduler + Web Push.</div>
-    </div>
-    <div class="settings-card">
-      <h3>⭐ On-Top-Einheiten</h3>
-      <p>Zusatztrainings bleiben innerhalb ihres Trainingsplans und werden auch auf anderen Geräten gold dargestellt.</p>
-    </div>
-    <div class="settings-card">
-      <h3>💾 Lokales Backup</h3>
-      <p>Das lokale JSON-Backup bleibt zusätzlich als unabhängige Sicherung erhalten.</p>
-      <button onclick="exportData()">Backup exportieren</button>
-    </div>`;
-}
-
-async function initCloud(){
-  normalizeLocalData();
-  if(!window.supabase){
-    console.error("Supabase JS wurde nicht geladen.");
-    return;
-  }
-  sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
-    }
-  });
-
-  const {data, error} = await sbClient.auth.getSession();
-  if(error) console.error("Supabase Session:", error);
-  cloudUser = data?.session?.user || null;
-
-  sbClient.auth.onAuthStateChange((event, session)=>{
-    cloudUser = session?.user || null;
-    setTimeout(()=>{
-      if(cloudUser){
-        migrateLegacyPlanIdsForUser();
-        syncCloud(false);
-      }
-      const status=document.getElementById("cloudStatus");
-      if(status) status.textContent=cloudStatusText();
-    },0);
-  });
-
-  if(cloudUser){
-    migrateLegacyPlanIdsForUser();
-    await syncCloud(false);
-  }
-}
-
-async function sendMagicLink(e){
-  e.preventDefault();
-  if(!sbClient) return;
-  const email=document.getElementById("cloudEmail").value.trim();
-  const status=document.getElementById("cloudDialogStatus");
-  status.textContent="Magic-Link wird gesendet …";
-  const redirectTo = window.location.origin + window.location.pathname;
-  const {error} = await sbClient.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: redirectTo }
-  });
-  if(error){
-    status.textContent="Fehler: "+error.message;
-    return;
-  }
-  status.textContent="E-Mail gesendet. Öffne den Magic-Link auf diesem iPhone.";
-}
-
-async function cloudSignOut(){
-  if(!sbClient) return;
-  await sbClient.auth.signOut();
-  cloudUser=null;
-  showSettings();
-}
-
-function planToRemote(p){
-  return {
-    id:p.id,
-    user_id:cloudUser.id,
-    name:p.name,
-    description:p.description||""
-  };
-}
-
-function sessionToRemote(s){
-  return {
-    id:s.id,
-    user_id:cloudUser.id,
-    plan_id:s.planId,
-    training_date:s.date,
-    training_type:s.type||"",
-    title:s.title||"",
-    description:s.desc||"",
-    note:s.note||"",
-    status:s.status||"open",
-    topup:!!s.topup,
-    reminder:s.reminder||"both",
-    reminder_time:s.reminderTime||"19:00",
-    updated_at:s.updatedAt||legacyTime()
-  };
-}
-
-function remoteToPlan(p){
-  return {
-    id:p.id,
-    name:p.name,
-    description:p.description||"",
-    updatedAt:legacyTime()
-  };
-}
-
-function remoteToSession(s){
-  return {
-    id:s.id,
-    planId:s.plan_id,
-    date:s.training_date,
-    type:s.training_type||"",
-    title:s.title||"",
-    desc:s.description||"",
-    note:s.note||"",
-    status:s.status||"open",
-    topup:!!s.topup,
-    reminder:s.reminder||"both",
-    reminderTime:(s.reminder_time||"19:00").slice(0,5),
-    updatedAt:s.updated_at||legacyTime()
-  };
-}
-
-async function syncCloud(showResult=false){
-  if(syncInProgress || !sbClient || !cloudUser) return;
-  syncInProgress=true;
-  try{
-    migrateLegacyPlanIdsForUser();
-    normalizeLocalData();
-
-    const [plansRes,sessionsRes] = await Promise.all([
-      sbClient.from("training_plans").select("*"),
-      sbClient.from("training_sessions").select("*")
-    ]);
-    if(plansRes.error) throw plansRes.error;
-    if(sessionsRes.error) throw sessionsRes.error;
-
-    const remotePlans=plansRes.data||[];
-    const remoteSessions=sessionsRes.data||[];
-    const remotePlanMap=new Map(remotePlans.map(x=>[x.id,x]));
-    const remoteSessionMap=new Map(remoteSessions.map(x=>[x.id,x]));
-
-    // Plans: IDs are stable. Add cloud-only plans locally; upload local/new plans.
-    remotePlans.forEach(r=>{
-      if(!db.plans.some(p=>p.id===r.id)) db.plans.push(remoteToPlan(r));
-    });
-    const planRows=db.plans.map(planToRemote);
-    if(planRows.length){
-      const {error}=await sbClient.from("training_plans").upsert(planRows,{onConflict:"id"});
-      if(error) throw error;
-    }
-
-    // Sessions: newest updated_at wins. Local-only rows are uploaded.
-    const pushSessions=[];
-    remoteSessions.forEach(r=>{
-      const i=db.sessions.findIndex(s=>s.id===r.id);
-      if(i<0){
-        db.sessions.push(remoteToSession(r));
-      } else {
-        const local=db.sessions[i];
-        const lt=Date.parse(local.updatedAt||legacyTime());
-        const rt=Date.parse(r.updated_at||legacyTime());
-        if(rt>lt){
-          db.sessions[i]=remoteToSession(r);
-        } else if(lt>rt){
-          pushSessions.push(local);
-        }
-      }
-    });
-    db.sessions.forEach(s=>{
-      if(!remoteSessionMap.has(s.id)) pushSessions.push(s);
-    });
-
-    // Remove duplicate push IDs if a row was selected twice.
-    const uniquePush=[...new Map(pushSessions.map(s=>[s.id,s])).values()];
-    if(uniquePush.length){
-      const {error}=await sbClient.from("training_sessions").upsert(uniquePush.map(sessionToRemote),{onConflict:"id"});
-      if(error) throw error;
-    }
-
-    if(!db.plans.some(p=>p.id===db.activePlan) && db.plans.length) db.activePlan=db.plans[0].id;
-    localStorage.setItem(KEY,JSON.stringify(db));
-    lastSyncAt=isoNow();
-    localStorage.setItem("training_last_sync",lastSyncAt);
-    render();
-
-    if(showResult) alert(`Cloud-Sync abgeschlossen.\n${db.plans.length} Plan/Pläne · ${db.sessions.length} Einheiten`);
-  }catch(err){
-    console.error("Cloud-Sync fehlgeschlagen:",err);
-    if(showResult) alert("Cloud-Sync fehlgeschlagen: "+(err?.message||err));
-  }finally{
-    syncInProgress=false;
-    const status=document.getElementById("cloudStatus");
-    if(status) status.textContent=cloudStatusText();
-  }
-}
-
-function queueCloudSync(){
-  if(!cloudUser || syncInProgress) return;
-  clearTimeout(syncTimer);
-  syncTimer=setTimeout(()=>syncCloud(false),700);
-}
-
-/* Track timestamps for user edits, then autosync. */
-function save(){
-  localStorage.setItem(KEY,JSON.stringify(db));
-  render();
-  queueCloudSync();
-}
-
-function status(id,st){
-  const s=db.sessions.find(x=>x.id===id);
-  if(!s)return;
-  s.status=st;
-  s.updatedAt=isoNow();
-  save();
-}
-
-function saveSession(e){
-  e.preventDefault();
-  const old=editId?db.sessions.find(x=>x.id===editId):null;
-  const obj={
-    id:editId||crypto.randomUUID(),
-    planId:db.activePlan,
-    date:sDate.value,
-    type:sType.value,
-    title:sTitle.value,
-    desc:sDesc.value,
-    note:sNote.value,
-    status:sStatus.value,
-    topup:!!sTopup.checked,
-    reminder:sReminder.value,
-    reminderTime:sReminderTime.value,
-    updatedAt:isoNow()
-  };
-  const i=db.sessions.findIndex(x=>x.id===obj.id);
-  if(i>=0)db.sessions[i]=obj; else db.sessions.push(obj);
-  sessionDialog.close();save();
-}
-
-function savePlan(e){
-  e.preventDefault();
-  const p={id:crypto.randomUUID(),name:pName.value,description:pDesc.value,updatedAt:isoNow()};
-  db.plans.push(p);db.activePlan=p.id;planDialog.close();save();
-}
-
-function moveSession(id,days=1){
-  const s=db.sessions.find(x=>x.id===id);if(!s)return;
-  const d=new Date(s.date+'T12:00:00');d.setDate(d.getDate()+days);
-  s.date=d.toISOString().slice(0,10);
-  s.status='move';
-  s.updatedAt=isoNow();
-  save();
-}
-
-window.addEventListener("load",()=>initCloud());
-
-/* ===== V4.1 AutoSync / Persistente Session ===== */
-let v41Online = navigator.onLine;
-let v41SyncRunning = false;
-let v41SyncQueued = false;
-let v41LastSync = localStorage.getItem("training_last_sync") || "";
-let v41LastSyncError = "";
-
-function v41SetCloudStatus(text, kind="normal"){
-  const el=document.getElementById("globalCloudStatus");
-  if(!el) return;
-  const prefix = kind==="ok" ? "☁️ " : kind==="offline" ? "⚠️ " : kind==="error" ? "❗ " : "☁️ ";
-  el.textContent = prefix + text;
-  el.style.color = kind==="ok" ? "#248a3d" : kind==="offline" ? "#a06b00" : kind==="error" ? "#c62828" : "#6e6e73";
-}
-
-function v41StatusText(){
-  if(!navigator.onLine) return {text:"Offline · lokale Änderungen werden später synchronisiert",kind:"offline"};
-  if(v41SyncRunning) return {text:"Synchronisierung läuft …",kind:"normal"};
-  if(typeof cloudUser!=="undefined" && cloudUser){
-    if(v41LastSync){
-      return {text:"Synchronisiert · "+new Date(v41LastSync).toLocaleString("de-DE"),kind:"ok"};
-    }
-    return {text:"Cloud verbunden",kind:"ok"};
-  }
-  return {text:"Nicht angemeldet",kind:"normal"};
-}
-
-function v41RefreshStatus(){
-  const s=v41StatusText();
-  v41SetCloudStatus(s.text,s.kind);
-  const settingsStatus=document.getElementById("cloudStatus");
-  if(settingsStatus){
-    settingsStatus.textContent=s.text;
-  }
-}
-
-async function v41AutoSync(reason="auto"){
-  if(!navigator.onLine){
-    v41RefreshStatus();
-    return;
-  }
-  if(typeof sbClient==="undefined" || !sbClient || typeof cloudUser==="undefined" || !cloudUser){
-    v41RefreshStatus();
-    return;
-  }
-  if(v41SyncRunning){
-    v41SyncQueued=true;
-    return;
-  }
-
-  v41SyncRunning=true;
-  v41LastSyncError="";
-  v41RefreshStatus();
-
-  try{
-    if(typeof syncCloud==="function"){
-      await syncCloud(false);
-    }
-    v41LastSync=localStorage.getItem("training_last_sync") || new Date().toISOString();
-    localStorage.setItem("training_last_sync",v41LastSync);
-  }catch(err){
-    v41LastSyncError=String(err?.message||err);
-    console.error("V4.1 AutoSync:",err);
-  }finally{
-    v41SyncRunning=false;
-    if(v41LastSyncError){
-      v41SetCloudStatus("Sync fehlgeschlagen · lokale Daten bleiben erhalten","error");
-    }else{
-      v41RefreshStatus();
-    }
-    if(v41SyncQueued){
-      v41SyncQueued=false;
-      setTimeout(()=>v41AutoSync("queued"),300);
-    }
-  }
-}
-
-function v41QueueSync(){
-  clearTimeout(window.__v41SyncTimer);
-  window.__v41SyncTimer=setTimeout(()=>v41AutoSync("change"),900);
-}
-
-window.addEventListener("online",()=>{
-  v41Online=true;
-  v41RefreshStatus();
-  v41AutoSync("online");
-});
-
-window.addEventListener("offline",()=>{
-  v41Online=false;
-  v41RefreshStatus();
-});
-
-document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="visible"){
-    v41RefreshStatus();
-    v41AutoSync("resume");
-  }
-});
-
-window.addEventListener("focus",()=>{
-  v41RefreshStatus();
-  v41AutoSync("focus");
-});
-
-/* Preserve persistent Supabase sessions and sync immediately after auth/session restore. */
-window.addEventListener("load",()=>{
-  setTimeout(()=>{
-    v41RefreshStatus();
-    v41AutoSync("startup");
-  },1200);
-});
-
-/* Hook existing save() without changing local-first behavior. */
-if(typeof save==="function"){
-  const __v41OriginalSave=save;
-  save=function(){
-    __v41OriginalSave();
-    v41RefreshStatus();
-    v41QueueSync();
-  };
-}
-
-/* Hook manual sync button if present. */
-if(typeof syncCloud==="function"){
-  const __v41OriginalSyncCloud=syncCloud;
-  syncCloud=async function(showResult=false){
-    if(!navigator.onLine){
-      if(showResult) alert("Keine Internetverbindung. Änderungen bleiben lokal gespeichert und werden später synchronisiert.");
-      v41RefreshStatus();
-      return;
-    }
-    try{
-      const result=await __v41OriginalSyncCloud(showResult);
-      v41LastSync=localStorage.getItem("training_last_sync") || new Date().toISOString();
-      localStorage.setItem("training_last_sync",v41LastSync);
-      v41RefreshStatus();
-      return result;
-    }catch(err){
-      v41SetCloudStatus("Sync fehlgeschlagen · lokale Daten bleiben erhalten","error");
-      throw err;
-    }
-  };
-}
-
-/* Better settings copy for persistent login / automatic sync. */
-const __v41OldShowSettings = (typeof showSettings==="function") ? showSettings : null;
-showSettings=function(){
-  if(__v41OldShowSettings) __v41OldShowSettings();
-
-  const list=document.getElementById("list");
-  if(!list) return;
-
-  const current=list.innerHTML;
-  const sessionText=(typeof cloudUser!=="undefined" && cloudUser)
-    ? `Angemeldet als ${cloudUser.email||"Benutzer"}`
-    : "Nicht angemeldet";
-
-  list.innerHTML=`
-    <div class="settings-card">
-      <h3>☁️ Cloud-Synchronisierung</h3>
-      <p>${sessionText}</p>
-      <div class="statusline" id="cloudStatus">${v41StatusText().text}</div><br>
-      ${(typeof cloudUser!=="undefined" && cloudUser)
-        ? `<button onclick="v41AutoSync('manual')">Jetzt synchronisieren</button>
-           <button style="margin-left:6px;background:#8e8e93" onclick="cloudSignOut()">Abmelden</button>`
-        : `<button onclick="cloudDialog.showModal()">Per E-Mail anmelden</button>`}
-    </div>
-    <div class="settings-card">
-      <h3>🔄 Automatische Synchronisierung</h3>
-      <p>Aktiv. Die App synchronisiert beim Start, beim Zurückkehren in die App, nach lokalen Änderungen und sobald eine Internetverbindung wieder verfügbar ist.</p>
-      <div class="statusline">Lokale Änderungen bleiben offline erhalten und werden später nachgesendet.</div>
-    </div>
-    <div class="settings-card">
-      <h3>🔐 Anmeldung</h3>
-      <p>Die Supabase-Session bleibt auf diesem Gerät gespeichert. Ein neuer Magic-Link ist normalerweise erst nötig, wenn du dich abmeldest, Browser-/Website-Daten löschst oder die Session anderweitig verloren geht.</p>
-      <div class="statusline">Passkey / Face ID ist für eine spätere Version vorgesehen.</div>
-    </div>
-    <div class="settings-card">
-      <h3>🔔 Erinnerungen</h3>
-      <p>Reminder-Einstellungen werden mit synchronisiert. Die echte Push-Zustellung bleibt ein separater nächster Schritt.</p>
-    </div>
-    <div class="settings-card">
-      <h3>⭐ On-Top-Einheiten</h3>
-      <p>Zusatztrainings bleiben innerhalb des jeweiligen Trainingsplans und werden gold synchronisiert.</p>
-    </div>
-    <div class="settings-card">
-      <h3>💾 Backup</h3>
-      <button onclick="exportData()">Backup exportieren</button>
-    </div>`;
-  v41RefreshStatus();
-};
-
-/* ===== V4.5 Auth + Details Fix ===== */
-const V45_REMEMBER_KEY="meintraining_remember_login";
-const V45_AUTH_STORAGE_KEY="meintraining-auth-v45";
-let v45AuthSubscription=null;
-
-function v45RememberPreference(){
-  const raw=localStorage.getItem(V45_REMEMBER_KEY);
-  return raw===null ? true : raw==="true";
-}
-function v45StorageAdapter(remember){
-  const store=remember?localStorage:sessionStorage;
-  return {
-    getItem:key=>store.getItem(key),
-    setItem:(key,value)=>store.setItem(key,value),
-    removeItem:key=>store.removeItem(key)
-  };
-}
-function v45BuildClient(remember){
-  return window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
-    auth:{
-      persistSession:true,
-      autoRefreshToken:true,
-      detectSessionInUrl:true,
-      storage:v45StorageAdapter(remember),
-      storageKey:V45_AUTH_STORAGE_KEY
-    }
-  });
-}
-function v45AttachAuthEvents(){
-  if(v45AuthSubscription?.unsubscribe) v45AuthSubscription.unsubscribe();
-  const res=sbClient.auth.onAuthStateChange((event,session)=>{
-    cloudUser=session?.user||null;
-    setTimeout(async()=>{
-      if(event==="PASSWORD_RECOVERY"){
-        const dlg=document.getElementById("passwordDialog");
-        if(dlg && !dlg.open) dlg.showModal();
-      }
-      if(cloudUser){
-        migrateLegacyPlanIdsForUser();
-        try{await syncCloud(false)}catch(e){console.error(e)}
-      }
-      if(typeof v41RefreshStatus==="function") v41RefreshStatus();
-    },0);
-  });
-  v45AuthSubscription=res?.data?.subscription||null;
+function makeClient(){
+ const remember=localStorage.getItem("mt_remember")!=="false",store=remember?localStorage:sessionStorage;
+ return window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:{getItem:k=>store.getItem(k),setItem:(k,v)=>store.setItem(k,v),removeItem:k=>store.removeItem(k)},storageKey:"mt-auth-v51"}})
 }
 async function initCloud(){
-  normalizeLocalData();
-  try{
-    sbClient=v45BuildClient(v45RememberPreference());
-    v45AttachAuthEvents();
-    const {data,error}=await sbClient.auth.getSession();
-    if(error) console.error(error);
-    cloudUser=data?.session?.user||null;
-    if(cloudUser){
-      migrateLegacyPlanIdsForUser();
-      await syncCloud(false);
-    }
-    if(typeof v41RefreshStatus==="function") v41RefreshStatus();
-  }catch(err){console.error("Cloud init:",err)}
+ try{
+  sb=makeClient();const {data}=await sb.auth.getSession();cloudUser=data?.session?.user||null;
+  sb.auth.onAuthStateChange((event,session)=>{cloudUser=session?.user||null;setTimeout(()=>{if(cloudUser)syncCloud(false);render()},0)});
+  if(cloudUser)await syncCloud(false);else render()
+ }catch(e){console.error(e);render()}
 }
-async function v45RebuildClientForLogin(remember){
-  localStorage.setItem(V45_REMEMBER_KEY,String(remember));
-  if(v45AuthSubscription?.unsubscribe) v45AuthSubscription.unsubscribe();
-  sbClient=v45BuildClient(remember);
-  v45AttachAuthEvents();
+async function login(e){
+ e.preventDefault();loginStatus.textContent="Anmeldung …";localStorage.setItem("mt_remember",String(rememberLogin.checked));sb=makeClient();
+ const {data,error}=await sb.auth.signInWithPassword({email:loginEmail.value.trim(),password:loginPassword.value});if(error){loginStatus.textContent=error.message;return}
+ cloudUser=data.session?.user||data.user;loginDialog.close();await syncCloud(false);render()
 }
-async function loginWithPassword(e){
-  e.preventDefault();
-  const email=cloudEmail.value.trim();
-  const password=cloudPassword.value;
-  const remember=rememberLogin.checked;
-  cloudDialogStatus.textContent="Anmeldung läuft …";
-  try{
-    await v45RebuildClientForLogin(remember);
-    const {data,error}=await sbClient.auth.signInWithPassword({email,password});
-    if(error) throw error;
-    cloudUser=data?.session?.user||data?.user||null;
-    cloudDialog.close();
-    if(cloudUser){
-      migrateLegacyPlanIdsForUser();
-      await syncCloud(false);
-    }
-  }catch(err){
-    cloudDialogStatus.textContent="Anmeldung fehlgeschlagen: "+(err?.message||err);
-  }
+async function passwordReset(){const email=loginEmail.value.trim();if(!email){loginStatus.textContent="Bitte E-Mail eingeben.";return}const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});loginStatus.textContent=error?error.message:"E-Mail zum Zurücksetzen wurde gesendet."}
+async function logout(){await sb.auth.signOut();cloudUser=null;render()}
+
+function migrateLocalPlanIds(){
+ if(!cloudUser)return;
+ const p=db.plans.find(x=>x.id===LOCAL_BLOCK_ID);
+ if(p){const old=p.id;p.id=cloudUser.id;db.sessions.forEach(s=>{if(s.planId===old)s.planId=p.id});if(db.activePlan===old)db.activePlan=p.id;localStorage.setItem(KEY,JSON.stringify(db))}
 }
-async function sendPasswordReset(){
-  const email=cloudEmail.value.trim();
-  if(!email){cloudDialogStatus.textContent="Bitte zuerst die E-Mail-Adresse eingeben.";return}
-  try{
-    const redirectTo=window.location.origin+window.location.pathname;
-    const {error}=await sbClient.auth.resetPasswordForEmail(email,{redirectTo});
-    if(error) throw error;
-    cloudDialogStatus.textContent="E-Mail gesendet. Öffne den Link und lege ein neues Passwort fest.";
-  }catch(err){
-    cloudDialogStatus.textContent="Fehler: "+(err?.message||err);
-  }
+async function syncCloud(show=false){
+ if(syncing||!cloudUser||!navigator.onLine)return;syncing=true;updateCloud();
+ try{
+  migrateLocalPlanIds();
+  const [pr,sr]=await Promise.all([sb.from("training_plans").select("*"),sb.from("training_sessions").select("*")]);if(pr.error)throw pr.error;if(sr.error)throw sr.error;
+  (pr.data||[]).forEach(r=>{if(!db.plans.some(p=>p.id===r.id))db.plans.push(planLocal(r))});
+  if(db.plans.length){const {error}=await sb.from("training_plans").upsert(db.plans.map(planRemote),{onConflict:"id"});if(error)throw error}
+  const remoteMap=new Map((sr.data||[]).map(r=>[r.id,r])),push=[];
+  (sr.data||[]).forEach(r=>{const i=db.sessions.findIndex(s=>s.id===r.id);if(i<0)db.sessions.push(sessionLocal(r));else{const lt=Date.parse(db.sessions[i].updatedAt||0),rt=Date.parse(r.updated_at||0);if(rt>lt)db.sessions[i]=sessionLocal(r);else if(lt>rt)push.push(db.sessions[i])}});
+  db.sessions.forEach(s=>{if(!remoteMap.has(s.id))push.push(s)});
+  const unique=[...new Map(push.map(s=>[s.id,s])).values()];if(unique.length){const {error}=await sb.from("training_sessions").upsert(unique.map(sessionRemote),{onConflict:"id"});if(error)throw error}
+  localStorage.setItem(KEY,JSON.stringify(db));lastSync=new Date().toISOString();localStorage.setItem("mt_last_sync",lastSync);if(show)alert("Synchronisierung abgeschlossen.")
+ }catch(e){console.error("Sync",e);if(show)alert("Sync fehlgeschlagen: "+e.message)}
+ finally{syncing=false;render()}
 }
-async function sendMagicLinkFallback(){
-  const email=cloudEmail.value.trim();
-  if(!email){cloudDialogStatus.textContent="Bitte zuerst die E-Mail-Adresse eingeben.";return}
-  try{
-    const redirectTo=window.location.origin+window.location.pathname;
-    const {error}=await sbClient.auth.signInWithOtp({email,options:{emailRedirectTo:redirectTo}});
-    if(error) throw error;
-    cloudDialogStatus.textContent="Magic-Link gesendet.";
-  }catch(err){
-    cloudDialogStatus.textContent="Fehler: "+(err?.message||err);
-  }
-}
-async function finishPasswordReset(e){
-  e.preventDefault();
-  if(newPassword.value!==newPassword2.value){
-    passwordDialogStatus.textContent="Die Passwörter stimmen nicht überein.";return;
-  }
-  try{
-    const {error}=await sbClient.auth.updateUser({password:newPassword.value});
-    if(error) throw error;
-    passwordDialogStatus.textContent="Passwort gespeichert.";
-    setTimeout(()=>passwordDialog.close(),500);
-  }catch(err){
-    passwordDialogStatus.textContent="Fehler: "+(err?.message||err);
-  }
-}
-function v45OpenLogin(){
-  rememberLogin.checked=v45RememberPreference();
-  cloudDialogStatus.textContent="";
-  cloudDialog.showModal();
-}
-
-const __v45ShowSettingsBase=showSettings;
-showSettings=function(){
-  __v45ShowSettingsBase();
-  const loginBtn=[...document.querySelectorAll(".settings-card button")]
-    .find(b=>/Per E-Mail anmelden|anmelden/i.test(b.textContent||""));
-  if(loginBtn && !cloudUser){
-    loginBtn.textContent="Mit E-Mail + Passwort anmelden";
-    loginBtn.setAttribute("onclick","v45OpenLogin()");
-  }
-};
-
-/* Keep current list/week view when opening activity details. */
-let v45ViewBeforeDetails="list";
-const __v45OpenSessionBase=openSession;
-openSession=function(id=null,forceTopup=false){
-  v45ViewBeforeDetails=currentView||"list";
-  __v45OpenSessionBase(id,forceTopup);
-};
-const __v45SaveSessionBase=saveSession;
-saveSession=function(e){
-  const keep=v45ViewBeforeDetails||currentView||"list";
-  __v45SaveSessionBase(e);
-  currentView=keep;
-  const lb=document.getElementById("listViewBtn");
-  const wb=document.getElementById("weekViewBtn");
-  if(lb) lb.classList.toggle("active",currentView==="list");
-  if(wb) wb.classList.toggle("active",currentView==="week");
-  render();
-};
-document.addEventListener("DOMContentLoaded",()=>{
-  const dlg=document.getElementById("sessionDialog");
-  if(dlg){
-    dlg.addEventListener("close",()=>{
-      currentView=v45ViewBeforeDetails||currentView||"list";
-      const lb=document.getElementById("listViewBtn");
-      const wb=document.getElementById("weekViewBtn");
-      if(lb) lb.classList.toggle("active",currentView==="list");
-      if(wb) wb.classList.toggle("active",currentView==="week");
-    });
-  }
-});
-
-/* ===== V4.7 Plan sport icons ===== */
-function planSportEmoji(name=""){
-  const n=String(name).toLowerCase();
-  if(/lauf|running|run|marathon/.test(n) && !/radmarathon/.test(n)) return "🏃";
-  if(/ski|skitour|langlauf/.test(n)) return "⛷️";
-  if(/schwimm|swim/.test(n)) return "🏊";
-  if(/rad|bike|cycling|rennrad/.test(n)) return "🚴";
-  return "🏋️";
-}
-function planDisplayName(name=""){
-  const clean=String(name).replace(/^(🚴|🏃|⛷️|🏊|🏋️)\s*/u,"");
-  return planSportEmoji(clean)+" "+clean;
-}
-
-/* ===== V5 Event -> Block -> Sessions ===== */
-function unitEmoji(type="",title=""){
-  const t=(String(type)+" "+String(title)).toLowerCase();
-  if(/betterme|calisthenics|kraft|core/.test(t)) return "💪";
-  if(/ruhe|ruhetag|regeneration|erholung/.test(t)) return "😴";
-  if(/mobilität|mobility|stretch/.test(t)) return "🧘";
-  if(/indoor|zwift|merach/.test(t) && /rad|bike|cycling/.test(t)) return "🚲";
-  if(/outdoor/.test(t) && /rad|bike|cycling/.test(t)) return "🚴";
-  if(/rad|rennrad|bike|cycling/.test(t)) return "🚴";
-  if(/lauf|running|run/.test(t)) return "🏃";
-  if(/schwimm|swim/.test(t)) return "🏊";
-  if(/ski|skitour|langlauf/.test(t)) return "⛷️";
-  if(/koppel|brick/.test(t)) return "🚴🏃";
-  return "🏋️";
-}
-function decorateUnitTitle(s){
-  const emoji=unitEmoji(s.type,s.title);
-  const clean=String(s.title||"").replace(/^(🚴|🚲|🏃|🏊|⛷️|💪|😴|🧘|🏋️|🚴🏃)\s*/u,"");
-  return `${s.topup?"⭐ ":""}${emoji} ${clean}`;
-}
-
-function ensureV5Model(){
-  if(!db.events) db.events=[];
-  if(!db.blocks) db.blocks=[];
-
-  // Migrate old single-plan structure once.
-  if(!db.v5Migrated){
-    const oldPlans=[...(db.plans||[])];
-    const oldActive=db.activePlan;
-
-    // Create the requested current event.
-    const eventId="event-mondsee-2027";
-    db.events=[{
-      id:eventId,
-      name:"🚴 Mondsee Radmarathon 2027 – Route Typ C",
-      sport:"cycling",
-      description:"Mondsee Radmarathon 2027 · Route Typ C"
-    }];
-
-    const blockId="block-mondsee-2027-1";
-    db.blocks=[{
-      id:blockId,
-      eventId,
-      name:"Block 1 · Grundlagen",
-      focus:"Grundlagen",
-      order:1
-    }];
-
-    (db.sessions||[]).forEach(s=>{
-      s.eventId=eventId;
-      s.blockId=blockId;
-    });
-
-    db.activeEvent=eventId;
-    db.activeBlock=blockId;
-    db.v5Migrated=true;
-    localStorage.setItem(KEY,JSON.stringify(db));
-  }
-
-  if(!db.activeEvent && db.events.length) db.activeEvent=db.events[0].id;
-  if(!db.activeBlock){
-    const first=db.blocks.find(b=>b.eventId===db.activeEvent);
-    if(first) db.activeBlock=first.id;
-  }
-}
-
-function activeEventObj(){ return db.events.find(e=>e.id===db.activeEvent); }
-function activeBlockObj(){ return db.blocks.find(b=>b.id===db.activeBlock); }
-
-function renderEventSelectors(){
-  const es=document.getElementById("eventSelect");
-  const bs=document.getElementById("blockSelect");
-  if(!es||!bs) return;
-
-  es.innerHTML=db.events.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join("");
-  es.value=db.activeEvent;
-
-  const blocks=db.blocks.filter(b=>b.eventId===db.activeEvent).sort((a,b)=>a.order-b.order);
-  bs.innerHTML=blocks.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join("");
-  if(!blocks.some(b=>b.id===db.activeBlock) && blocks.length) db.activeBlock=blocks[0].id;
-  bs.value=db.activeBlock||"";
-}
-
-function changeEvent(id){
-  db.activeEvent=id;
-  const first=db.blocks.filter(b=>b.eventId===id).sort((a,b)=>a.order-b.order)[0];
-  db.activeBlock=first?.id||null;
-  localStorage.setItem(KEY,JSON.stringify(db));
-  render();
-}
-function changeBlock(id){
-  db.activeBlock=id;
-  localStorage.setItem(KEY,JSON.stringify(db));
-  render();
-}
-
-function toggleEventMenu(){
-  document.getElementById("eventDrawer").classList.add("open");
-  document.getElementById("eventDrawerBackdrop").classList.add("open");
-  renderEventDrawer();
-}
-function closeEventMenu(){
-  document.getElementById("eventDrawer").classList.remove("open");
-  document.getElementById("eventDrawerBackdrop").classList.remove("open");
-}
-function renderEventDrawer(){
-  const root=document.getElementById("eventDrawerContent");
-  if(!root) return;
-  root.innerHTML=db.events.map(e=>{
-    const blocks=db.blocks.filter(b=>b.eventId===e.id).sort((a,b)=>a.order-b.order);
-    return `<div class="event-card">
-      <div class="event-row ${e.id===db.activeEvent?"active":""}" onclick="selectEventFromDrawer('${e.id}')">
-        <div>
-          <div class="event-name">${esc(e.name)}</div>
-          <div class="event-meta">${blocks.length} Block${blocks.length===1?"":"e"}</div>
-        </div>
-        <div>›</div>
-      </div>
-      <div class="block-list">
-        ${blocks.map(b=>`<div class="block-row ${b.id===db.activeBlock?"active":""}" onclick="selectBlockFromDrawer('${e.id}','${b.id}')">
-          <div>
-            <div>${esc(b.name)}</div>
-            <div class="block-focus">${esc(b.focus||"")}</div>
-          </div>
-          <div>›</div>
-        </div>`).join("")}
-      </div>
-    </div>`;
-  }).join("");
-}
-function selectEventFromDrawer(eventId){
-  changeEvent(eventId);
-  renderEventDrawer();
-}
-function selectBlockFromDrawer(eventId,blockId){
-  db.activeEvent=eventId;
-  db.activeBlock=blockId;
-  localStorage.setItem(KEY,JSON.stringify(db));
-  closeEventMenu();
-  render();
-}
-
-const __v5RenderBase=render;
-render=function(){
-  ensureV5Model();
-  renderEventSelectors();
-  __v5RenderBase();
-
-  // Filter visible sessions to current event+block after base render.
-  const arr=db.sessions
-    .filter(s=>s.eventId===db.activeEvent && s.blockId===db.activeBlock)
-    .sort((a,b)=>a.date.localeCompare(b.date));
-
-  const list=document.getElementById("list");
-  if(!list) return;
-
-  // Re-render current block in list view with decorated emojis.
-  if(currentView!=="week"){
-    if(!arr.length){
-      list.innerHTML='<div class="empty">Noch keine Trainings in diesem Block.</div>';
-      return;
-    }
-    const groups={};
-    arr.forEach(s=>{
-      const d=new Date(s.date+"T12:00:00");
-      const key=`KW ${isoWeek(d)} · ${d.toLocaleDateString("de-DE",{month:"long",year:"numeric"})}`;
-      (groups[key]??=[]).push(s);
-    });
-    list.innerHTML=Object.entries(groups).map(([w,items])=>`<div class="week">${w}</div>`+
-      items.map(s=>{
-        const d=new Date(s.date+"T12:00:00");
-        return `<div class="session ${s.status} ${s.topup?"topup":""}">
-          ${s.topup?'<div class="topup-badge">⭐ ON TOP · ZUSATZTRAINING</div>':""}
-          <div class="top">
-            <div class="title"><span class="unit-emoji">${unitEmoji(s.type,s.title)}</span>${esc(String(s.title||"").replace(/^(🚴|🚲|🏃|🏊|⛷️|💪|😴|🧘|🏋️|🚴🏃)\s*/u,""))}</div>
-            <div class="date">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})}</div>
-          </div>
-          <div class="meta">${esc(s.type||"")} ${s.desc?"· "+esc(s.desc):""}</div>
-          ${s.note?`<div class="note">📝 ${esc(s.note)}</div>`:""}
-          <div class="actions">
-            <button class="donebtn" onclick="status('${s.id}','done')">🟢 Erledigt</button>
-            <button class="movebtn" onclick="status('${s.id}','move')">🟡 Verschoben</button>
-            <button class="cancelbtn" onclick="status('${s.id}','cancel')">🔴 Ausgefallen</button>
-            <button onclick="status('${s.id}','open')">⚪ Offen</button>
-            <button onclick="openSession('${s.id}')">Details</button>
-            <button onclick="moveSession('${s.id}',1)">↪ Morgen</button>
-          </div>
-        </div>`;
-      }).join("")
-    ).join("");
-  }
-};
-
-const __v5RenderWeekBase=renderWeek;
-renderWeek=function(){
-  ensureV5Model();
-  const arr=db.sessions
-    .filter(s=>s.eventId===db.activeEvent && s.blockId===db.activeBlock)
-    .sort((a,b)=>a.date.localeCompare(b.date));
-  const byWeek={};
-  arr.forEach(s=>{
-    const d=new Date(s.date+'T12:00:00');
-    const day=(d.getDay()+6)%7;
-    const monday=new Date(d);monday.setDate(d.getDate()-day);
-    const key=monday.toISOString().slice(0,10);
-    (byWeek[key]??=[]).push(s);
-  });
-  const list=document.getElementById('list');
-  if(!arr.length){list.innerHTML='<div class="empty">Noch keine Trainings in diesem Block.</div>';return}
-  list.innerHTML=Object.keys(byWeek).sort().map(k=>{
-    const monday=new Date(k+'T12:00:00');
-    let days='';
-    for(let i=0;i<7;i++){
-      const d=new Date(monday);d.setDate(monday.getDate()+i);
-      const ds=d.toISOString().slice(0,10);
-      const items=byWeek[k].filter(x=>x.date===ds);
-      days+=`<div class="day ${ds===new Date().toISOString().slice(0,10)?'today':''}">
-        <div class="daynum">${d.toLocaleDateString('de-DE',{weekday:'short',day:'2-digit'})}</div>
-        ${items.map(x=>`<div class="dayitem ${x.status} ${x.topup?'topup':''}" onclick="openSession('${x.id}')">${x.topup?'⭐ ':''}${unitEmoji(x.type,x.title)} ${esc(String(x.title||"").replace(/^(🚴|🚲|🏃|🏊|⛷️|💪|😴|🧘|🏋️|🚴🏃)\s*/u,""))}</div>`).join('')}
-      </div>`;
-    }
-    return `<div class="week">${activeBlockObj()?.name||"Block"} · Woche ab ${monday.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</div><div class="calendar">${days}</div>`;
-  }).join('');
-};
-
-const __v5OpenSessionBase=openSession;
-openSession=function(id=null,forceTopup=false){
-  __v5OpenSessionBase(id,forceTopup);
-  const s=id?db.sessions.find(x=>x.id===id):null;
-  if(s){
-    s.eventId=s.eventId||db.activeEvent;
-    s.blockId=s.blockId||db.activeBlock;
-  }
-};
-
-const __v5SaveSessionBase=saveSession;
-saveSession=function(e){
-  // replicate save while attaching event/block
-  e.preventDefault();
-  const obj={
-    id:editId||crypto.randomUUID(),
-    planId:db.activePlan,
-    eventId:db.activeEvent,
-    blockId:db.activeBlock,
-    date:sDate.value,
-    type:sType.value,
-    title:sTitle.value,
-    desc:sDesc.value,
-    note:sNote.value,
-    status:sStatus.value,
-    topup:!!sTopup.checked,
-    reminder:sReminder.value,
-    reminderTime:sReminderTime.value,
-    updatedAt:new Date().toISOString()
-  };
-  const i=db.sessions.findIndex(x=>x.id===obj.id);
-  if(i>=0)db.sessions[i]=obj;else db.sessions.push(obj);
-  sessionDialog.close();save();
-};
-
-ensureV5Model();
+let syncTimer;function queueSync(){if(!cloudUser)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncCloud(false),700)}
+window.addEventListener("online",()=>syncCloud(false));document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")syncCloud(false)});
+render();initCloud();
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
-
-<nav class="bottomnav appnav">
-  <button class="navitem active" id="navOverview" onclick="navTo('overview')"><span class="navicon">⌂</span>Übersicht</button>
-  <button class="navitem" id="navPlan" onclick="navTo('plan')"><span class="navicon">▦</span>Plan</button>
-  <button class="navitem" onclick="openSession()"><span class="navicon">＋</span>Training</button>
-  <button class="navitem" id="navSettings" onclick="navTo('settings')"><span class="navicon">⚙︎</span>Einstellungen</button>
-</nav>
-
-
-<dialog id="cloudDialog">
-  <form method="dialog" class="modal" onsubmit="loginWithPassword(event)">
-    <h2>☁️ Anmelden</h2>
-    <p class="helper">Standardmäßig mit E-Mail und Passwort. Magic-Link bleibt als Fallback verfügbar.</p>
-    <div class="grid">
-      <label class="full">E-Mail
-        <input id="cloudEmail" type="email" autocomplete="email" required placeholder="name@beispiel.at">
-      </label>
-      <label class="full">Passwort
-        <input id="cloudPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="Passwort">
-      </label>
-      <label class="full" style="display:flex;flex-direction:row;align-items:center;gap:10px">
-        <input id="rememberLogin" type="checkbox" checked style="width:18px;height:18px">
-        <span>Angemeldet bleiben</span>
-      </label>
-    </div>
-    <div id="cloudDialogStatus" class="statusline"></div>
-    <div class="buttons" style="flex-wrap:wrap">
-      <button type="button" onclick="sendPasswordReset()">Passwort festlegen / vergessen</button>
-      <button type="button" onclick="sendMagicLinkFallback()">Magic-Link</button>
-      <button type="button" onclick="cloudDialog.close()">Abbrechen</button>
-      <button class="primary">Anmelden</button>
-    </div>
-  </form>
-</dialog>
-
-<dialog id="passwordDialog">
-  <form method="dialog" class="modal" onsubmit="finishPasswordReset(event)">
-    <h2>🔐 Neues Passwort</h2>
-    <p class="helper">Lege ein Passwort für deinen bestehenden Supabase-Benutzer fest.</p>
-    <div class="grid">
-      <label class="full">Neues Passwort
-        <input id="newPassword" type="password" autocomplete="new-password" required minlength="8">
-      </label>
-      <label class="full">Passwort wiederholen
-        <input id="newPassword2" type="password" autocomplete="new-password" required minlength="8">
-      </label>
-    </div>
-    <div id="passwordDialogStatus" class="statusline"></div>
-    <div class="buttons">
-      <button type="button" onclick="passwordDialog.close()">Abbrechen</button>
-      <button class="primary">Passwort speichern</button>
-    </div>
-  </form>
-</dialog>
-
-
-<div id="eventDrawerBackdrop" class="event-drawer-backdrop" onclick="closeEventMenu()"></div>
-<aside id="eventDrawer" class="event-drawer">
-  <div class="event-drawer-header">
-    <div>
-      <div class="event-drawer-kicker">TRAINING</div>
-      <div class="event-drawer-title">Events & Blöcke</div>
-    </div>
-    <button onclick="closeEventMenu()" class="drawer-close">×</button>
-  </div>
-  <div id="eventDrawerContent"></div>
-</aside>
-</body>
-</html>
+</body></html>

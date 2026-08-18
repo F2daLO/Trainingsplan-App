@@ -1,9 +1,9 @@
 {
-  "name": "Mein Training",
-  "short_name": "Mein Training",
+  "name": "Training",
+  "short_name": "Training",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#f2f2f7",
-  "theme_color": "#007aff",
+  "background_color": "#111214",
+  "theme_color": "#111214",
   "lang": "de"
 }
