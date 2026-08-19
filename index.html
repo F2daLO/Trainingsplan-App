@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.5</title>
+<title>Training v6.5.1</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -682,6 +682,61 @@ dialog#sessionDialog{
   .eq-metrics{grid-template-columns:1fr 1fr}
 }
 
+
+/* ===== V6.5.1 Equipment editor fix ===== */
+#equipmentModal{
+  display:none !important;
+  position:fixed !important;
+  inset:0 !important;
+  z-index:180 !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:16px !important;
+  background:rgba(10,10,12,.16) !important;
+  backdrop-filter:blur(12px) !important;
+  -webkit-backdrop-filter:blur(12px) !important;
+}
+#equipmentModal.show{
+  display:flex !important;
+}
+#equipmentModal .sheet{
+  width:min(94vw,620px) !important;
+  max-height:min(90dvh,860px) !important;
+  overflow:auto !important;
+  -webkit-overflow-scrolling:touch;
+  border-radius:24px !important;
+  padding:18px !important;
+}
+#equipmentModal .sheet-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
+}
+#equipmentModal .iconbtn{
+  border:0;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:rgba(255,255,255,.18);
+  color:var(--text);
+}
+#equipmentModal label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin:10px 0;
+}
+#equipmentModal input,
+#equipmentModal select,
+#equipmentModal textarea{
+  width:100%;
+}
+body.modal-open{
+  overflow:hidden;
+}
+
 </style>
 </head>
 <body>
@@ -751,7 +806,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.5</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.5.1</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -858,7 +913,7 @@ function renderSettings(){
    <h3>🧰 Gerätesetup & Equipment</h3>
    <p>Hinterlege dein Equipment nach Trainingsart. Gültigkeitszeiträume sorgen dafür, dass alte und zukünftige Einheiten automatisch das passende Gerät verwenden.</p>
    <div id="equipmentList"></div>
-   <button class="pill primary" onclick="openEquipmentEditor()">+ Equipment hinzufügen</button>
+   <button type="button" class="pill primary" onclick="openEquipmentEditor()">+ Equipment hinzufügen</button>
  </section>
  <section class="settings-card glass">
    <h3>🔔 Erinnerungen</h3>
@@ -1861,42 +1916,78 @@ function renderEquipmentSettings(){
   }).join(""):'<div class="eq-row eq-small">Noch kein Equipment hinterlegt.</div>';
 }
 function openEquipmentEditor(id=""){
+  const modal=document.getElementById("equipmentModal");
+  if(!modal){alert("Equipment-Editor konnte nicht geladen werden.");return}
+
   const e=equipmentAll().find(x=>x.id===id)||{};
-  eqId.value=e.id||"";
-  eqName.value=e.name||"";
-  eqType.value=e.type||"bike_indoor";
-  eqFrom.value=e.valid_from||"";
-  eqTo.value=e.valid_to||"";
-  eqDefault.checked=!!e.is_default;
-  eqStartKm.value=e.start_km??0;
-  eqCurrentKm.value=e.current_km??0;
-  eqMaintInterval.value=e.maintenance_interval_km??"";
-  eqMaintLastKm.value=e.maintenance_last_km??0;
-  eqComponents.value=e.components||"";
-  eqNote.value=e.note||"";
-  equipmentModal.classList.add("show");
+  document.getElementById("eqId").value=e.id||"";
+  document.getElementById("eqName").value=e.name||"";
+  document.getElementById("eqType").value=e.type||"bike_indoor";
+  document.getElementById("eqFrom").value=e.valid_from||"";
+  document.getElementById("eqTo").value=e.valid_to||"";
+  document.getElementById("eqDefault").checked=!!e.is_default;
+  document.getElementById("eqStartKm").value=e.start_km??0;
+  document.getElementById("eqCurrentKm").value=e.current_km??0;
+  document.getElementById("eqMaintInterval").value=e.maintenance_interval_km??"";
+  document.getElementById("eqMaintLastKm").value=e.maintenance_last_km??0;
+  document.getElementById("eqComponents").value=e.components||"";
+  document.getElementById("eqNote").value=e.note||"";
+
+  modal.classList.add("show");
+  document.body.classList.add("modal-open");
 }
-function closeEquipmentEditor(){equipmentModal.classList.remove("show")}
+function closeEquipmentEditor(){
+  document.getElementById("equipmentModal")?.classList.remove("show");
+  document.body.classList.remove("modal-open");
+}
 function saveEquipment(){
-  const name=eqName.value.trim(); if(!name){alert("Bitte eine Bezeichnung eingeben.");return}
-  let rows=equipmentAll(), id=eqId.value||crypto.randomUUID();
-  if(eqDefault.checked) rows=rows.map(e=>e.type===eqType.value?{...e,is_default:false}:e);
-  const row={
-    id,
-    name,
-    type:eqType.value,
-    valid_from:eqFrom.value||null,
-    valid_to:eqTo.value||null,
-    is_default:eqDefault.checked,
-    start_km:Number(eqStartKm.value||0),
-    current_km:Number(eqCurrentKm.value||0),
-    maintenance_interval_km:eqMaintInterval.value?Number(eqMaintInterval.value):null,
-    maintenance_last_km:Number(eqMaintLastKm.value||0),
-    components:eqComponents.value.trim(),
-    note:eqNote.value.trim()
-  };
-  const i=rows.findIndex(e=>e.id===id); if(i>=0)rows[i]=row;else rows.push(row);
-  equipmentSaveAll(rows); closeEquipmentEditor();
+  try{
+    const name=document.getElementById("eqName").value.trim();
+    if(!name){alert("Bitte eine Bezeichnung eingeben.");return}
+
+    const type=document.getElementById("eqType").value;
+    const isDefault=document.getElementById("eqDefault").checked;
+    let rows=equipmentAll();
+    const id=document.getElementById("eqId").value||crypto.randomUUID();
+
+    if(isDefault){
+      rows=rows.map(e=>e.type===type?{...e,is_default:false}:e);
+    }
+
+    const row={
+      id,
+      name,
+      type,
+      valid_from:document.getElementById("eqFrom").value||null,
+      valid_to:document.getElementById("eqTo").value||null,
+      is_default:isDefault,
+      start_km:Number(document.getElementById("eqStartKm").value||0),
+      current_km:Number(document.getElementById("eqCurrentKm").value||0),
+      maintenance_interval_km:document.getElementById("eqMaintInterval").value
+        ? Number(document.getElementById("eqMaintInterval").value)
+        : null,
+      maintenance_last_km:Number(document.getElementById("eqMaintLastKm").value||0),
+      components:document.getElementById("eqComponents").value.trim(),
+      note:document.getElementById("eqNote").value.trim()
+    };
+
+    const i=rows.findIndex(e=>e.id===id);
+    if(i>=0) rows[i]=row;
+    else rows.push(row);
+
+    localStorage.setItem(EQUIPMENT_KEY,JSON.stringify(rows));
+    closeEquipmentEditor();
+    renderEquipmentSettings();
+
+    if(cloudUser && typeof cloudSaveEquipment==="function"){
+      cloudSaveEquipment().catch(err=>console.warn("Equipment Cloud Sync:",err));
+    }
+
+    alert("Equipment gespeichert.");
+  }catch(err){
+    console.error("Equipment speichern:",err);
+    alert("Speichern fehlgeschlagen: "+(err?.message||err));
+  }
 }
 function deleteEquipment(id){
   if(confirm("Equipment wirklich löschen?"))equipmentSaveAll(equipmentAll().filter(e=>e.id!==id));
@@ -1934,9 +2025,26 @@ function equipmentForActivity(activity){
   return equipmentForSession(sessionLike);
 }
 async function cloudSaveEquipment(){
-  if(!cloudUser)return;
-  const rows=equipmentAll().map(e=>({...e,user_id:cloudUser.id,updated_at:new Date().toISOString()}));
-  if(rows.length) await sb.from("equipment_profiles").upsert(rows,{onConflict:"id"});
+  if(!cloudUser||!sb)return;
+  const rows=equipmentAll().map(e=>({
+    id:e.id,
+    user_id:cloudUser.id,
+    name:e.name,
+    type:e.type,
+    valid_from:e.valid_from||null,
+    valid_to:e.valid_to||null,
+    is_default:!!e.is_default,
+    note:e.note||"",
+    start_km:Number(e.start_km||0),
+    current_km:Number(e.current_km||0),
+    maintenance_interval_km:e.maintenance_interval_km===null||e.maintenance_interval_km===""?null:Number(e.maintenance_interval_km),
+    maintenance_last_km:Number(e.maintenance_last_km||0),
+    components:e.components||"",
+    updated_at:new Date().toISOString()
+  }));
+  if(!rows.length)return;
+  const {error}=await sb.from("equipment_profiles").upsert(rows,{onConflict:"id"});
+  if(error)throw error;
 }
 async function cloudLoadEquipment(){
   if(!cloudUser)return;
@@ -2070,7 +2178,7 @@ renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettin
   <label>Komponenten / Setup<textarea id="eqComponents" placeholder="z. B. Favero Assioma Duo, Continental GP5000, Shimano 105"></textarea></label>
   <label>Details / Notiz<textarea id="eqNote" placeholder="z. B. Outdoor-Rad, Einsatz bis Saisonende"></textarea></label>
 
-  <button class="pill primary" onclick="saveEquipment()">Speichern</button>
+  <button type="button" class="pill primary" onclick="saveEquipment()">Speichern</button>
  </div>
 </div>
 
