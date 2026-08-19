@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.6</title>
+<title>Training v6.6.1</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1189,7 +1189,7 @@ body.modal-open{
 <label>Datum & Uhrzeit<input id="sDateTime" type="datetime-local"></label>
 <label>Trainingsart<select id="sType"><option>Indoor Rad</option><option>Outdoor Rad</option><option>Kraft / BetterMe</option><option>Regeneration</option><option>Laufen</option><option>Schwimmen</option><option>Ski / Skitour</option><option>Mobilität</option><option>Sonstiges</option></select></label>
 <label class="full">Titel<input id="sTitle"></label>
-<label class="full">Planbeschreibung
+<div id="assignedEquipmentHint" class="eq-small"></div><label class="full">Planbeschreibung
       <textarea id="sDesc" rows="3" readonly aria-readonly="true"></textarea>
     </label>
     <label class="full">Eigene Beschreibung / Notiz
@@ -1240,7 +1240,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6.1</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1301,7 +1301,7 @@ function card(s){
        <div class="sdate" data-move-id="${s.id}">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div>
      </div>
    </div>
-   <div class="meta">${esc(s.type||"")}${s.desc?` · ${esc(s.desc)}`:""}</div>
+   <div class="meta">${esc(equipmentDisplay(s)||s.type||"")}${s.desc?` · ${esc(s.desc)}`:""}</div>
  </article>`;
 }
 function renderWeek(){
@@ -1487,7 +1487,7 @@ async function syncCloud(show=false){
 }
 let syncTimer;function queueSync(){if(!cloudUser)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncCloud(false),700)}
 window.addEventListener("online",()=>syncCloud(false));document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")syncCloud(false)});
-repairCanonicalDescriptions();maybeAutoBackup();render();initCloud();
+migrateEquipmentStorage();repairCanonicalDescriptions();maybeAutoBackup();render();initCloud();
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js")
     .then(reg=>reg.update().catch(()=>{}))
@@ -2341,9 +2341,18 @@ function inferEquipmentType(session){
   return "other";
 }
 function equipmentForSession(session){
-  const type=inferEquipmentType(session), d=session?.training_date||new Date().toISOString().slice(0,10);
-  const rows=equipmentAll().filter(e=>e.type===type && (!e.valid_from||e.valid_from<=d) && (!e.valid_to||e.valid_to>=d));
-  rows.sort((a,b)=>(b.valid_from||"").localeCompare(a.valid_from||"") || Number(b.is_default)-Number(a.is_default));
+  const type=inferEquipmentType(session);
+  const d=(session?.training_date||session?.date||new Date().toISOString().slice(0,10)).slice(0,10);
+  const rows=equipmentAll().filter(e=>
+    e.type===type &&
+    (!e.valid_from || e.valid_from<=d) &&
+    (!e.valid_to || e.valid_to>=d)
+  );
+  rows.sort((a,b)=>{
+    const def=Number(!!b.is_default)-Number(!!a.is_default);
+    if(def!==0)return def;
+    return (b.valid_from||"").localeCompare(a.valid_from||"");
+  });
   return rows[0]||null;
 }
 function equipmentDisplay(session){
@@ -2352,13 +2361,17 @@ function equipmentDisplay(session){
 }
 function renderEquipmentSettings(){
   const box=document.getElementById("equipmentList"); if(!box)return;
-  const labels={bike_indoor:"🚲",bike_outdoor:"🚴",run:"🏃",swim:"🏊",strength:"💪",ski:"⛷️",other:"⚙️"};
+  const icons={bike_indoor:"🚲",bike_outdoor:"🚴",run:"🏃",swim:"🏊",strength:"💪",ski:"⛷️",other:"⚙️"};
+  const names={bike_indoor:"Rad Indoor",bike_outdoor:"Rad Outdoor",run:"Laufen",swim:"Schwimmen",strength:"Kraft / BetterMe",ski:"Ski",other:"Sonstiges"};
   const rows=equipmentAll().sort((a,b)=>(a.type+(a.valid_from||"")).localeCompare(b.type+(b.valid_from||"")));
   box.innerHTML=rows.length?rows.map(e=>`
     <div class="eq-row glass" data-equipment-id="${e.id}">
       <div class="eq-head">
-        <div class="eq-emoji">${labels[e.type]||"⚙️"}</div>
-        <div class="eq-title">${escapeHtml(e.name)}</div>
+        <div class="eq-emoji">${icons[e.type]||"⚙️"}</div>
+        <div style="min-width:0">
+          <div class="eq-title">${escapeHtml(e.name)}</div>
+          <div class="eq-small">${escapeHtml(names[e.type]||e.type||"Equipment")}${e.is_default?" · Standard":""}</div>
+        </div>
       </div>
       ${(e.note||e.components||e.valid_from||e.valid_to||Number(e.current_km||0)>0||Number(e.maintenance_interval_km||0)>0)
         ? `<button class="eq-note-btn" data-equipment-note="${e.id}" aria-label="Equipment-Info">📝</button>`:""}
@@ -2700,6 +2713,41 @@ renderSettings=function(){
     renderEquipmentSettings();
     refreshPushStatus();
   },0);
+};
+
+/* ===== V6.6.1 equipment preservation / migration ===== */
+function migrateEquipmentStorage(){
+  const current=equipmentAll();
+  if(current.length) return;
+
+  const legacyKeys=[
+    "mt_equipment_v1",
+    "mt_equipment",
+    "equipment_profiles",
+    "equipment"
+  ];
+  for(const key of legacyKeys){
+    if(key===EQUIPMENT_KEY) continue;
+    try{
+      const parsed=JSON.parse(localStorage.getItem(key)||"null");
+      if(Array.isArray(parsed) && parsed.length){
+        localStorage.setItem(EQUIPMENT_KEY,JSON.stringify(parsed));
+        return;
+      }
+    }catch{}
+  }
+}
+
+const __v661OpenSession=openSession;
+openSession=function(id=null,topup=false){
+  __v661OpenSession(id,topup);
+  requestAnimationFrame(()=>{
+    const hint=document.getElementById("assignedEquipmentHint");
+    if(!hint)return;
+    const s=id?db.sessions.find(x=>x.id===id):null;
+    const eq=s?equipmentForSession(s):null;
+    hint.textContent=eq ? `Equipment: ${eq.name} · ${equipmentTypeLabel(eq.type)}` : "";
+  });
 };
 </script>
 
