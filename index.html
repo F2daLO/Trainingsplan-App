@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v5.7</title>
+<title>Training v5.8</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -340,6 +340,15 @@ dialog#sessionDialog{
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)
 }
 
+
+/* V5.8 gesture safety */
+.session[data-session-id],.dayitem[data-session-id]{
+  touch-action:pan-y !important;
+  -webkit-user-select:none !important;
+  user-select:none !important;
+  -webkit-touch-callout:none !important;
+}
+
 </style>
 </head>
 <body>
@@ -379,6 +388,7 @@ dialog#sessionDialog{
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const LOCAL_BLOCK_ID="MONDSEE-B1";
 const KEY="meintraining-v51";
 const SUPABASE_URL="https://vhbhocfjzrgdcekjuime.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_iI79yd8iQ0R7hT500Ijtpw_jAWZMu14";
@@ -438,17 +448,17 @@ function renderList(){
 }
 function card(s){
  const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");
- const hasInfo=!!((s.desc||"").trim()||(s.note||"").trim());
+ const hasManualNote=!!((s.note||"").trim());
  return `<article class="session glass ${s.status} ${s.topup?"topup":""}" data-session-id="${s.id}">
    ${s.topup?'<div class="badge">⭐ ON TOP</div>':""}
    <div class="row">
      <div class="stitle">${unitEmoji(s)} ${esc(s.title)}</div>
      <div class="right-tools">
-       ${hasInfo?`<button class="note-icon" title="Info" aria-label="Info" onclick="event.stopPropagation();showSessionInfo('${s.id}')">📝</button>`:""}
-       <div class="sdate" onclick="event.stopPropagation();openMoveMenu('${s.id}')">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div>
+       ${hasManualNote?`<button class="note-icon" title="Eigene Notiz" aria-label="Eigene Notiz" data-note-id="${s.id}">📝</button>`:""}
+       <div class="sdate" data-move-id="${s.id}">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div>
      </div>
    </div>
-   <div class="meta">${esc(s.type||"")}</div>
+   <div class="meta">${esc(s.type||"")}${s.desc?` · ${esc(s.desc)}`:""}</div>
  </article>`;
 }
 function renderWeek(){
@@ -701,206 +711,179 @@ function doubleTapNeutral(id){
   neutralizeSession(id);
 }
 
-function bindListGestures(){
-  document.querySelectorAll(".session[data-session-id]").forEach(card=>{
-    if(card.dataset.v56==="1")return;
-    card.dataset.v56="1";
-    const id=card.dataset.sessionId;
 
-    let lastTap=0,startX=0,startY=0,moved=false;
 
-    card.addEventListener("click",e=>{
-      if(e.target.closest("button,.sdate"))return;
-      singleTapDone(id);
-    });
 
-    card.addEventListener("dblclick",e=>{
-      if(e.target.closest("button,.sdate"))return;
-      e.preventDefault();
-      doubleTapNeutral(id);
-    });
 
-    card.addEventListener("touchstart",e=>{
-      const t=e.changedTouches[0];
-      startX=t.clientX;startY=t.clientY;moved=false;
-      const now=Date.now();
-      if(now-lastTap<320){
-        e.preventDefault();
-        doubleTapNeutral(id);
-        lastTap=0;
-      }else{
-        lastTap=now;
-      }
-    },{passive:false});
 
-    card.addEventListener("touchmove",e=>{
-      const t=e.changedTouches[0];
-      if(Math.abs(t.clientX-startX)>12||Math.abs(t.clientY-startY)>12)moved=true;
-    },{passive:true});
-
-    card.addEventListener("touchend",e=>{
-      const t=e.changedTouches[0];
-      const dx=t.clientX-startX,dy=t.clientY-startY;
-      if(dx<-70 && Math.abs(dx)>Math.abs(dy)*1.3){
-        e.preventDefault();
-        sessionActionMenu(id);
-      }
-    },{passive:false});
-  });
-}
-
-function bindWeekGestures(){
-  document.querySelectorAll(".dayitem[data-session-id]").forEach(item=>{
-    if(item.dataset.v56==="1")return;
-    item.dataset.v56="1";
-    const id=item.dataset.sessionId;
-    let pressTimer=null,startX=0,startY=0;
-
-    item.addEventListener("touchstart",e=>{
-      const t=e.changedTouches[0];startX=t.clientX;startY=t.clientY;
-      pressTimer=setTimeout(()=>sessionActionMenu(id),520);
-    },{passive:true});
-
-    item.addEventListener("touchmove",e=>{
-      const t=e.changedTouches[0];
-      if(Math.abs(t.clientX-startX)>12||Math.abs(t.clientY-startY)>12){
-        clearTimeout(pressTimer);pressTimer=null;
-      }
-    },{passive:true});
-
-    item.addEventListener("touchend",()=>{clearTimeout(pressTimer);pressTimer=null},{passive:true});
-    item.addEventListener("mousedown",()=>{pressTimer=setTimeout(()=>sessionActionMenu(id),520)});
-    item.addEventListener("mouseup",()=>{clearTimeout(pressTimer);pressTimer=null});
-    item.addEventListener("mouseleave",()=>{clearTimeout(pressTimer);pressTimer=null});
-  });
-}
-
-const __v56RenderBase=render;
-render=function(){
-  __v56RenderBase();
-  setTimeout(()=>{
-    bindListGestures();
-    bindWeekGestures();
-  },0);
-};
 
 /* ===== V5.7 interaction fixes ===== */
 function closeInfoSheet(){
   document.querySelector(".info-sheet-backdrop")?.remove();
   document.querySelector(".info-sheet")?.remove();
 }
-function showSessionInfo(id){
+
+
+
+
+
+
+
+
+function showManualNote(id){
   const s=db.sessions.find(x=>x.id===id);
   if(!s)return;
-  const desc=(s.desc||"").trim();
   const note=(s.note||"").trim();
-  if(!desc&&!note)return;
+  if(!note)return;
 
-  closeInfoSheet();
+  closeInfoSheet?.();
   const back=document.createElement("div");
   back.className="info-sheet-backdrop";
-  back.onclick=closeInfoSheet;
+  back.onclick=()=>closeInfoSheet?.();
 
   const sheet=document.createElement("div");
   sheet.className="info-sheet glass";
   sheet.innerHTML=`<h3>${unitEmoji(s)} ${esc(s.title)}</h3>
-    ${desc?`<div class="info-block"><strong>Beschreibung</strong><br>${esc(desc)}</div>`:""}
-    ${note?`<div class="info-block"><strong>Notiz</strong><br>${esc(note)}</div>`:""}
+    <div class="info-block"><strong>Eigene Notiz</strong><br>${esc(note)}</div>
     <button class="pill" style="width:100%" onclick="closeInfoSheet()">Schließen</button>`;
   document.body.append(back,sheet);
 }
 
-function bindListGesturesV57(){
-  document.querySelectorAll(".session[data-session-id]").forEach(card=>{
-    if(card.dataset.v57==="1")return;
-    card.dataset.v57="1";
-    const id=card.dataset.sessionId;
-    let lastTap=0,startX=0,startY=0,swiped=false;
+/* ===== V5.8 unified Pointer Events gestures ===== */
+const GESTURE_LONG_MS=560;
+const GESTURE_SWIPE_X=72;
+const GESTURE_MOVE_TOL=12;
+const GESTURE_DOUBLE_MS=330;
 
-    card.addEventListener("click",e=>{
-      if(e.target.closest("button,.sdate"))return;
-      if(swiped){swiped=false;return}
-      singleTapDone(id);
-    });
+let gPointer=null;
+let gLastTap={id:null,time:0};
 
-    card.addEventListener("dblclick",e=>{
-      if(e.target.closest("button,.sdate"))return;
-      e.preventDefault();
-      doubleTapNeutral(id);
-    });
+function gestureTargetFromEventTarget(target){
+  return target.closest?.(".session[data-session-id], .dayitem[data-session-id]") || null;
+}
 
-    card.addEventListener("touchstart",e=>{
-      const t=e.changedTouches[0];
-      startX=t.clientX;startY=t.clientY;swiped=false;
-      const now=Date.now();
-      if(now-lastTap<320){
-        e.preventDefault();
-        doubleTapNeutral(id);
-        lastTap=0;
-      }else lastTap=now;
-    },{passive:false});
+function isInteractiveGestureChild(target){
+  return !!target.closest?.("button,.sdate,[data-move-id],[data-note-id],input,select,textarea,a");
+}
 
-    card.addEventListener("touchend",e=>{
-      const t=e.changedTouches[0];
-      const dx=t.clientX-startX,dy=t.clientY-startY;
-      if(dx<-70 && Math.abs(dx)>Math.abs(dy)*1.3){
-        e.preventDefault();
-        swiped=true;
-        sessionActionMenu(id);
+function clearGestureTimer(){
+  if(gPointer?.longTimer){
+    clearTimeout(gPointer.longTimer);
+    gPointer.longTimer=null;
+  }
+}
+
+document.addEventListener("pointerdown",e=>{
+  const el=gestureTargetFromEventTarget(e.target);
+  if(!el || isInteractiveGestureChild(e.target)) return;
+
+  const id=el.dataset.sessionId;
+  gPointer={
+    id,el,
+    pointerId:e.pointerId,
+    x:e.clientX,y:e.clientY,
+    moved:false,
+    longTriggered:false,
+    started:performance.now(),
+    longTimer:null
+  };
+
+  // Long press is only used in the weekly view.
+  if(el.classList.contains("dayitem")){
+    gPointer.longTimer=setTimeout(()=>{
+      if(!gPointer || gPointer.id!==id || gPointer.moved) return;
+      gPointer.longTriggered=true;
+      sessionActionMenu(id);
+    },GESTURE_LONG_MS);
+  }
+
+  try{ el.setPointerCapture?.(e.pointerId); }catch{}
+});
+
+document.addEventListener("pointermove",e=>{
+  if(!gPointer || gPointer.pointerId!==e.pointerId) return;
+  const dx=e.clientX-gPointer.x,dy=e.clientY-gPointer.y;
+  if(Math.abs(dx)>GESTURE_MOVE_TOL || Math.abs(dy)>GESTURE_MOVE_TOL){
+    gPointer.moved=true;
+    clearGestureTimer();
+  }
+});
+
+document.addEventListener("pointerup",e=>{
+  if(!gPointer || gPointer.pointerId!==e.pointerId) return;
+
+  const g=gPointer;
+  clearGestureTimer();
+  gPointer=null;
+
+  const dx=e.clientX-g.x,dy=e.clientY-g.y;
+
+  if(g.longTriggered){
+    e.preventDefault();
+    return;
+  }
+
+  // LIST: swipe left => one action menu only.
+  if(g.el.classList.contains("session") && dx < -GESTURE_SWIPE_X && Math.abs(dx) > Math.abs(dy)*1.25){
+    e.preventDefault();
+    sessionActionMenu(g.id);
+    return;
+  }
+
+  // WEEK: normal tap does nothing; long press opens menu.
+  if(g.el.classList.contains("dayitem")){
+    return;
+  }
+
+  // LIST: tap / double-tap.
+  if(Math.abs(dx)<=GESTURE_MOVE_TOL && Math.abs(dy)<=GESTURE_MOVE_TOL){
+    const now=performance.now();
+    if(gLastTap.id===g.id && (now-gLastTap.time)<=GESTURE_DOUBLE_MS){
+      if(gestureTapTimer){
+        clearTimeout(gestureTapTimer);
+        gestureTapTimer=null;
       }
-    },{passive:false});
-  });
-}
+      neutralizeSession(g.id);
+      gLastTap={id:null,time:0};
+    }else{
+      gLastTap={id:g.id,time:now};
+      if(gestureTapTimer) clearTimeout(gestureTapTimer);
+      gestureTapTimer=setTimeout(()=>{
+        setStatus(g.id,"done");
+        gestureTapTimer=null;
+      },GESTURE_DOUBLE_MS);
+    }
+  }
+});
 
-function bindWeekGesturesV57(){
-  document.querySelectorAll(".dayitem[data-session-id]").forEach(item=>{
-    if(item.dataset.v57==="1")return;
-    item.dataset.v57="1";
-    const id=item.dataset.sessionId;
-    let pressTimer=null,startX=0,startY=0,longPressed=false;
+document.addEventListener("pointercancel",()=>{
+  clearGestureTimer();
+  gPointer=null;
+});
 
-    const cancel=()=>{if(pressTimer){clearTimeout(pressTimer);pressTimer=null}};
+// Prevent native text-selection/callout specifically for weekly items.
+document.addEventListener("contextmenu",e=>{
+  if(e.target.closest?.(".dayitem[data-session-id]")) e.preventDefault();
+});
 
-    item.addEventListener("contextmenu",e=>e.preventDefault());
+document.addEventListener("selectstart",e=>{
+  if(e.target.closest?.(".dayitem[data-session-id],.session[data-session-id]")) e.preventDefault();
+});
 
-    item.addEventListener("touchstart",e=>{
-      const t=e.changedTouches[0];
-      startX=t.clientX;startY=t.clientY;longPressed=false;
-      cancel();
-      pressTimer=setTimeout(()=>{
-        longPressed=true;
-        sessionActionMenu(id);
-      },520);
-    },{passive:true});
-
-    item.addEventListener("touchmove",e=>{
-      const t=e.changedTouches[0];
-      if(Math.abs(t.clientX-startX)>10||Math.abs(t.clientY-startY)>10)cancel();
-    },{passive:true});
-
-    item.addEventListener("touchend",e=>{
-      cancel();
-      if(longPressed)e.preventDefault();
-    },{passive:false});
-
-    item.addEventListener("mousedown",e=>{
-      e.preventDefault();
-      longPressed=false;cancel();
-      pressTimer=setTimeout(()=>{longPressed=true;sessionActionMenu(id)},520);
-    });
-    item.addEventListener("mouseup",cancel);
-    item.addEventListener("mouseleave",cancel);
-  });
-}
-
-const __v57RenderBase=render;
-render=function(){
-  __v57RenderBase();
-  setTimeout(()=>{
-    bindListGesturesV57();
-    bindWeekGesturesV57();
-  },0);
-};
+// Delegated controls inside cards.
+document.addEventListener("click",e=>{
+  const note=e.target.closest?.("[data-note-id]");
+  if(note){
+    e.preventDefault();e.stopPropagation();
+    showManualNote(note.dataset.noteId);
+    return;
+  }
+  const mv=e.target.closest?.("[data-move-id]");
+  if(mv){
+    e.preventDefault();e.stopPropagation();
+    openMoveMenu(mv.dataset.moveId);
+  }
+});
 </script>
 
 <dialog id="passwordDialog">
