@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v5.8</title>
+<title>Training v5.9</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -349,6 +349,112 @@ dialog#sessionDialog{
   -webkit-touch-callout:none !important;
 }
 
+
+/* ===== V5.9 Note separation + desktop actions + Liquid Glass nav ===== */
+#sDesc[readonly]{
+  opacity:.82;
+  background:rgba(118,118,128,.08) !important;
+  color:var(--muted) !important;
+}
+.cloud-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:2px;
+}
+.app-version{
+  font-size:10px;
+  line-height:1;
+  color:var(--muted);
+  opacity:.62;
+  letter-spacing:.15px;
+}
+
+/* iPhone/iPad: one floating, highly translucent capsule. */
+@media(max-width:1199px){
+  .nav{
+    padding:5px !important;
+    gap:2px !important;
+    border:1px solid rgba(255,255,255,.28);
+    border-radius:28px;
+    background:rgba(255,255,255,.10) !important;
+    box-shadow:
+      0 16px 42px rgba(20,22,28,.12),
+      inset 0 1px 0 rgba(255,255,255,.30);
+    backdrop-filter:blur(34px) saturate(175%) !important;
+    -webkit-backdrop-filter:blur(34px) saturate(175%) !important;
+  }
+  .nav button{
+    border:0 !important;
+    box-shadow:none !important;
+    background:transparent !important;
+    width:72px !important;
+    min-width:72px !important;
+    height:54px !important;
+    border-radius:22px !important;
+    color:var(--muted) !important;
+    transition:
+      background .18s ease,
+      transform .16s ease,
+      color .18s ease,
+      box-shadow .18s ease !important;
+  }
+  .nav button:active{
+    transform:scale(.96);
+  }
+  .nav button.active{
+    color:var(--text) !important;
+    background:rgba(255,255,255,.28) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.38),
+      0 4px 14px rgba(0,0,0,.06) !important;
+    backdrop-filter:blur(24px) saturate(185%) !important;
+    -webkit-backdrop-filter:blur(24px) saturate(185%) !important;
+  }
+}
+@media(max-width:390px){
+  .nav button{
+    width:66px !important;
+    min-width:66px !important;
+    font-size:9px !important;
+  }
+}
+
+/* Desktop stays compact and floating on the left, but cleaner. */
+@media(min-width:1200px){
+  .nav{
+    padding:7px !important;
+    gap:4px !important;
+    border:1px solid rgba(255,255,255,.24);
+    border-radius:26px;
+    background:rgba(255,255,255,.10) !important;
+    box-shadow:0 18px 42px rgba(20,22,28,.10);
+    backdrop-filter:blur(32px) saturate(160%) !important;
+    -webkit-backdrop-filter:blur(32px) saturate(160%) !important;
+  }
+  .nav button{
+    border:0 !important;
+    box-shadow:none !important;
+    background:transparent !important;
+    border-radius:19px !important;
+  }
+  .nav button.active{
+    background:rgba(255,255,255,.25) !important;
+    box-shadow:inset 0 1px rgba(255,255,255,.35) !important;
+  }
+}
+
+@media(prefers-color-scheme:dark){
+  @media(max-width:1199px){
+    .nav{background:rgba(28,29,32,.15) !important;border-color:rgba(255,255,255,.10)}
+    .nav button.active{background:rgba(255,255,255,.11) !important}
+  }
+  @media(min-width:1200px){
+    .nav{background:rgba(28,29,32,.18) !important;border-color:rgba(255,255,255,.09)}
+    .nav button.active{background:rgba(255,255,255,.10) !important}
+  }
+}
+
 </style>
 </head>
 <body>
@@ -367,12 +473,17 @@ dialog#sessionDialog{
 <label>Datum & Uhrzeit<input id="sDateTime" type="datetime-local" required></label>
 <label>Trainingsart<select id="sType"><option>Indoor Rad</option><option>Outdoor Rad</option><option>Kraft / BetterMe</option><option>Regeneration</option><option>Laufen</option><option>Schwimmen</option><option>Ski / Skitour</option><option>Mobilität</option><option>Sonstiges</option></select></label>
 <label class="full">Titel<input id="sTitle" required></label>
-<label class="full">Beschreibung<textarea id="sDesc" rows="3"></textarea></label>
+<label class="full">Planbeschreibung
+      <textarea id="sDesc" rows="3" readonly aria-readonly="true"></textarea>
+    </label>
+    <label class="full">Eigene Beschreibung / Notiz
+      <textarea id="sNote" rows="3" placeholder="Eigene Ergänzung zur Einheit …"></textarea>
+    </label>
 <label>Status<select id="sStatus"><option value="open">Offen</option><option value="done">Durchgeführt</option><option value="cancel">Ausgefallen</option><option value="move">Verschoben</option></select></label>
 <label>Erinnerung<select id="sReminder"><option value="both">Vortag + Trainingstag</option><option value="day">Nur Trainingstag</option><option value="before">Nur Vortag</option><option value="none">Keine</option></select></label>
 <label>Erinnerungszeit<input id="sReminderTime" type="time" value="19:00"></label>
 <label class="full inline"><input id="sTopup" type="checkbox"> ⭐ On-Top-Zusatztraining</label>
-<label class="full">Notiz<textarea id="sNote" rows="3"></textarea></label>
+
 </div><div class="buttons"><button type="button" onclick="sessionDialog.close()">Abbrechen</button><button class="primary">Speichern</button></div>
 </form></dialog>
 
@@ -410,7 +521,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v5.9</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -744,7 +855,7 @@ function showManualNote(id){
   const sheet=document.createElement("div");
   sheet.className="info-sheet glass";
   sheet.innerHTML=`<h3>${unitEmoji(s)} ${esc(s.title)}</h3>
-    <div class="info-block"><strong>Eigene Notiz</strong><br>${esc(note)}</div>
+    <div class="info-block"><strong>Eigene Beschreibung / Notiz</strong><br>${esc(note)}</div>
     <button class="pill" style="width:100%" onclick="closeInfoSheet()">Schließen</button>`;
   document.body.append(back,sheet);
 }
@@ -809,62 +920,13 @@ document.addEventListener("pointermove",e=>{
   }
 });
 
-document.addEventListener("pointerup",e=>{
-  if(!gPointer || gPointer.pointerId!==e.pointerId) return;
-
-  const g=gPointer;
-  clearGestureTimer();
-  gPointer=null;
-
-  const dx=e.clientX-g.x,dy=e.clientY-g.y;
-
-  if(g.longTriggered){
-    e.preventDefault();
-    return;
-  }
-
-  // LIST: swipe left => one action menu only.
-  if(g.el.classList.contains("session") && dx < -GESTURE_SWIPE_X && Math.abs(dx) > Math.abs(dy)*1.25){
-    e.preventDefault();
-    sessionActionMenu(g.id);
-    return;
-  }
-
-  // WEEK: normal tap does nothing; long press opens menu.
-  if(g.el.classList.contains("dayitem")){
-    return;
-  }
-
-  // LIST: tap / double-tap.
-  if(Math.abs(dx)<=GESTURE_MOVE_TOL && Math.abs(dy)<=GESTURE_MOVE_TOL){
-    const now=performance.now();
-    if(gLastTap.id===g.id && (now-gLastTap.time)<=GESTURE_DOUBLE_MS){
-      if(gestureTapTimer){
-        clearTimeout(gestureTapTimer);
-        gestureTapTimer=null;
-      }
-      neutralizeSession(g.id);
-      gLastTap={id:null,time:0};
-    }else{
-      gLastTap={id:g.id,time:now};
-      if(gestureTapTimer) clearTimeout(gestureTapTimer);
-      gestureTapTimer=setTimeout(()=>{
-        setStatus(g.id,"done");
-        gestureTapTimer=null;
-      },GESTURE_DOUBLE_MS);
-    }
-  }
-});
-
 document.addEventListener("pointercancel",()=>{
   clearGestureTimer();
   gPointer=null;
 });
 
 // Prevent native text-selection/callout specifically for weekly items.
-document.addEventListener("contextmenu",e=>{
-  if(e.target.closest?.(".dayitem[data-session-id]")) e.preventDefault();
-});
+
 
 document.addEventListener("selectstart",e=>{
   if(e.target.closest?.(".dayitem[data-session-id],.session[data-session-id]")) e.preventDefault();
@@ -884,6 +946,75 @@ document.addEventListener("click",e=>{
     openMoveMenu(mv.dataset.moveId);
   }
 });
+
+/* ===== V5.9 desktop interaction ===== */
+
+/* Desktop / mouse: right-click is the full action menu. */
+document.addEventListener("contextmenu",e=>{
+  const target=e.target.closest?.(".session[data-session-id],.dayitem[data-session-id]");
+  if(!target) return;
+  e.preventDefault();
+  sessionActionMenu(target.dataset.sessionId);
+});
+
+/* Replace pointer-up behavior for the list:
+   mouse = click/double-click only; touch/pen can swipe left. */
+document.addEventListener("pointerup",e=>{
+  if(!gPointer || gPointer.pointerId!==e.pointerId) return;
+
+  const g=gPointer;
+  clearGestureTimer();
+  gPointer=null;
+
+  const dx=e.clientX-g.x,dy=e.clientY-g.y;
+
+  if(g.longTriggered){
+    e.preventDefault();
+    return;
+  }
+
+  /* Weekly view: long-press only on touch/pen. */
+  if(g.el.classList.contains("dayitem")){
+    return;
+  }
+
+  /* Swipe-left menu only on touch or pen, never mouse. */
+  if(e.pointerType!=="mouse" && dx < -GESTURE_SWIPE_X && Math.abs(dx)>Math.abs(dy)*1.25){
+    e.preventDefault();
+    sessionActionMenu(g.id);
+    return;
+  }
+
+  /* List tap/double-tap. */
+  if(Math.abs(dx)<=GESTURE_MOVE_TOL && Math.abs(dy)<=GESTURE_MOVE_TOL){
+    const now=performance.now();
+    if(gLastTap.id===g.id && (now-gLastTap.time)<=GESTURE_DOUBLE_MS){
+      if(gestureTapTimer){
+        clearTimeout(gestureTapTimer);
+        gestureTapTimer=null;
+      }
+      neutralizeSession(g.id);
+      gLastTap={id:null,time:0};
+    }else{
+      gLastTap={id:g.id,time:now};
+      if(gestureTapTimer) clearTimeout(gestureTapTimer);
+      gestureTapTimer=setTimeout(()=>{
+        setStatus(g.id,"done");
+        gestureTapTimer=null;
+      },GESTURE_DOUBLE_MS);
+    }
+  }
+},true);
+
+/* Long-press timer only for non-mouse pointers. */
+document.addEventListener("pointerdown",e=>{
+  const el=gestureTargetFromEventTarget(e.target);
+  if(!el || isInteractiveGestureChild(e.target)) return;
+
+  if(el.classList.contains("dayitem") && e.pointerType==="mouse"){
+    clearGestureTimer();
+  }
+},true);
 </script>
 
 <dialog id="passwordDialog">
