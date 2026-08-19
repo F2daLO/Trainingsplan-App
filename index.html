@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.6.3</title>
+<title>Training v6.6.4</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1240,7 +1240,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6.3</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6.4</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -2331,9 +2331,15 @@ function equipmentSaveAll(rows){
   cloudSaveEquipment?.().catch?.(()=>{});
 }
 function inferEquipmentType(session){
-  const t=((session?.training_type||"")+" "+(session?.title||"")).toLowerCase();
-  if(/indoor|trainer|zwift|merach/.test(t))return "bike_indoor";
-  if(/rad|bike|rennrad|cycling|outdoor/.test(t))return "bike_outdoor";
+  const t=(
+    String(session?.training_type||"")+" "+
+    String(session?.type||"")+" "+
+    String(session?.title||"")
+  ).toLowerCase();
+
+  if(/indoor|hometrainer|trainer|zwift|merach/.test(t))return "bike_indoor";
+  if(/outdoor|rennrad|road bike|rad outdoor|cycling outdoor/.test(t))return "bike_outdoor";
+  if(/rad|bike|cycling/.test(t))return "bike_outdoor";
   if(/lauf|run/.test(t))return "run";
   if(/schwimm|swim/.test(t))return "swim";
   if(/betterme|kraft|strength/.test(t))return "strength";
@@ -2343,21 +2349,20 @@ function inferEquipmentType(session){
 function equipmentForSession(session){
   const type=inferEquipmentType(session);
   const d=String(session?.training_date||session?.date||new Date().toISOString().slice(0,10)).slice(0,10);
+
   const rows=equipmentAll().filter(e=>
     e.type===type &&
+    e.is_default===true &&
     (!e.valid_from || e.valid_from<=d) &&
     (!e.valid_to || e.valid_to>=d)
   );
-  rows.sort((a,b)=>{
-    const defaultDiff=Number(!!b.is_default)-Number(!!a.is_default);
-    if(defaultDiff!==0)return defaultDiff;
-    return String(b.valid_from||"").localeCompare(String(a.valid_from||""));
-  });
+
+  rows.sort((a,b)=>String(b.valid_from||"").localeCompare(String(a.valid_from||"")));
   return rows[0]||null;
 }
 function equipmentDisplay(session){
   const e=equipmentForSession(session);
-  return e?e.name:null;
+  return e ? e.name : null;
 }
 function renderEquipmentSettings(){
   const box=document.getElementById("equipmentList"); if(!box)return;
@@ -2803,6 +2808,17 @@ document.addEventListener("visibilitychange",()=>{
 setTimeout(()=>{
   if(cloudUser)syncEquipmentSafe();
 },1200);
+
+function debugEquipmentMatch(sessionId){
+  const s=db.sessions.find(x=>String(x.id)===String(sessionId));
+  if(!s)return null;
+  return {
+    session:s,
+    inferredType:inferEquipmentType(s),
+    matchingDefault:equipmentForSession(s),
+    allEquipment:equipmentAll()
+  };
+}
 </script>
 
 <dialog id="passwordDialog">
