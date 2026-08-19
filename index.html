@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v5.6</title>
+<title>Training v5.7</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -295,6 +295,51 @@ dialog#sessionDialog{
   }
 }
 
+
+/* ===== V5.7 Interaction cleanup ===== */
+.session,.dayitem{
+  -webkit-user-select:none!important;
+  user-select:none!important;
+  -webkit-touch-callout:none!important;
+}
+.note-icon{
+  border:0!important;
+  background:rgba(255,255,255,.22)!important;
+  color:var(--muted)!important;
+  border-radius:10px!important;
+  width:30px!important;
+  height:28px!important;
+  padding:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:14px!important;
+}
+.session .row{align-items:flex-start!important}
+.session .right-tools{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.quick-menu,.action-sheet{
+  -webkit-user-select:none!important;
+  user-select:none!important;
+  -webkit-touch-callout:none!important;
+}
+.info-sheet{
+  position:fixed;z-index:135;left:50%;
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(92vw,440px);
+  padding:14px;
+  border-radius:24px;
+}
+.info-sheet h3{margin:4px 4px 10px;font-size:16px}
+.info-sheet .info-block{
+  padding:11px;border-radius:14px;background:rgba(255,255,255,.24);
+  margin:8px 0;white-space:pre-wrap;line-height:1.4;font-size:13px
+}
+.info-sheet-backdrop{
+  position:fixed;z-index:134;inset:0;background:rgba(0,0,0,.14);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)
+}
+
 </style>
 </head>
 <body>
@@ -393,18 +438,17 @@ function renderList(){
 }
 function card(s){
  const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");
+ const hasInfo=!!((s.desc||"").trim()||(s.note||"").trim());
  return `<article class="session glass ${s.status} ${s.topup?"topup":""}" data-session-id="${s.id}">
    ${s.topup?'<div class="badge">⭐ ON TOP</div>':""}
    <div class="row">
      <div class="stitle">${unitEmoji(s)} ${esc(s.title)}</div>
-     <div class="sdate" onclick="event.stopPropagation();openMoveMenu('${s.id}')">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div>
+     <div class="right-tools">
+       ${hasInfo?`<button class="note-icon" title="Info" aria-label="Info" onclick="event.stopPropagation();showSessionInfo('${s.id}')">📝</button>`:""}
+       <div class="sdate" onclick="event.stopPropagation();openMoveMenu('${s.id}')">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div>
+     </div>
    </div>
-   <div class="meta">${esc(s.type||"")}${s.desc?" · "+esc(s.desc):""}</div>
-   ${s.note?`<div class="note">📝 ${esc(s.note)}</div>`:""}
-   <div class="sactions">
-     <button class="detail-icon" title="Details" aria-label="Details" onclick="event.stopPropagation();openSession('${s.id}')">🔍</button>
-   </div>
-   <div class="gesture-hint">Tippen: erledigt · Doppeltipp: neutral · nach links wischen: Aktionen</div>
+   <div class="meta">${esc(s.type||"")}</div>
  </article>`;
 }
 function renderWeek(){
@@ -557,57 +601,9 @@ function deleteSession(id){
   db.sessions=db.sessions.filter(x=>x.id!==id);
   persist();
 }
-function closeActionSheet(){
-  document.querySelector(".action-sheet-backdrop")?.remove();
-  document.querySelector(".action-sheet")?.remove();
-}
-function showSessionActions(id){
-  closeActionSheet();
-  const s=db.sessions.find(x=>x.id===id);
-  if(!s)return;
-  const back=document.createElement("div");
-  back.className="action-sheet-backdrop";
-  back.onclick=closeActionSheet;
-  const sheet=document.createElement("div");
-  sheet.className="action-sheet glass";
-  sheet.innerHTML=`<h3>${esc(s.title)}</h3>
-    <button class="neutral" onclick="neutralizeSession('${id}');closeActionSheet()">○ Neutralisieren</button>
-    <button class="danger" onclick="deleteSession('${id}');closeActionSheet()">🗑 Löschen</button>
-    <button onclick="closeActionSheet()">Abbrechen</button>`;
-  document.body.append(back,sheet);
-}
-function bindSessionGestures(){
-  document.querySelectorAll(".session[data-session-id]").forEach(card=>{
-    if(card.dataset.gesturesBound==="1")return;
-    card.dataset.gesturesBound="1";
-    const id=card.dataset.sessionId;
 
-    card.addEventListener("dblclick",e=>{
-      if(e.target.closest("button"))return;
-      neutralizeSession(id);
-    });
 
-    let lastTap=0,startX=0,startY=0;
-    card.addEventListener("touchstart",e=>{
-      const t=e.changedTouches[0];
-      startX=t.clientX;startY=t.clientY;
-      const now=Date.now();
-      if(now-lastTap<330){
-        e.preventDefault();
-        neutralizeSession(id);
-        lastTap=0;
-      }else lastTap=now;
-    },{passive:false});
 
-    card.addEventListener("touchend",e=>{
-      const t=e.changedTouches[0];
-      const dx=t.clientX-startX,dy=t.clientY-startY;
-      if(Math.abs(dx)>70 && Math.abs(dx)>Math.abs(dy)*1.35){
-        showSessionActions(id);
-      }
-    },{passive:true});
-  });
-}
 
 const __v54RenderBase=render;
 render=function(){
@@ -651,7 +647,7 @@ function sessionActionMenu(id){
     <button class="neutral" onclick="neutralizeSession('${id}');closeQuickMenu()">○ Neutralisieren</button>
     <button class="warn" onclick="openMoveMenu('${id}',true)">↪ Verschieben</button>
     <button class="bad" onclick="setStatus('${id}','cancel');closeQuickMenu()">✕ Ausgefallen</button>
-    <button onclick="openSession('${id}');closeQuickMenu()">🔍 Details</button>
+    <button onclick="openSession('${id}');closeQuickMenu()">✏️ Bearbeiten</button>
     <button class="bad" onclick="deleteSession('${id}');closeQuickMenu()">🗑 Löschen</button>
     <button onclick="closeQuickMenu()">Abbrechen</button>`;
   document.body.append(back,menu);
@@ -785,6 +781,124 @@ render=function(){
   setTimeout(()=>{
     bindListGestures();
     bindWeekGestures();
+  },0);
+};
+
+/* ===== V5.7 interaction fixes ===== */
+function closeInfoSheet(){
+  document.querySelector(".info-sheet-backdrop")?.remove();
+  document.querySelector(".info-sheet")?.remove();
+}
+function showSessionInfo(id){
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+  const desc=(s.desc||"").trim();
+  const note=(s.note||"").trim();
+  if(!desc&&!note)return;
+
+  closeInfoSheet();
+  const back=document.createElement("div");
+  back.className="info-sheet-backdrop";
+  back.onclick=closeInfoSheet;
+
+  const sheet=document.createElement("div");
+  sheet.className="info-sheet glass";
+  sheet.innerHTML=`<h3>${unitEmoji(s)} ${esc(s.title)}</h3>
+    ${desc?`<div class="info-block"><strong>Beschreibung</strong><br>${esc(desc)}</div>`:""}
+    ${note?`<div class="info-block"><strong>Notiz</strong><br>${esc(note)}</div>`:""}
+    <button class="pill" style="width:100%" onclick="closeInfoSheet()">Schließen</button>`;
+  document.body.append(back,sheet);
+}
+
+function bindListGesturesV57(){
+  document.querySelectorAll(".session[data-session-id]").forEach(card=>{
+    if(card.dataset.v57==="1")return;
+    card.dataset.v57="1";
+    const id=card.dataset.sessionId;
+    let lastTap=0,startX=0,startY=0,swiped=false;
+
+    card.addEventListener("click",e=>{
+      if(e.target.closest("button,.sdate"))return;
+      if(swiped){swiped=false;return}
+      singleTapDone(id);
+    });
+
+    card.addEventListener("dblclick",e=>{
+      if(e.target.closest("button,.sdate"))return;
+      e.preventDefault();
+      doubleTapNeutral(id);
+    });
+
+    card.addEventListener("touchstart",e=>{
+      const t=e.changedTouches[0];
+      startX=t.clientX;startY=t.clientY;swiped=false;
+      const now=Date.now();
+      if(now-lastTap<320){
+        e.preventDefault();
+        doubleTapNeutral(id);
+        lastTap=0;
+      }else lastTap=now;
+    },{passive:false});
+
+    card.addEventListener("touchend",e=>{
+      const t=e.changedTouches[0];
+      const dx=t.clientX-startX,dy=t.clientY-startY;
+      if(dx<-70 && Math.abs(dx)>Math.abs(dy)*1.3){
+        e.preventDefault();
+        swiped=true;
+        sessionActionMenu(id);
+      }
+    },{passive:false});
+  });
+}
+
+function bindWeekGesturesV57(){
+  document.querySelectorAll(".dayitem[data-session-id]").forEach(item=>{
+    if(item.dataset.v57==="1")return;
+    item.dataset.v57="1";
+    const id=item.dataset.sessionId;
+    let pressTimer=null,startX=0,startY=0,longPressed=false;
+
+    const cancel=()=>{if(pressTimer){clearTimeout(pressTimer);pressTimer=null}};
+
+    item.addEventListener("contextmenu",e=>e.preventDefault());
+
+    item.addEventListener("touchstart",e=>{
+      const t=e.changedTouches[0];
+      startX=t.clientX;startY=t.clientY;longPressed=false;
+      cancel();
+      pressTimer=setTimeout(()=>{
+        longPressed=true;
+        sessionActionMenu(id);
+      },520);
+    },{passive:true});
+
+    item.addEventListener("touchmove",e=>{
+      const t=e.changedTouches[0];
+      if(Math.abs(t.clientX-startX)>10||Math.abs(t.clientY-startY)>10)cancel();
+    },{passive:true});
+
+    item.addEventListener("touchend",e=>{
+      cancel();
+      if(longPressed)e.preventDefault();
+    },{passive:false});
+
+    item.addEventListener("mousedown",e=>{
+      e.preventDefault();
+      longPressed=false;cancel();
+      pressTimer=setTimeout(()=>{longPressed=true;sessionActionMenu(id)},520);
+    });
+    item.addEventListener("mouseup",cancel);
+    item.addEventListener("mouseleave",cancel);
+  });
+}
+
+const __v57RenderBase=render;
+render=function(){
+  __v57RenderBase();
+  setTimeout(()=>{
+    bindListGesturesV57();
+    bindWeekGesturesV57();
   },0);
 };
 </script>
