@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.5.1</title>
+<title>Training v6.5.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -737,6 +737,70 @@ body.modal-open{
   overflow:hidden;
 }
 
+
+/* ===== V6.5.2 Equipment modal iPhone UX ===== */
+#equipmentModal{
+  overscroll-behavior:contain !important;
+}
+#equipmentModal .sheet{
+  width:min(94vw,620px) !important;
+  max-height:calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior:contain !important;
+  padding-bottom:calc(18px + env(safe-area-inset-bottom)) !important;
+}
+#equipmentModal input,
+#equipmentModal select,
+#equipmentModal textarea{
+  font-size:16px !important;
+  line-height:1.25 !important;
+}
+#equipmentModal textarea{
+  resize:vertical;
+}
+#equipmentModal .sheet-head{
+  position:sticky;
+  top:0;
+  z-index:3;
+  padding:4px 0 10px;
+  background:linear-gradient(180deg,rgba(245,245,247,.82),rgba(245,245,247,.62) 70%,transparent);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+#equipmentModal .pill.primary{
+  position:sticky;
+  bottom:0;
+  z-index:3;
+  width:100%;
+  margin-top:14px;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+@media(max-width:767px){
+  #equipmentModal{
+    padding:6px !important;
+    align-items:flex-end !important;
+  }
+  #equipmentModal .sheet{
+    width:100% !important;
+    max-width:none !important;
+    max-height:calc(100dvh - 6px - env(safe-area-inset-top)) !important;
+    border-radius:26px 26px 18px 18px !important;
+    padding:16px !important;
+    padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important;
+  }
+  #equipmentModal .eq-grid{
+    grid-template-columns:1fr !important;
+    gap:6px !important;
+  }
+}
+@media(prefers-color-scheme:dark){
+  #equipmentModal .sheet-head{
+    background:linear-gradient(180deg,rgba(28,29,32,.88),rgba(28,29,32,.66) 70%,transparent);
+  }
+}
+
 </style>
 </head>
 <body>
@@ -752,9 +816,9 @@ body.modal-open{
 <dialog id="sessionDialog"><form class="modal glass" onsubmit="saveSession(event)">
 <h2 id="sessionHeading" tabindex="-1">Training</h2><p class="helper">Datum und Uhrzeit werden für neue Einheiten automatisch auf jetzt gesetzt.</p>
 <div class="grid">
-<label>Datum & Uhrzeit<input id="sDateTime" type="datetime-local" required></label>
+<label>Datum & Uhrzeit<input id="sDateTime" type="datetime-local"></label>
 <label>Trainingsart<select id="sType"><option>Indoor Rad</option><option>Outdoor Rad</option><option>Kraft / BetterMe</option><option>Regeneration</option><option>Laufen</option><option>Schwimmen</option><option>Ski / Skitour</option><option>Mobilität</option><option>Sonstiges</option></select></label>
-<label class="full">Titel<input id="sTitle" required></label>
+<label class="full">Titel<input id="sTitle"></label>
 <label class="full">Planbeschreibung
       <textarea id="sDesc" rows="3" readonly aria-readonly="true"></textarea>
     </label>
@@ -772,8 +836,8 @@ body.modal-open{
 <dialog id="loginDialog"><form class="modal glass" onsubmit="login(event)">
 <h2>Cloud anmelden</h2><p class="helper">E-Mail + Passwort. Die Session bleibt auf Wunsch auf diesem Gerät gespeichert.</p>
 <div class="grid">
-<label class="full">E-Mail<input id="loginEmail" type="email" required autocomplete="email"></label>
-<label class="full">Passwort<input id="loginPassword" type="password" required autocomplete="current-password"></label>
+<label class="full">E-Mail<input id="loginEmail" type="email" autocomplete="email"></label>
+<label class="full">Passwort<input id="loginPassword" type="password" autocomplete="current-password"></label>
 <label class="full inline"><input id="rememberLogin" type="checkbox" checked> Angemeldet bleiben</label>
 </div><div id="loginStatus" class="helper"></div>
 <div class="buttons"><button type="button" onclick="passwordReset()">Passwort vergessen</button><button type="button" onclick="loginDialog.close()">Abbrechen</button><button class="primary">Anmelden</button></div>
@@ -806,7 +870,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.5.1</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.5.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1935,6 +1999,10 @@ function openEquipmentEditor(id=""){
 
   modal.classList.add("show");
   document.body.classList.add("modal-open");
+
+  requestAnimationFrame(()=>{
+    document.getElementById("equipmentModalHeading")?.focus({preventScroll:true});
+  });
 }
 function closeEquipmentEditor(){
   document.getElementById("equipmentModal")?.classList.remove("show");
@@ -1942,10 +2010,20 @@ function closeEquipmentEditor(){
 }
 function saveEquipment(){
   try{
-    const name=document.getElementById("eqName").value.trim();
-    if(!name){alert("Bitte eine Bezeichnung eingeben.");return}
+    const type=document.getElementById("eqType").value||"other";
+    const typeNames={
+      bike_indoor:"Rad Indoor",
+      bike_outdoor:"Rad Outdoor",
+      run:"Laufen",
+      swim:"Schwimmen",
+      strength:"Kraft / BetterMe",
+      ski:"Ski",
+      other:"Equipment"
+    };
 
-    const type=document.getElementById("eqType").value;
+    let name=document.getElementById("eqName").value.trim();
+    if(!name) name=typeNames[type]||"Equipment";
+
     const isDefault=document.getElementById("eqDefault").checked;
     let rows=equipmentAll();
     const id=document.getElementById("eqId").value||crypto.randomUUID();
@@ -1954,6 +2032,16 @@ function saveEquipment(){
       rows=rows.map(e=>e.type===type?{...e,is_default:false}:e);
     }
 
+    const num=(id)=>{
+      const v=document.getElementById(id).value;
+      if(v==="")return 0;
+      const n=Number(String(v).replace(",","."));
+      return Number.isFinite(n)?n:0;
+    };
+
+    const intervalRaw=document.getElementById("eqMaintInterval").value;
+    const interval=intervalRaw===""?null:Number(String(intervalRaw).replace(",","."));
+
     const row={
       id,
       name,
@@ -1961,12 +2049,10 @@ function saveEquipment(){
       valid_from:document.getElementById("eqFrom").value||null,
       valid_to:document.getElementById("eqTo").value||null,
       is_default:isDefault,
-      start_km:Number(document.getElementById("eqStartKm").value||0),
-      current_km:Number(document.getElementById("eqCurrentKm").value||0),
-      maintenance_interval_km:document.getElementById("eqMaintInterval").value
-        ? Number(document.getElementById("eqMaintInterval").value)
-        : null,
-      maintenance_last_km:Number(document.getElementById("eqMaintLastKm").value||0),
+      start_km:num("eqStartKm"),
+      current_km:num("eqCurrentKm"),
+      maintenance_interval_km:Number.isFinite(interval)?interval:null,
+      maintenance_last_km:num("eqMaintLastKm"),
       components:document.getElementById("eqComponents").value.trim(),
       note:document.getElementById("eqNote").value.trim()
     };
@@ -2068,8 +2154,8 @@ renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettin
     <h2>Neues Passwort festlegen</h2>
     <p class="helper">Du bist über den Recovery-Link angemeldet. Lege jetzt dein neues Passwort fest.</p>
     <div class="grid">
-      <label class="full">Neues Passwort<input id="newPassword" type="password" minlength="8" autocomplete="new-password" required></label>
-      <label class="full">Passwort wiederholen<input id="newPassword2" type="password" minlength="8" autocomplete="new-password" required></label>
+      <label class="full">Neues Passwort<input id="newPassword" type="password" minlength="8" autocomplete="new-password"></label>
+      <label class="full">Passwort wiederholen<input id="newPassword2" type="password" minlength="8" autocomplete="new-password"></label>
     </div>
     <div id="passwordStatus" class="helper"></div>
     <div class="buttons"><button type="button" onclick="passwordDialog.close()">Abbrechen</button><button class="primary">Passwort speichern</button></div>
@@ -2094,7 +2180,7 @@ renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettin
         </select>
       </label>
       <label class="full">Eventname
-        <input id="newEventName" required placeholder="z. B. Mondsee Radmarathon 2028">
+        <input id="newEventName" placeholder="z. B. Mondsee Radmarathon 2028">
       </label>
       <label class="full">Route / grobe Details
         <input id="newEventDetails" placeholder="z. B. Route Typ C · 75 km">
@@ -2119,10 +2205,10 @@ renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettin
     <p class="helper" id="blockEventLabel"></p>
     <div class="grid">
       <label>Block
-        <input id="newBlockName" required placeholder="Block 2">
+        <input id="newBlockName" placeholder="Block 2">
       </label>
       <label>Schwerpunkt
-        <input id="newBlockFocus" required placeholder="Aufbau">
+        <input id="newBlockFocus" placeholder="Aufbau">
       </label>
       <label class="full">Beschreibung
         <textarea id="newBlockDescription" rows="2" placeholder="Optional"></textarea>
@@ -2147,9 +2233,9 @@ renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettin
 
 <div id="equipmentModal" class="modal" onclick="if(event.target===this)closeEquipmentEditor()">
  <div class="sheet glass">
-  <div class="sheet-head"><strong>Equipment</strong><button class="iconbtn" onclick="closeEquipmentEditor()">✕</button></div>
+  <div class="sheet-head"><strong id="equipmentModalHeading" tabindex="-1">Equipment</strong><button class="iconbtn" onclick="closeEquipmentEditor()">✕</button></div>
   <input id="eqId" type="hidden">
-  <label>Bezeichnung<input id="eqName" placeholder="z. B. Cube Attain SLX"></label>
+  <label>Bezeichnung <span class="eq-small">(optional)</span><input id="eqName" placeholder="z. B. Cube Attain SLX"></label>
   <label>Trainingsart<select id="eqType">
    <option value="bike_indoor">🚲 Rad Indoor</option>
    <option value="bike_outdoor">🚴 Rad Outdoor</option>
@@ -2160,23 +2246,23 @@ renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettin
    <option value="other">⚙️ Sonstiges</option>
   </select></label>
   <div class="eq-grid">
-   <label>Gültig ab<input id="eqFrom" type="date"></label>
-   <label>Gültig bis<input id="eqTo" type="date"></label>
+   <label>Gültig ab <span class="eq-small">(optional)</span><input id="eqFrom" type="date"></label>
+   <label>Gültig bis <span class="eq-small">(optional)</span><input id="eqTo" type="date"></label>
   </div>
   <label><input id="eqDefault" type="checkbox"> Standard für diese Trainingsart</label>
 
   <div class="eq-grid">
-    <label>Start-Kilometer<input id="eqStartKm" type="number" min="0" step="0.1" placeholder="0"></label>
-    <label>Aktueller Kilometerstand<input id="eqCurrentKm" type="number" min="0" step="0.1" placeholder="0"></label>
+    <label>Start-Kilometer <span class="eq-small">(optional)</span><input id="eqStartKm" type="number" min="0" step="0.1" placeholder="0"></label>
+    <label>Aktueller Kilometerstand <span class="eq-small">(optional)</span><input id="eqCurrentKm" type="number" min="0" step="0.1" placeholder="0"></label>
   </div>
 
   <div class="eq-grid">
-    <label>Wartung alle (km)<input id="eqMaintInterval" type="number" min="0" step="1" placeholder="z. B. 1500"></label>
-    <label>Letzte Wartung bei km<input id="eqMaintLastKm" type="number" min="0" step="0.1" placeholder="0"></label>
+    <label>Wartung alle (km) <span class="eq-small">(optional)</span><input id="eqMaintInterval" type="number" min="0" step="1" placeholder="z. B. 1500"></label>
+    <label>Letzte Wartung bei km <span class="eq-small">(optional)</span><input id="eqMaintLastKm" type="number" min="0" step="0.1" placeholder="0"></label>
   </div>
 
-  <label>Komponenten / Setup<textarea id="eqComponents" placeholder="z. B. Favero Assioma Duo, Continental GP5000, Shimano 105"></textarea></label>
-  <label>Details / Notiz<textarea id="eqNote" placeholder="z. B. Outdoor-Rad, Einsatz bis Saisonende"></textarea></label>
+  <label>Komponenten / Setup <span class="eq-small">(optional)</span><textarea id="eqComponents" placeholder="z. B. Favero Assioma Duo, Continental GP5000, Shimano 105"></textarea></label>
+  <label>Details / Notiz <span class="eq-small">(optional)</span><textarea id="eqNote" placeholder="z. B. Outdoor-Rad, Einsatz bis Saisonende"></textarea></label>
 
   <button type="button" class="pill primary" onclick="saveEquipment()">Speichern</button>
  </div>
