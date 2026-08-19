@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.5.2</title>
+<title>Training v6.5.3</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -801,6 +801,133 @@ body.modal-open{
   }
 }
 
+
+/* ===== V6.5.3 Equipment modal stable scrolling ===== */
+.equipment-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:220;
+  padding:12px;
+  background:rgba(10,10,12,.18);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  align-items:center;
+  justify-content:center;
+  overscroll-behavior:none;
+}
+.equipment-modal.show{display:flex}
+.equipment-sheet{
+  width:min(94vw,640px);
+  height:min(88dvh,860px);
+  max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border-radius:26px;
+}
+.equipment-sheet-head,
+.equipment-sheet-foot{
+  flex:0 0 auto;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:rgba(245,245,247,.34);
+  backdrop-filter:blur(22px) saturate(150%);
+  -webkit-backdrop-filter:blur(22px) saturate(150%);
+}
+.equipment-sheet-head{
+  justify-content:space-between;
+  border-bottom:1px solid rgba(127,127,127,.10);
+}
+.equipment-sheet-foot{
+  justify-content:flex-end;
+  border-top:1px solid rgba(127,127,127,.10);
+  padding-bottom:calc(14px + env(safe-area-inset-bottom));
+}
+.equipment-sheet-body{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding:14px 16px 22px;
+}
+.equipment-sheet-body label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin:10px 0;
+}
+.equipment-sheet-body input,
+.equipment-sheet-body select,
+.equipment-sheet-body textarea{
+  width:100%;
+  font-size:16px !important;
+  line-height:1.25;
+}
+.equipment-sheet-body textarea{
+  resize:vertical;
+  min-height:86px;
+}
+.inline-check{
+  flex-direction:row !important;
+  align-items:center;
+  gap:10px !important;
+}
+.inline-check input{
+  width:18px !important;
+  height:18px;
+  flex:0 0 18px;
+}
+.required-mark{
+  color:#ff3b30;
+  font-weight:700;
+}
+.required-note{
+  margin-top:12px;
+  color:var(--muted);
+  font-size:11px;
+}
+body.modal-open{
+  overflow:hidden !important;
+  position:fixed;
+  width:100%;
+}
+@media(max-width:767px){
+  .equipment-modal{
+    padding:0;
+    align-items:flex-end;
+  }
+  .equipment-sheet{
+    width:100%;
+    height:calc(100dvh - max(6px,env(safe-area-inset-top)));
+    max-height:none;
+    border-radius:28px 28px 0 0;
+  }
+  .equipment-sheet-body{
+    padding:12px 14px 24px;
+  }
+  .equipment-sheet-head{
+    padding-top:14px;
+  }
+  .equipment-sheet-foot{
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .eq-grid{
+    grid-template-columns:1fr !important;
+  }
+}
+@media(prefers-color-scheme:dark){
+  .equipment-sheet-head,
+  .equipment-sheet-foot{
+    background:rgba(28,29,32,.46);
+  }
+}
+
 </style>
 </head>
 <body>
@@ -870,7 +997,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.5.2</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.5.3</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1981,95 +2108,103 @@ function renderEquipmentSettings(){
 }
 function openEquipmentEditor(id=""){
   const modal=document.getElementById("equipmentModal");
-  if(!modal){alert("Equipment-Editor konnte nicht geladen werden.");return}
-
   const e=equipmentAll().find(x=>x.id===id)||{};
+
   document.getElementById("eqId").value=e.id||"";
   document.getElementById("eqName").value=e.name||"";
   document.getElementById("eqType").value=e.type||"bike_indoor";
-  document.getElementById("eqFrom").value=e.valid_from||"";
+  document.getElementById("eqFrom").value=e.valid_from||new Date().toISOString().slice(0,10);
   document.getElementById("eqTo").value=e.valid_to||"";
   document.getElementById("eqDefault").checked=!!e.is_default;
-  document.getElementById("eqStartKm").value=e.start_km??0;
-  document.getElementById("eqCurrentKm").value=e.current_km??0;
+  document.getElementById("eqStartKm").value=e.start_km??"";
+  document.getElementById("eqCurrentKm").value=e.current_km??"";
   document.getElementById("eqMaintInterval").value=e.maintenance_interval_km??"";
-  document.getElementById("eqMaintLastKm").value=e.maintenance_last_km??0;
+  document.getElementById("eqMaintLastKm").value=e.maintenance_last_km??"";
   document.getElementById("eqComponents").value=e.components||"";
   document.getElementById("eqNote").value=e.note||"";
 
   modal.classList.add("show");
+  modal.setAttribute("aria-hidden","false");
   document.body.classList.add("modal-open");
 
   requestAnimationFrame(()=>{
     document.getElementById("equipmentModalHeading")?.focus({preventScroll:true});
+    document.querySelector(".equipment-sheet-body")?.scrollTo({top:0,behavior:"instant"});
   });
 }
 function closeEquipmentEditor(){
-  document.getElementById("equipmentModal")?.classList.remove("show");
+  const modal=document.getElementById("equipmentModal");
+  modal?.classList.remove("show");
+  modal?.setAttribute("aria-hidden","true");
   document.body.classList.remove("modal-open");
 }
 function saveEquipment(){
   try{
-    const type=document.getElementById("eqType").value||"other";
-    const typeNames={
-      bike_indoor:"Rad Indoor",
-      bike_outdoor:"Rad Outdoor",
-      run:"Laufen",
-      swim:"Schwimmen",
-      strength:"Kraft / BetterMe",
-      ski:"Ski",
-      other:"Equipment"
-    };
+    const name=document.getElementById("eqName").value.trim();
+    const type=document.getElementById("eqType").value;
+    const validFrom=document.getElementById("eqFrom").value;
 
-    let name=document.getElementById("eqName").value.trim();
-    if(!name) name=typeNames[type]||"Equipment";
+    const missing=[];
+    if(!name) missing.push("Bezeichnung");
+    if(!type) missing.push("Trainingsart / Funktion");
+    if(!validFrom) missing.push("Gültig ab");
 
-    const isDefault=document.getElementById("eqDefault").checked;
+    if(missing.length){
+      alert("Bitte ausfüllen: "+missing.join(", "));
+      return;
+    }
+
     let rows=equipmentAll();
     const id=document.getElementById("eqId").value||crypto.randomUUID();
+    const isDefault=document.getElementById("eqDefault").checked;
 
     if(isDefault){
       rows=rows.map(e=>e.type===type?{...e,is_default:false}:e);
     }
 
-    const num=(id)=>{
-      const v=document.getElementById(id).value;
-      if(v==="")return 0;
-      const n=Number(String(v).replace(",","."));
+    const numberOrZero=(elementId)=>{
+      const raw=document.getElementById(elementId).value.trim();
+      if(raw==="") return 0;
+      const n=Number(raw.replace(",","."));
       return Number.isFinite(n)?n:0;
     };
-
-    const intervalRaw=document.getElementById("eqMaintInterval").value;
-    const interval=intervalRaw===""?null:Number(String(intervalRaw).replace(",","."));
+    const optionalNumber=(elementId)=>{
+      const raw=document.getElementById(elementId).value.trim();
+      if(raw==="") return null;
+      const n=Number(raw.replace(",","."));
+      return Number.isFinite(n)?n:null;
+    };
 
     const row={
       id,
       name,
       type,
-      valid_from:document.getElementById("eqFrom").value||null,
+      valid_from:validFrom,
       valid_to:document.getElementById("eqTo").value||null,
       is_default:isDefault,
-      start_km:num("eqStartKm"),
-      current_km:num("eqCurrentKm"),
-      maintenance_interval_km:Number.isFinite(interval)?interval:null,
-      maintenance_last_km:num("eqMaintLastKm"),
+      start_km:numberOrZero("eqStartKm"),
+      current_km:numberOrZero("eqCurrentKm"),
+      maintenance_interval_km:optionalNumber("eqMaintInterval"),
+      maintenance_last_km:numberOrZero("eqMaintLastKm"),
       components:document.getElementById("eqComponents").value.trim(),
       note:document.getElementById("eqNote").value.trim()
     };
 
-    const i=rows.findIndex(e=>e.id===id);
-    if(i>=0) rows[i]=row;
+    const existing=rows.findIndex(e=>e.id===id);
+    if(existing>=0) rows[existing]=row;
     else rows.push(row);
 
     localStorage.setItem(EQUIPMENT_KEY,JSON.stringify(rows));
+
     closeEquipmentEditor();
     renderEquipmentSettings();
 
     if(cloudUser && typeof cloudSaveEquipment==="function"){
-      cloudSaveEquipment().catch(err=>console.warn("Equipment Cloud Sync:",err));
+      cloudSaveEquipment().catch(err=>{
+        console.warn("Equipment Cloud Sync:",err);
+        alert("Equipment lokal gespeichert. Cloud-Sync fehlgeschlagen: "+(err?.message||err));
+      });
     }
-
-    alert("Equipment gespeichert.");
   }catch(err){
     console.error("Equipment speichern:",err);
     alert("Speichern fehlgeschlagen: "+(err?.message||err));
@@ -2147,7 +2282,18 @@ function applyEquipmentLabels(){
   });
 }
 const __v64RenderSettings=renderSettings;
-renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettings,0);};</script>
+renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettings,0);};
+/* V6.5.3 guaranteed HTML escaping helper */
+function escapeHtml(value){
+  return String(value??"").replace(/[&<>"']/g,ch=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[ch]);
+}
+</script>
 
 <dialog id="passwordDialog">
   <form class="modal glass" onsubmit="saveNewPassword(event)">
@@ -2231,42 +2377,83 @@ renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettin
 </dialog>
 
 
-<div id="equipmentModal" class="modal" onclick="if(event.target===this)closeEquipmentEditor()">
- <div class="sheet glass">
-  <div class="sheet-head"><strong id="equipmentModalHeading" tabindex="-1">Equipment</strong><button class="iconbtn" onclick="closeEquipmentEditor()">✕</button></div>
-  <input id="eqId" type="hidden">
-  <label>Bezeichnung <span class="eq-small">(optional)</span><input id="eqName" placeholder="z. B. Cube Attain SLX"></label>
-  <label>Trainingsart<select id="eqType">
-   <option value="bike_indoor">🚲 Rad Indoor</option>
-   <option value="bike_outdoor">🚴 Rad Outdoor</option>
-   <option value="run">🏃 Laufen</option>
-   <option value="swim">🏊 Schwimmen</option>
-   <option value="strength">💪 Kraft / BetterMe</option>
-   <option value="ski">⛷️ Ski</option>
-   <option value="other">⚙️ Sonstiges</option>
-  </select></label>
-  <div class="eq-grid">
-   <label>Gültig ab <span class="eq-small">(optional)</span><input id="eqFrom" type="date"></label>
-   <label>Gültig bis <span class="eq-small">(optional)</span><input id="eqTo" type="date"></label>
+
+<div id="equipmentModal" class="equipment-modal" aria-hidden="true">
+  <div class="equipment-sheet glass" role="dialog" aria-modal="true" aria-labelledby="equipmentModalHeading">
+    <div class="equipment-sheet-head">
+      <strong id="equipmentModalHeading" tabindex="-1">Equipment</strong>
+      <button type="button" class="iconbtn" onclick="closeEquipmentEditor()">✕</button>
+    </div>
+
+    <div class="equipment-sheet-body">
+      <input id="eqId" type="hidden">
+
+      <label>Bezeichnung <span class="required-mark">*</span>
+        <input id="eqName" placeholder="z. B. Cube Attain SLX" autocomplete="off">
+      </label>
+
+      <label>Trainingsart / Funktion <span class="required-mark">*</span>
+        <select id="eqType">
+          <option value="bike_indoor">🚲 Rad Indoor</option>
+          <option value="bike_outdoor">🚴 Rad Outdoor</option>
+          <option value="run">🏃 Laufen</option>
+          <option value="swim">🏊 Schwimmen</option>
+          <option value="strength">💪 Kraft / BetterMe</option>
+          <option value="ski">⛷️ Ski</option>
+          <option value="other">⚙️ Sonstiges</option>
+        </select>
+      </label>
+
+      <div class="eq-grid">
+        <label>Gültig ab <span class="required-mark">*</span>
+          <input id="eqFrom" type="date">
+        </label>
+        <label>Gültig bis <span class="eq-small">(optional)</span>
+          <input id="eqTo" type="date">
+        </label>
+      </div>
+
+      <label class="inline-check">
+        <input id="eqDefault" type="checkbox">
+        <span>Standard für diese Trainingsart</span>
+      </label>
+
+      <div class="eq-grid">
+        <label>Start-Kilometer <span class="eq-small">(optional)</span>
+          <input id="eqStartKm" type="number" min="0" step="0.1" inputmode="decimal">
+        </label>
+        <label>Aktueller Kilometerstand <span class="eq-small">(optional)</span>
+          <input id="eqCurrentKm" type="number" min="0" step="0.1" inputmode="decimal">
+        </label>
+      </div>
+
+      <div class="eq-grid">
+        <label>Wartung alle (km) <span class="eq-small">(optional)</span>
+          <input id="eqMaintInterval" type="number" min="0" step="1" inputmode="decimal">
+        </label>
+        <label>Letzte Wartung bei km <span class="eq-small">(optional)</span>
+          <input id="eqMaintLastKm" type="number" min="0" step="0.1" inputmode="decimal">
+        </label>
+      </div>
+
+      <label>Komponenten / Setup <span class="eq-small">(optional)</span>
+        <textarea id="eqComponents" rows="3" placeholder="z. B. Favero Assioma Duo, Continental GP5000, Shimano 105"></textarea>
+      </label>
+
+      <label>Details / Notiz <span class="eq-small">(optional)</span>
+        <textarea id="eqNote" rows="3" placeholder="z. B. Outdoor-Rad, Einsatz bis Saisonende"></textarea>
+      </label>
+
+      <div class="required-note">* Pflichtfeld</div>
+    </div>
+
+    <div class="equipment-sheet-foot">
+      <button type="button" class="pill" onclick="closeEquipmentEditor()">Abbrechen</button>
+      <button type="button" class="pill primary" onclick="saveEquipment()">Speichern</button>
+    </div>
   </div>
-  <label><input id="eqDefault" type="checkbox"> Standard für diese Trainingsart</label>
-
-  <div class="eq-grid">
-    <label>Start-Kilometer <span class="eq-small">(optional)</span><input id="eqStartKm" type="number" min="0" step="0.1" placeholder="0"></label>
-    <label>Aktueller Kilometerstand <span class="eq-small">(optional)</span><input id="eqCurrentKm" type="number" min="0" step="0.1" placeholder="0"></label>
-  </div>
-
-  <div class="eq-grid">
-    <label>Wartung alle (km) <span class="eq-small">(optional)</span><input id="eqMaintInterval" type="number" min="0" step="1" placeholder="z. B. 1500"></label>
-    <label>Letzte Wartung bei km <span class="eq-small">(optional)</span><input id="eqMaintLastKm" type="number" min="0" step="0.1" placeholder="0"></label>
-  </div>
-
-  <label>Komponenten / Setup <span class="eq-small">(optional)</span><textarea id="eqComponents" placeholder="z. B. Favero Assioma Duo, Continental GP5000, Shimano 105"></textarea></label>
-  <label>Details / Notiz <span class="eq-small">(optional)</span><textarea id="eqNote" placeholder="z. B. Outdoor-Rad, Einsatz bis Saisonende"></textarea></label>
-
-  <button type="button" class="pill primary" onclick="saveEquipment()">Speichern</button>
- </div>
 </div>
+
 
 
 </body></html>
