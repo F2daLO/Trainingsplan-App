@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.3.1</title>
+<title>Training v6.3.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -683,7 +683,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.3.1</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.3.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -886,7 +886,11 @@ async function syncCloud(show=false){
 let syncTimer;function queueSync(){if(!cloudUser)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncCloud(false),700)}
 window.addEventListener("online",()=>syncCloud(false));document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")syncCloud(false)});
 repairCanonicalDescriptions();maybeAutoBackup();render();initCloud();
-if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js")
+    .then(reg=>reg.update().catch(()=>{}))
+    .catch(err=>console.error("Service Worker:",err));
+}
 
 /* ===== V5.3 password recovery fix ===== */
 async function handleRecoverySession(event,session){
@@ -1690,8 +1694,11 @@ async function sendTestPush(){
   if(!sub){alert("Bitte Mitteilungen zuerst auf diesem Gerät aktivieren.");return}
   try{
     const {data:{session}}=await sb.auth.getSession();
-    const res=await fetch(`${SUPABASE_URL}/functions/v1/test-push`,{
+    const url=`${SUPABASE_URL}/functions/v1/test-push`;
+    const res=await fetch(url,{
       method:"POST",
+      mode:"cors",
+      cache:"no-store",
       headers:{
         "Content-Type":"application/json",
         "Authorization":`Bearer ${session.access_token}`,
@@ -1699,8 +1706,10 @@ async function sendTestPush(){
       },
       body:JSON.stringify({endpoint:sub.endpoint})
     });
-    const body=await res.json().catch(()=>({}));
-    if(!res.ok)throw new Error(body.error||`HTTP ${res.status}`);
+    const text=await res.text();
+    let body={};
+    try{body=text?JSON.parse(text):{}}catch{body={raw:text}}
+    if(!res.ok)throw new Error(body.error||body.raw||`HTTP ${res.status}`);
     alert("Test-Mitteilung wurde versendet.");
   }catch(err){
     alert("Test fehlgeschlagen: "+(err?.message||err));
