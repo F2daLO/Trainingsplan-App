@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.2</title>
+<title>Training v6.3</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -593,6 +593,27 @@ dialog#sessionDialog{
   .create-menu button{background:rgba(255,255,255,.08)}
 }
 
+
+/* ===== V6.3 Reminder / Push settings ===== */
+.push-status{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border-radius:14px;
+  background:rgba(255,255,255,.18);
+  font-size:12px;color:var(--muted);margin:10px 0;
+}
+.push-dot{width:8px;height:8px;border-radius:50%;background:#8e8e93;flex:0 0 8px}
+.push-status.on .push-dot{background:#34c759}
+.push-status.off .push-dot{background:#ff453a}
+.reminder-rule{
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.16);
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+  margin-top:10px;
+}
+
 </style>
 </head>
 <body>
@@ -618,8 +639,8 @@ dialog#sessionDialog{
       <textarea id="sNote" rows="3" placeholder="Eigene Ergänzung zur Einheit …"></textarea>
     </label>
 <label>Status<select id="sStatus"><option value="open">Offen</option><option value="done">Durchgeführt</option><option value="cancel">Ausgefallen</option><option value="move">Verschoben</option></select></label>
-<label>Erinnerung<select id="sReminder"><option value="both">Vortag + Trainingstag</option><option value="day">Nur Trainingstag</option><option value="before">Nur Vortag</option><option value="none">Keine</option></select></label>
-<label>Erinnerungszeit<input id="sReminderTime" type="time" value="19:00"></label>
+<input id="sReminder" type="hidden" value="auto">
+<input id="sReminderTime" type="hidden" value="18:00">
 <label class="full inline"><input id="sTopup" type="checkbox"> ⭐ On-Top-Zusatztraining</label>
 
 </div><div class="buttons"><button type="button" onclick="sessionDialog.close()">Abbrechen</button><button class="primary">Speichern</button></div>
@@ -639,6 +660,7 @@ dialog#sessionDialog{
 <script>
 const LOCAL_BLOCK_ID="MONDSEE-B1";
 const CANONICAL_PLAN_DESCRIPTIONS={"c8a6edc9-7167-4621-8474-7c2f8fa6ecbf":"45 min Z2 · 45 min lockere Grundlage; gleichmäßig, nicht überziehen.","2c412d0d-802b-4704-8ef3-fd209fe07227":"20–30 min · Kurze Ganzkörpereinheit, Schwerpunkt Rumpf/Beine.","5e8d5198-bd4a-4fe4-89eb-0e07da43beb1":"60 min · Einrollen, anschließend kontrollierte Belastungsblöcke; sauber und nicht maximal.","ed7eee2b-0933-4bf5-8fa3-cb7ee552c942":"— · Kein Radtraining. Locker bewegen/Mobilität nach Bedarf.","2af2c410-12d8-4d42-9406-d9170fa553cd":"50–60 min Z2 · Ruhige Ausdauer, gleichmäßige Trittfrequenz.","1bcd549c-ac74-4015-80fb-30de3d22ee8a":"40–55 km · 40–55 km, überwiegend locker; keine harte Bergbelastung.","af11e453-07d4-4d3e-b0c8-569103844c2d":"— · Komplett frei oder Spaziergang.","72dc8ec5-76c9-478c-94fa-f5e03cd516bb":"50–60 min Z2 · Lockere Ausdauer.","87a8421b-7eb5-48af-8929-ea87ea8ccbc8":"20–30 min · Kurze Kraft-/Core-Einheit.","40d41b63-8578-4962-aa1a-27a2f17b97de":"ca. 60 min · Strukturiertes Intervalltraining; kontrollierte Belastung.","01810473-5ed8-4452-acba-1d9dd50d364c":"— · Vor dem Urlaub keine zusätzliche Belastung erzwingen.","4cf54b38-afb1-45df-8317-9cada96127d9":"— · Urlaub mit Tochter. Training nur optional abends.","30cae4ff-df49-443d-9676-687562298aa0":"— · Kein geplantes Radtraining.","c63dede2-3e88-426a-9106-ad213d6f5a2d":"— · Kein geplantes Radtraining.","7285e693-076b-4b6e-885b-beca7aacbd3a":"— · Kein Pflichttraining; optional kurze BetterMe-Einheit abends.","a4a8206b-6486-4df7-b159-01f609364a64":"— · Kein Pflichttraining.","3a0a6527-d545-4eaf-a5cb-9821f892f3f4":"— · Kein Pflichttraining; optional kurze BetterMe-Einheit.","d446970d-ff06-4714-a7f7-cafee7145b70":"— · Kein Pflichttraining.","7c2936fb-37ed-4223-948a-b265c3890040":"— · Kein Pflichttraining.","38026b75-3818-4b76-8cb5-44bdf92f1706":"— · Kein Pflichttraining.","b546a015-e2c6-4f38-8bc6-00871b818911":"— · Rückkehr; noch keine harte Einheit.","d4a09fa6-a290-4770-8be7-3d63425ee914":"40–50 min Z2 · Locker wieder in den Rhythmus kommen.","10f81a4f-aef8-48c2-9c78-3737ede4f514":"20–30 min · Moderate Ganzkörper-/Core-Einheit.","d3165a09-5488-4018-bcdb-1e9a0f28bb4f":"50–60 min Z2 · Ruhige Ausdauer.","9313347a-ca03-4d75-8146-baa24e626efc":"— · Erholung.","fde295b3-8e78-4e8f-aafe-3177b6c399f7":"ca. 60 min · Kurze kontrollierte Intervalle, keine Maximalbelastung.","5434eff2-dbba-41e6-8499-325e740770fd":"50–60 km · 50–60 km; überwiegend Z2, Anstiege kontrolliert fahren.","fe5505a8-149e-49ca-a0ae-cbddf05a6d1f":"— · Erholung.","a5fe7374-f10c-46d5-88db-0bd5c479cb45":"60 min Z2 · Ausdauerarbeit.","2146ce9a-be52-4697-b6b9-e3dfa5660938":"20–30 min · Moderate Kraft-/Core-Einheit.","24dde07d-3606-4ccd-a53a-cd70fd1bf046":"60–70 min · Belastungsblöcke an der oberen Ausdauer-/Tempo-Grenze.","5adf7eee-01bf-4922-925d-e40956abbedf":"— · Erholung.","3b7fd233-6ce5-4ba6-bca7-74ed5cd97bb5":"50–60 min · Lockere bis moderate Ausdauer.","c543c676-fc84-421c-a7cc-8a022af8d68e":"75–90 min Z2 · Längere Indoor-Einheit, gleichmäßig.","1ce85adb-624a-4d41-8e9e-813eeb0a1654":"— · Erholung.","1b64215c-7f05-448f-9501-f395575b7605":"60 min Z2 · Ruhige Ausdauer.","7d0c1480-d72c-419e-9078-f685d568ba2d":"20–30 min · Kraft/Core, nicht bis zur völligen Ermüdung.","6345b4ee-35b5-4e20-bfd7-d974a9892d5f":"60–70 min · Strukturiertes Intervalltraining.","6002cef1-c649-4af4-ad1e-a14c042a2ffd":"— · Erholung.","847bc44b-3006-4429-8866-e1575a360bc7":"40–50 min · Kurze lockere Einheit.","e4138030-7dae-46ba-86cc-e764837f11da":"55–65 km · 55–65 km; zwei längere Anstiege kontrolliert fahren, Fokus Ausdauer.","ba565f3a-2a43-4832-9b2d-c20b96c96e5a":"— · Erholung.","993399b0-03bf-4c00-9191-4ac9d71d8902":"60 min Z2 · 60 min ruhige Ausdauer.","31fc1803-53ef-4893-8119-9b2cdbf113f5":"20–30 min · Moderate Kraft-/Core-Einheit.","bb5c578b-54d2-453b-bbf3-785736c8bf74":"60–70 min · Kontrollierte Tempo-Blöcke.","9a19fe4a-c48e-4d43-a04f-e0264cdf5fee":"— · Erholung.","dae0b3ea-22b4-45f2-a144-0f4e825dc1bc":"50–60 min Z2 · Locker bis moderat.","a327ccf9-d77c-4844-aea8-b0456cbf07f6":"90 min Z2 · Längere Ausdauer-Einheit.","d82011b0-c596-4ddd-8942-c68126bcf467":"— · Erholung."};
+const VAPID_PUBLIC_KEY="BKYcKK2VgvhGNMxGlv4Fr5dNfVFhImh0utZmmZB495B88CdE9vSQwmA_0z-T2_w2R5q4IQr0tFqkHRWD59CcsbI";
 const KEY="meintraining-v51";
 const SUPABASE_URL="https://vhbhocfjzrgdcekjuime.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_iI79yd8iQ0R7hT500Ijtpw_jAWZMu14";
@@ -660,7 +682,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.2</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.3</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -733,11 +755,11 @@ function renderWeek(){
 function openSession(id=null,topup=false){
  editId=id;const s=id?db.sessions.find(x=>x.id===id):null;
  sessionHeading.textContent=s?"Training bearbeiten":(topup?"On-Top-Training":"Training hinzufügen");
- sDateTime.value=s?.scheduledAt||nowLocal();sType.value=s?.type||"Indoor Rad";sTitle.value=s?.title||"";sDesc.value=s?.desc||"";sStatus.value=s?.status||"open";sReminder.value=s?.reminder||"both";sReminderTime.value=s?.reminderTime||"19:00";sTopup.checked=!!(s?.topup||topup);sNote.value=s?.note||"";sessionDialog.showModal()
+ sDateTime.value=s?.scheduledAt||nowLocal();sType.value=s?.type||"Indoor Rad";sTitle.value=s?.title||"";sDesc.value=s?.desc||"";sStatus.value=s?.status||"open";sReminder.value="auto";sReminderTime.value="18:00";sTopup.checked=!!(s?.topup||topup);sNote.value=s?.note||"";sessionDialog.showModal()
 }
 function saveSession(e){
  e.preventDefault();const scheduledAt=sDateTime.value||nowLocal(),date=scheduledAt.slice(0,10);
- const obj={id:editId||crypto.randomUUID(),planId:db.activePlan,date,scheduledAt,type:sType.value,title:sTitle.value,desc:sDesc.value,note:sNote.value,status:sStatus.value,topup:sTopup.checked,reminder:sReminder.value,reminderTime:sReminderTime.value,updatedAt:new Date().toISOString()};
+ const obj={id:editId||crypto.randomUUID(),planId:db.activePlan,date,scheduledAt,type:sType.value,title:sTitle.value,desc:sDesc.value,note:sNote.value,status:sStatus.value,topup:sTopup.checked,reminder:"auto",reminderTime:"18:00",updatedAt:new Date().toISOString()};
  const i=db.sessions.findIndex(x=>x.id===obj.id);if(i>=0)db.sessions[i]=obj;else db.sessions.push(obj);sessionDialog.close();persist()
 }
 function setStatus(id,status){const s=db.sessions.find(x=>x.id===id);if(!s)return;s.status=status;s.updatedAt=new Date().toISOString();persist()}
@@ -762,6 +784,23 @@ function renderSettings(){
      <button class="pill" onclick="openImport()">⇧ Import</button>
    </div>
    <div class="import-help">Import unterstützt vollständige Mein-Training-Backups als JSON sowie CSV für Events, Blöcke und Einheiten.</div>
+ </section>
+ <section class="settings-card glass">
+   <h3>🔔 Erinnerungen</h3>
+   <p>Standard: täglich um <strong>18:00 Uhr</strong>. Heute hat immer Vorrang; an trainingsfreien Tagen erinnert die App an ein Training am nächsten Tag.</p>
+   <div id="pushDeviceStatus" class="push-status"><span class="push-dot"></span><span>Status wird geprüft …</span></div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap">
+     <button class="pill primary" onclick="enablePushOnThisDevice()">Mitteilungen auf diesem Gerät aktivieren</button>
+     <button class="pill" onclick="sendTestPush()">Test-Mitteilung</button>
+     <button class="pill" onclick="disablePushOnThisDevice()">Auf diesem Gerät deaktivieren</button>
+   </div>
+   <div class="reminder-rule">
+     <strong>Automatische Regel:</strong><br>
+     • Heute Training → nur Erinnerung an heute.<br>
+     • Heute trainingsfrei / Regeneration / Urlaub und morgen Training → Erinnerung an morgen.<br>
+     • On-Top-Einheiten lösen standardmäßig keine Erinnerung aus.<br>
+     • Erledigte oder ausgefallene Einheiten werden nicht erinnert.
+   </div>
  </section>
  <section class="settings-card glass">
    <h3>💾 Backups</h3>
@@ -794,7 +833,7 @@ function packDesc(s){return "__MT__"+JSON.stringify({desc:s.desc||"",scheduledAt
 function unpackDesc(v){if(String(v||"").startsWith("__MT__")){try{return JSON.parse(String(v).slice(6))}catch{}}return{desc:v||"",scheduledAt:null}}
 function planRemote(p){return{id:p.id,user_id:cloudUser.id,name:p.name,description:"__MTP__"+JSON.stringify({eventId:p.eventId,focus:p.focus||"",description:p.description||"",eventName:db.events.find(e=>e.id===p.eventId)?.name||""})}}
 function planLocal(r){let meta={};if(String(r.description||"").startsWith("__MTP__"))try{meta=JSON.parse(String(r.description).slice(7))}catch{};if(meta.eventId&&!db.events.some(e=>e.id===meta.eventId))db.events.push({id:meta.eventId,name:meta.eventName||"Event",description:""});return{id:r.id,eventId:meta.eventId||db.activeEvent,name:r.name,focus:meta.focus||"",description:meta.description||""}}
-function sessionRemote(s){return{id:s.id,user_id:cloudUser.id,plan_id:s.planId,training_date:s.date,training_type:s.type||"",title:s.title||"",description:packDesc(s),note:s.note||"",status:s.status||"open",topup:!!s.topup,reminder:s.reminder||"both",reminder_time:s.reminderTime||"19:00",updated_at:s.updatedAt||"2026-08-17T00:00:00.000Z"}}
+function sessionRemote(s){return{id:s.id,user_id:cloudUser.id,plan_id:s.planId,training_date:s.date,training_type:s.type||"",title:s.title||"",description:packDesc(s),note:s.note||"",status:s.status||"open",topup:!!s.topup,reminder:"auto",reminder_time:"18:00",updated_at:s.updatedAt||"2026-08-17T00:00:00.000Z"}}
 function sessionLocal(r){
  const d=unpackDesc(r.description);
  const canonical=CANONICAL_PLAN_DESCRIPTIONS[r.id];
@@ -807,7 +846,7 @@ function sessionLocal(r){
    desc=canonical;
    updatedAt=new Date().toISOString();
  }
- return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,reminder:r.reminder||"both",reminderTime:String(r.reminder_time||"19:00").slice(0,5),updatedAt};
+ return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,reminder:"auto",reminderTime:"18:00",updatedAt};
 }
 
 function makeClient(){
@@ -1366,8 +1405,8 @@ function importCSVRows(rows){
       note:r.note||r.notiz||"",
       status:r.status||"open",
       topup:/^(1|true|ja|yes)$/i.test(r.topup||""),
-      reminder:r.reminder||"both",
-      reminderTime:(r.reminder_time||r.erinnerungszeit||"19:00").slice(0,5),
+      reminder:"auto",
+      reminderTime:"18:00",
       updatedAt:new Date().toISOString()
     });
     db.activeEvent=ev.id;db.activePlan=block.id;count++;
@@ -1527,6 +1566,145 @@ function sessionActionMenu(id){
     <button onclick="closeQuickMenu()">Abbrechen</button>`;
   document.body.append(back,menu);
 }
+
+/* ===== V6.3 Web Push / Reminder client ===== */
+function b64UrlToUint8Array(base64String){
+  const padding="=".repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
+  const raw=atob(base64);
+  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+function isAppleMobileDevice(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+}
+function isStandaloneWebApp(){
+  return window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.navigator.standalone===true;
+}
+function pushSupported(){
+  return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+}
+async function currentPushSubscription(){
+  if(!pushSupported())return null;
+  const reg=await navigator.serviceWorker.ready;
+  return await reg.pushManager.getSubscription();
+}
+async function refreshPushStatus(){
+  const el=document.getElementById("pushDeviceStatus");
+  if(!el)return;
+  if(!isAppleMobileDevice()){
+    el.className="push-status";
+    el.innerHTML='<span class="push-dot"></span><span>Desktop-Push ist für diese App bewusst deaktiviert.</span>';
+    return;
+  }
+  if(!isStandaloneWebApp()){
+    el.className="push-status off";
+    el.innerHTML='<span class="push-dot"></span><span>Bitte diese Web-App zuerst zum Home-Bildschirm hinzufügen.</span>';
+    return;
+  }
+  if(!pushSupported()){
+    el.className="push-status off";
+    el.innerHTML='<span class="push-dot"></span><span>Web Push wird auf diesem Gerät nicht unterstützt.</span>';
+    return;
+  }
+  const sub=await currentPushSubscription();
+  if(Notification.permission==="granted" && sub){
+    el.className="push-status on";
+    el.innerHTML='<span class="push-dot"></span><span>Mitteilungen auf diesem Gerät sind aktiv.</span>';
+  }else if(Notification.permission==="denied"){
+    el.className="push-status off";
+    el.innerHTML='<span class="push-dot"></span><span>Mitteilungen wurden in iOS/iPadOS abgelehnt. Bitte in Einstellungen → Mitteilungen → Training erlauben.</span>';
+  }else{
+    el.className="push-status";
+    el.innerHTML='<span class="push-dot"></span><span>Mitteilungen auf diesem Gerät sind noch nicht aktiviert.</span>';
+  }
+}
+async function enablePushOnThisDevice(){
+  try{
+    if(!cloudUser){alert("Bitte zuerst bei der Cloud anmelden.");return}
+    if(!isAppleMobileDevice()){alert("Push ist in dieser App nur für iPhone und iPad vorgesehen.");return}
+    if(!isStandaloneWebApp()){alert('Bitte "Training" zuerst über Safari → Teilen → Zum Home-Bildschirm installieren und dann von dort öffnen.');return}
+    if(!pushSupported()){alert("Web Push wird auf diesem Gerät nicht unterstützt.");return}
+
+    const permission=await Notification.requestPermission();
+    if(permission!=="granted"){await refreshPushStatus();return}
+
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({
+        userVisibleOnly:true,
+        applicationServerKey:b64UrlToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    const j=sub.toJSON();
+    const row={
+      user_id:cloudUser.id,
+      endpoint:j.endpoint,
+      p256dh:j.keys?.p256dh||"",
+      auth:j.keys?.auth||"",
+      device_label:isAppleMobileDevice() ? (/iPad/.test(navigator.userAgent)?"iPad":"iPhone") : "Gerät",
+      enabled:true,
+      updated_at:new Date().toISOString()
+    };
+    const {error}=await sb.from("push_subscriptions").upsert(row,{onConflict:"endpoint"});
+    if(error)throw error;
+
+    const pref={user_id:cloudUser.id,enabled:true,reminder_time:"18:00",timezone:"Europe/Vienna",updated_at:new Date().toISOString()};
+    const {error:pe}=await sb.from("reminder_preferences").upsert(pref,{onConflict:"user_id"});
+    if(pe)throw pe;
+
+    await refreshPushStatus();
+    alert("Mitteilungen sind auf diesem Gerät aktiviert.");
+  }catch(err){
+    console.error(err);
+    alert("Mitteilungen konnten nicht aktiviert werden: "+(err?.message||err));
+  }
+}
+async function disablePushOnThisDevice(){
+  try{
+    if(!pushSupported())return;
+    const sub=await currentPushSubscription();
+    if(sub){
+      if(cloudUser){
+        await sb.from("push_subscriptions").update({enabled:false,updated_at:new Date().toISOString()}).eq("endpoint",sub.endpoint);
+      }
+      await sub.unsubscribe();
+    }
+    await refreshPushStatus();
+  }catch(err){
+    alert("Deaktivieren fehlgeschlagen: "+(err?.message||err));
+  }
+}
+async function sendTestPush(){
+  if(!cloudUser){alert("Bitte zuerst bei der Cloud anmelden.");return}
+  const sub=await currentPushSubscription();
+  if(!sub){alert("Bitte Mitteilungen zuerst auf diesem Gerät aktivieren.");return}
+  try{
+    const {data:{session}}=await sb.auth.getSession();
+    const res=await fetch(`${SUPABASE_URL}/functions/v1/test-push`,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":`Bearer ${session.access_token}`,
+        "apikey":SUPABASE_PUBLISHABLE_KEY
+      },
+      body:JSON.stringify({endpoint:sub.endpoint})
+    });
+    const body=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(body.error||`HTTP ${res.status}`);
+    alert("Test-Mitteilung wurde versendet.");
+  }catch(err){
+    alert("Test fehlgeschlagen: "+(err?.message||err));
+  }
+}
+
+const __v63RenderSettings=renderSettings;
+renderSettings=function(){
+  __v63RenderSettings();
+  setTimeout(refreshPushStatus,0);
+};
 </script>
 
 <dialog id="passwordDialog">
