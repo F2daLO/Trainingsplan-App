@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v5.9</title>
+<title>Training v6.0</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -455,6 +455,79 @@ dialog#sessionDialog{
   }
 }
 
+
+/* ===== V6.0 Events / Import / Backup / Floating Glass ===== */
+.overview-actions,.plan-extra-actions{
+  display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;
+}
+.backup-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  padding:11px 3px;
+  border-bottom:1px solid rgba(127,127,127,.10);
+}
+.backup-row:last-child{border-bottom:0}
+.backup-main{font-size:13px}
+.backup-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.backup-actions{display:flex;gap:5px}
+.backup-actions button{border:0;border-radius:10px;padding:7px 8px;background:rgba(255,255,255,.22);color:var(--text)}
+.import-help{
+  font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px;
+}
+
+/* Mobile/tablet: separate floating translucent controls again, no shared bar. */
+@media(max-width:1199px){
+  .nav{
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:none !important;
+    padding:0 !important;
+    gap:7px !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+  .nav button{
+    width:74px !important;
+    min-width:74px !important;
+    height:56px !important;
+    border-radius:20px !important;
+    border:1px solid rgba(255,255,255,.22) !important;
+    background:rgba(255,255,255,.075) !important;
+    box-shadow:
+      0 12px 30px rgba(20,22,28,.09),
+      inset 0 1px 0 rgba(255,255,255,.24) !important;
+    backdrop-filter:blur(38px) saturate(185%) !important;
+    -webkit-backdrop-filter:blur(38px) saturate(185%) !important;
+    color:var(--muted) !important;
+    transition:background .18s ease, opacity .18s ease, transform .16s ease !important;
+  }
+  .nav button.active{
+    color:var(--text) !important;
+    background:rgba(255,255,255,.16) !important;
+    border-color:rgba(255,255,255,.30) !important;
+  }
+  body.nav-scrolling .nav button{
+    background:rgba(255,255,255,.035) !important;
+    opacity:.82;
+  }
+  body.nav-scrolling .nav button.active{
+    background:rgba(255,255,255,.085) !important;
+  }
+}
+@media(max-width:390px){
+  .nav button{width:67px !important;min-width:67px !important;font-size:9px !important}
+}
+@media(prefers-color-scheme:dark) and (max-width:1199px){
+  .nav button{
+    background:rgba(28,29,32,.075) !important;
+    border-color:rgba(255,255,255,.085) !important;
+  }
+  .nav button.active{background:rgba(255,255,255,.075) !important}
+  body.nav-scrolling .nav button{background:rgba(28,29,32,.035) !important}
+}
+
 </style>
 </head>
 <body>
@@ -500,6 +573,7 @@ dialog#sessionDialog{
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const LOCAL_BLOCK_ID="MONDSEE-B1";
+const CANONICAL_PLAN_DESCRIPTIONS={"c8a6edc9-7167-4621-8474-7c2f8fa6ecbf":"45 min Z2 · 45 min lockere Grundlage; gleichmäßig, nicht überziehen.","2c412d0d-802b-4704-8ef3-fd209fe07227":"20–30 min · Kurze Ganzkörpereinheit, Schwerpunkt Rumpf/Beine.","5e8d5198-bd4a-4fe4-89eb-0e07da43beb1":"60 min · Einrollen, anschließend kontrollierte Belastungsblöcke; sauber und nicht maximal.","ed7eee2b-0933-4bf5-8fa3-cb7ee552c942":"— · Kein Radtraining. Locker bewegen/Mobilität nach Bedarf.","2af2c410-12d8-4d42-9406-d9170fa553cd":"50–60 min Z2 · Ruhige Ausdauer, gleichmäßige Trittfrequenz.","1bcd549c-ac74-4015-80fb-30de3d22ee8a":"40–55 km · 40–55 km, überwiegend locker; keine harte Bergbelastung.","af11e453-07d4-4d3e-b0c8-569103844c2d":"— · Komplett frei oder Spaziergang.","72dc8ec5-76c9-478c-94fa-f5e03cd516bb":"50–60 min Z2 · Lockere Ausdauer.","87a8421b-7eb5-48af-8929-ea87ea8ccbc8":"20–30 min · Kurze Kraft-/Core-Einheit.","40d41b63-8578-4962-aa1a-27a2f17b97de":"ca. 60 min · Strukturiertes Intervalltraining; kontrollierte Belastung.","01810473-5ed8-4452-acba-1d9dd50d364c":"— · Vor dem Urlaub keine zusätzliche Belastung erzwingen.","4cf54b38-afb1-45df-8317-9cada96127d9":"— · Urlaub mit Tochter. Training nur optional abends.","30cae4ff-df49-443d-9676-687562298aa0":"— · Kein geplantes Radtraining.","c63dede2-3e88-426a-9106-ad213d6f5a2d":"— · Kein geplantes Radtraining.","7285e693-076b-4b6e-885b-beca7aacbd3a":"— · Kein Pflichttraining; optional kurze BetterMe-Einheit abends.","a4a8206b-6486-4df7-b159-01f609364a64":"— · Kein Pflichttraining.","3a0a6527-d545-4eaf-a5cb-9821f892f3f4":"— · Kein Pflichttraining; optional kurze BetterMe-Einheit.","d446970d-ff06-4714-a7f7-cafee7145b70":"— · Kein Pflichttraining.","7c2936fb-37ed-4223-948a-b265c3890040":"— · Kein Pflichttraining.","38026b75-3818-4b76-8cb5-44bdf92f1706":"— · Kein Pflichttraining.","b546a015-e2c6-4f38-8bc6-00871b818911":"— · Rückkehr; noch keine harte Einheit.","d4a09fa6-a290-4770-8be7-3d63425ee914":"40–50 min Z2 · Locker wieder in den Rhythmus kommen.","10f81a4f-aef8-48c2-9c78-3737ede4f514":"20–30 min · Moderate Ganzkörper-/Core-Einheit.","d3165a09-5488-4018-bcdb-1e9a0f28bb4f":"50–60 min Z2 · Ruhige Ausdauer.","9313347a-ca03-4d75-8146-baa24e626efc":"— · Erholung.","fde295b3-8e78-4e8f-aafe-3177b6c399f7":"ca. 60 min · Kurze kontrollierte Intervalle, keine Maximalbelastung.","5434eff2-dbba-41e6-8499-325e740770fd":"50–60 km · 50–60 km; überwiegend Z2, Anstiege kontrolliert fahren.","fe5505a8-149e-49ca-a0ae-cbddf05a6d1f":"— · Erholung.","a5fe7374-f10c-46d5-88db-0bd5c479cb45":"60 min Z2 · Ausdauerarbeit.","2146ce9a-be52-4697-b6b9-e3dfa5660938":"20–30 min · Moderate Kraft-/Core-Einheit.","24dde07d-3606-4ccd-a53a-cd70fd1bf046":"60–70 min · Belastungsblöcke an der oberen Ausdauer-/Tempo-Grenze.","5adf7eee-01bf-4922-925d-e40956abbedf":"— · Erholung.","3b7fd233-6ce5-4ba6-bca7-74ed5cd97bb5":"50–60 min · Lockere bis moderate Ausdauer.","c543c676-fc84-421c-a7cc-8a022af8d68e":"75–90 min Z2 · Längere Indoor-Einheit, gleichmäßig.","1ce85adb-624a-4d41-8e9e-813eeb0a1654":"— · Erholung.","1b64215c-7f05-448f-9501-f395575b7605":"60 min Z2 · Ruhige Ausdauer.","7d0c1480-d72c-419e-9078-f685d568ba2d":"20–30 min · Kraft/Core, nicht bis zur völligen Ermüdung.","6345b4ee-35b5-4e20-bfd7-d974a9892d5f":"60–70 min · Strukturiertes Intervalltraining.","6002cef1-c649-4af4-ad1e-a14c042a2ffd":"— · Erholung.","847bc44b-3006-4429-8866-e1575a360bc7":"40–50 min · Kurze lockere Einheit.","e4138030-7dae-46ba-86cc-e764837f11da":"55–65 km · 55–65 km; zwei längere Anstiege kontrolliert fahren, Fokus Ausdauer.","ba565f3a-2a43-4832-9b2d-c20b96c96e5a":"— · Erholung.","993399b0-03bf-4c00-9191-4ac9d71d8902":"60 min Z2 · 60 min ruhige Ausdauer.","31fc1803-53ef-4893-8119-9b2cdbf113f5":"20–30 min · Moderate Kraft-/Core-Einheit.","bb5c578b-54d2-453b-bbf3-785736c8bf74":"60–70 min · Kontrollierte Tempo-Blöcke.","9a19fe4a-c48e-4d43-a04f-e0264cdf5fee":"— · Erholung.","dae0b3ea-22b4-45f2-a144-0f4e825dc1bc":"50–60 min Z2 · Locker bis moderat.","a327ccf9-d77c-4844-aea8-b0456cbf07f6":"90 min Z2 · Längere Ausdauer-Einheit.","d82011b0-c596-4ddd-8942-c68126bcf467":"— · Erholung."};
 const KEY="meintraining-v51";
 const SUPABASE_URL="https://vhbhocfjzrgdcekjuime.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_iI79yd8iQ0R7hT500Ijtpw_jAWZMu14";
@@ -515,13 +589,13 @@ function activeEvent(){return db.events.find(e=>e.id===db.activeEvent)||db.event
 function activePlan(){return db.plans.find(p=>p.id===db.activePlan)||db.plans.find(p=>p.eventId===db.activeEvent)}
 function unitEmoji(s){const t=((s.type||"")+" "+(s.title||"")).toLowerCase();if(/betterme|kraft|core|calis/.test(t))return"💪";if(/ruhe|regeneration|erholung|urlaub/.test(t))return"😴";if(/mobil/.test(t))return"🧘";if(/indoor/.test(t)&&/rad|bike/.test(t))return"🚲";if(/outdoor/.test(t)&&/rad|bike/.test(t))return"🚴";if(/rad|bike|rennrad/.test(t))return"🚴";if(/lauf|run/.test(t))return"🏃";if(/schwimm|swim/.test(t))return"🏊";if(/ski/.test(t))return"⛷️";return"🏋️"}
 
-function persist(){localStorage.setItem(KEY,JSON.stringify(db));render();queueSync()}
+function persist(){localStorage.setItem(KEY,JSON.stringify(db));render();queueSync();maybeAutoBackup()}
 function go(s){screen=s;document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));if(s==="overview")navOverview.classList.add("active");if(s==="plan")navPlan.classList.add("active");if(s==="settings")navSettings.classList.add("active");render()}
 function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===id);if(p)db.activePlan=p.id;localStorage.setItem(KEY,JSON.stringify(db));screen="plan";go("plan")}
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v5.9</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.0</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -539,14 +613,20 @@ function renderOverview(){
     </div>
   </article>`;
 }).join("");
- main.innerHTML=head("Übersicht")+`<div class="event-grid">${cards||'<div class="empty">Noch keine Events.</div>'}</div>`;
+ main.innerHTML=head("Übersicht")+`
+ <div class="overview-actions">
+   <button class="pill primary" onclick="openNewEvent()">＋ Event</button>
+   <button class="pill" onclick="openImport()">⇧ Import</button>
+ </div>
+ <div class="event-grid">${cards||'<div class="empty">Noch keine Events.</div>'}</div>`;
 }
 
 function renderPlan(){
  const e=activeEvent(), p=activePlan();if(!e||!p){main.innerHTML=head("Plan")+'<div class="empty">Kein Plan ausgewählt.</div>';return}
  const blocks=db.plans.filter(x=>x.eventId===e.id);
  const controls=`<section class="plan-head glass"><div class="plan-event">${esc(e.name)}</div><div class="plan-controls"><select onchange="selectPlan(this.value)">${blocks.map(b=>`<option value="${b.id}" ${b.id===p.id?"selected":""}>${esc(b.name)}</option>`).join("")}</select><div class="segment"><button class="${planView==="list"?"active":""}" onclick="planView='list';render()">Liste</button><button class="${planView==="week"?"active":""}" onclick="planView='week';render()">Woche</button></div></div></section>
- <div class="actions-top"><button class="pill primary" onclick="openSession()">＋ Training</button><button class="pill gold" onclick="openSession(null,true)">⭐ On Top</button></div>`;
+ <div class="actions-top"><button class="pill primary" onclick="openSession()">＋ Training</button><button class="pill gold" onclick="openSession(null,true)">⭐ On Top</button></div>
+ <div class="plan-extra-actions"><button class="pill" onclick="openNewBlock()">＋ Block</button><button class="pill" onclick="openImport()">⇧ Import</button></div>`;
  main.innerHTML=head("Plan")+controls+`<div id="planContent"></div>`;
  if(planView==="list")renderList();else renderWeek();
 }
@@ -592,7 +672,40 @@ function setStatus(id,status){const s=db.sessions.find(x=>x.id===id);if(!s)retur
 function moveTomorrow(id){const s=db.sessions.find(x=>x.id===id);if(!s)return;const d=new Date((s.scheduledAt||s.date+"T19:00")+":00");d.setDate(d.getDate()+1);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());s.scheduledAt=d.toISOString().slice(0,16);s.date=s.scheduledAt.slice(0,10);s.status="move";s.updatedAt=new Date().toISOString();persist()}
 
 function renderSettings(){
- main.innerHTML=head("Einstellungen")+`<section class="settings-card glass"><h3>☁️ Cloud</h3><p id="settingsCloud">Status wird geprüft …</p>${cloudUser?'<button class="pill" onclick="syncCloud(true)">Jetzt synchronisieren</button> <button class="pill" onclick="logout()">Abmelden</button>':'<button class="pill primary" onclick="loginDialog.showModal()">Mit E-Mail + Passwort anmelden</button>'}</section><section class="settings-card glass"><h3>🔄 Automatische Synchronisierung</h3><p>Beim Start, beim Zurückkehren zur App, nach Änderungen und sobald wieder Internet verfügbar ist.</p></section><section class="settings-card glass"><h3>💾 Backup</h3><p>Lokale Sicherung zusätzlich zur Cloud.</p><button class="pill" onclick="exportBackup()">Backup exportieren</button></section>`
+ const schedule=localStorage.getItem("mt_backup_schedule")||"daily";
+ const backups=getLocalBackups();
+ const last=backups[0]?.createdAt;
+ main.innerHTML=head("Einstellungen")+`
+ <section class="settings-card glass">
+   <h3>☁️ Cloud</h3>
+   <p id="settingsCloud">Status wird geprüft …</p>
+   ${cloudUser?'<button class="pill" onclick="syncCloud(true)">Jetzt synchronisieren</button> <button class="pill" onclick="logout()">Abmelden</button>':'<button class="pill primary" onclick="loginDialog.showModal()">Mit E-Mail + Passwort anmelden</button>'}
+ </section>
+ <section class="settings-card glass">
+   <h3>⇧ Import</h3>
+   <p>Trainingspläne und Backups importieren.</p>
+   <button class="pill" onclick="openImport()">Datei importieren</button>
+   <div class="import-help">Unterstützt: vollständige Mein-Training-Backups als JSON sowie CSV für Events, Blöcke und Einheiten.</div>
+ </section>
+ <section class="settings-card glass">
+   <h3>💾 Backups</h3>
+   <p>Automatische Snapshots werden fälligkeitsbasiert erstellt, wenn die App aktiv ist. Letztes Backup: ${last?new Date(last).toLocaleString("de-DE"):"noch keines"}.</p>
+   <label>Automatik
+     <select onchange="setBackupSchedule(this.value)">
+       <option value="manual" ${schedule==="manual"?"selected":""}>Nur manuell</option>
+       <option value="hourly" ${schedule==="hourly"?"selected":""}>Stündlich</option>
+       <option value="daily" ${schedule==="daily"?"selected":""}>Täglich</option>
+       <option value="weekly" ${schedule==="weekly"?"selected":""}>Wöchentlich</option>
+       <option value="monthly" ${schedule==="monthly"?"selected":""}>Monatlich</option>
+       <option value="yearly" ${schedule==="yearly"?"selected":""}>Jährlich</option>
+     </select>
+   </label>
+   <div style="margin-top:12px">
+     <button class="pill primary" onclick="createBackup('manual',true)">Jetzt sichern</button>
+     <button class="pill" onclick="showBackups()">Backups verwalten (${backups.length})</button>
+   </div>
+   <div class="import-help">Cloud-Snapshots benötigen einmalig die mitgelieferte Supabase-Migration. Ohne Migration funktionieren lokale automatische Backups trotzdem.</div>
+ </section>`;
 }
 
 function updateCloud(){
@@ -606,7 +719,20 @@ function unpackDesc(v){if(String(v||"").startsWith("__MT__")){try{return JSON.pa
 function planRemote(p){return{id:p.id,user_id:cloudUser.id,name:p.name,description:"__MTP__"+JSON.stringify({eventId:p.eventId,focus:p.focus||"",description:p.description||"",eventName:db.events.find(e=>e.id===p.eventId)?.name||""})}}
 function planLocal(r){let meta={};if(String(r.description||"").startsWith("__MTP__"))try{meta=JSON.parse(String(r.description).slice(7))}catch{};if(meta.eventId&&!db.events.some(e=>e.id===meta.eventId))db.events.push({id:meta.eventId,name:meta.eventName||"Event",description:""});return{id:r.id,eventId:meta.eventId||db.activeEvent,name:r.name,focus:meta.focus||"",description:meta.description||""}}
 function sessionRemote(s){return{id:s.id,user_id:cloudUser.id,plan_id:s.planId,training_date:s.date,training_type:s.type||"",title:s.title||"",description:packDesc(s),note:s.note||"",status:s.status||"open",topup:!!s.topup,reminder:s.reminder||"both",reminder_time:s.reminderTime||"19:00",updated_at:s.updatedAt||"2026-08-17T00:00:00.000Z"}}
-function sessionLocal(r){const d=unpackDesc(r.description);return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",type:r.training_type||"",title:r.title||"",desc:d.desc||"",note:r.note||"",status:r.status||"open",topup:!!r.topup,reminder:r.reminder||"both",reminderTime:String(r.reminder_time||"19:00").slice(0,5),updatedAt:r.updated_at||"2026-08-17T00:00:00.000Z"}}
+function sessionLocal(r){
+ const d=unpackDesc(r.description);
+ const canonical=CANONICAL_PLAN_DESCRIPTIONS[r.id];
+ let desc=d.desc||"";
+ let note=r.note||"";
+ let updatedAt=r.updated_at||"2026-08-17T00:00:00.000Z";
+ if(canonical!==undefined && desc!==canonical){
+   if(desc.trim() && !note.trim()) note=desc;
+   else if(desc.trim() && note.trim() && !note.includes(desc)) note=note+"\n"+desc;
+   desc=canonical;
+   updatedAt=new Date().toISOString();
+ }
+ return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,reminder:r.reminder||"both",reminderTime:String(r.reminder_time||"19:00").slice(0,5),updatedAt};
+}
 
 function makeClient(){
  const remember=localStorage.getItem("mt_remember")!=="false",store=remember?localStorage:sessionStorage;
@@ -643,7 +769,7 @@ async function syncCloud(show=false){
 }
 let syncTimer;function queueSync(){if(!cloudUser)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncCloud(false),700)}
 window.addEventListener("online",()=>syncCloud(false));document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")syncCloud(false)});
-render();initCloud();
+repairCanonicalDescriptions();maybeAutoBackup();render();initCloud();
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 
 /* ===== V5.3 password recovery fix ===== */
@@ -1015,6 +1141,266 @@ document.addEventListener("pointerdown",e=>{
     clearGestureTimer();
   }
 },true);
+
+/* ===== V6.0 Events / Blocks / Import / Backup ===== */
+function repairCanonicalDescriptions(){
+  let changed=false;
+  db.sessions.forEach(s=>{
+    const canonical=CANONICAL_PLAN_DESCRIPTIONS[s.id];
+    if(canonical===undefined) return;
+    if((s.desc||"")!==canonical){
+      const old=(s.desc||"").trim();
+      if(old && !(s.note||"").trim()) s.note=old;
+      else if(old && (s.note||"").trim() && !String(s.note).includes(old)) s.note=String(s.note)+"\n"+old;
+      s.desc=canonical;
+      s.updatedAt=new Date().toISOString();
+      changed=true;
+    }
+  });
+  if(changed) localStorage.setItem(KEY,JSON.stringify(db));
+  return changed;
+}
+
+function eventEmoji(sport){
+  return {cycling:"🚴",triathlon:"🏊🚴🏃",running:"🏃",swimming:"🏊",ski:"⛷️",general:"🏋️"}[sport]||"🏋️";
+}
+function openNewEvent(){
+  newEventName.value="";
+  newEventDetails.value="";
+  newEventSport.value="cycling";
+  newEventBlockName.value="Block 1";
+  newEventBlockFocus.value="Grundlagen";
+  eventDialog.showModal();
+}
+function saveNewEvent(e){
+  e.preventDefault();
+  const eventId=crypto.randomUUID();
+  const blockId=crypto.randomUUID();
+  const sport=newEventSport.value;
+  const rawName=newEventName.value.trim();
+  const details=newEventDetails.value.trim();
+  const blockBase=newEventBlockName.value.trim()||"Block 1";
+  const focus=newEventBlockFocus.value.trim()||"Grundlagen";
+  db.events.push({id:eventId,name:`${eventEmoji(sport)} ${rawName}`,sport,description:details});
+  db.plans.push({id:blockId,eventId,name:`${blockBase} · ${focus}`,focus,description:""});
+  db.activeEvent=eventId;db.activePlan=blockId;
+  eventDialog.close();
+  persist();
+  go("plan");
+}
+function openNewBlock(){
+  const e=activeEvent();
+  if(!e){alert("Bitte zuerst ein Event auswählen.");return}
+  const blocks=db.plans.filter(p=>p.eventId===e.id);
+  newBlockName.value=`Block ${blocks.length+1}`;
+  newBlockFocus.value="";
+  newBlockDescription.value="";
+  blockEventLabel.textContent=e.name;
+  blockDialog.showModal();
+}
+function saveNewBlock(e){
+  e.preventDefault();
+  const event=activeEvent();
+  if(!event)return;
+  const base=newBlockName.value.trim();
+  const focus=newBlockFocus.value.trim();
+  const id=crypto.randomUUID();
+  db.plans.push({id,eventId:event.id,name:focus?`${base} · ${focus}`:base,focus,description:newBlockDescription.value.trim()});
+  db.activePlan=id;
+  blockDialog.close();
+  persist();
+}
+
+function openImport(){
+  importPlanFile.value="";
+  importPlanFile.click();
+}
+function parseCSVLine(line,delimiter){
+  const out=[];let cur="",quoted=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){
+      if(quoted && line[i+1]==='"'){cur+='"';i++}
+      else quoted=!quoted;
+    }else if(c===delimiter && !quoted){
+      out.push(cur);cur="";
+    }else cur+=c;
+  }
+  out.push(cur);
+  return out.map(v=>v.trim());
+}
+function parseCSV(text){
+  const lines=text.replace(/\r/g,"").split("\n").filter(x=>x.trim());
+  if(!lines.length)return[];
+  const delimiter=(lines[0].split(";").length>lines[0].split(",").length)?";":",";
+  const headers=parseCSVLine(lines[0],delimiter).map(h=>h.trim().toLowerCase());
+  return lines.slice(1).map(line=>{
+    const vals=parseCSVLine(line,delimiter),o={};
+    headers.forEach((h,i)=>o[h]=vals[i]??"");
+    return o;
+  });
+}
+function mergeById(target,incoming){
+  const map=new Map(target.map(x=>[x.id,x]));
+  incoming.forEach(x=>{if(x?.id)map.set(x.id,{...(map.get(x.id)||{}),...x})});
+  return [...map.values()];
+}
+function normalizeImportedDB(obj){
+  if(obj?.data?.events && obj?.data?.plans && obj?.data?.sessions) obj=obj.data;
+  if(obj?.events && obj?.plans && obj?.sessions) return obj;
+  throw new Error("JSON enthält keinen gültigen Mein-Training-Datenbestand.");
+}
+function ensureEventImport(name,details="",sport="general"){
+  let e=db.events.find(x=>String(x.name).replace(/^[^\w\d]+/u,"").trim().toLowerCase()===String(name).replace(/^[^\w\d]+/u,"").trim().toLowerCase());
+  if(!e){
+    const id=crypto.randomUUID();
+    const n=/^[^\w\d]+/u.test(name)?name:`${eventEmoji(sport)} ${name}`;
+    e={id,name:n,sport,description:details};
+    db.events.push(e);
+  }
+  return e;
+}
+function ensureBlockImport(eventId,name,focus=""){
+  let p=db.plans.find(x=>x.eventId===eventId && x.name.toLowerCase()===name.toLowerCase());
+  if(!p){
+    p={id:crypto.randomUUID(),eventId,name,focus,description:""};
+    db.plans.push(p);
+  }
+  return p;
+}
+function importCSVRows(rows){
+  let count=0;
+  rows.forEach(r=>{
+    const eventName=r.event||r.eventname||activeEvent()?.name||"Importiertes Event";
+    const details=r.event_details||r.eventdetails||r.route||"";
+    const sport=r.sport||"general";
+    const ev=ensureEventImport(eventName,details,sport);
+    const blockName=r.block||r.blockname||"Block 1 · Import";
+    const block=ensureBlockImport(ev.id,blockName,r.block_focus||r.focus||"");
+    const date=r.date||r.datum;
+    const title=r.title||r.titel;
+    if(!date||!title)return;
+    const time=(r.time||r.uhrzeit||"19:00").slice(0,5);
+    db.sessions.push({
+      id:crypto.randomUUID(),planId:block.id,date,
+      scheduledAt:`${date}T${time}`,
+      type:r.type||r.trainingsart||"Sonstiges",
+      title,
+      desc:r.plan_description||r.planbeschreibung||r.description||"",
+      note:r.note||r.notiz||"",
+      status:r.status||"open",
+      topup:/^(1|true|ja|yes)$/i.test(r.topup||""),
+      reminder:r.reminder||"both",
+      reminderTime:(r.reminder_time||r.erinnerungszeit||"19:00").slice(0,5),
+      updatedAt:new Date().toISOString()
+    });
+    db.activeEvent=ev.id;db.activePlan=block.id;count++;
+  });
+  return count;
+}
+async function importPlanFileSelected(e){
+  const file=e.target.files?.[0];if(!file)return;
+  try{
+    const text=await file.text();
+    if(file.name.toLowerCase().endsWith(".json")){
+      const incoming=normalizeImportedDB(JSON.parse(text));
+      db.events=mergeById(db.events,incoming.events||[]);
+      db.plans=mergeById(db.plans,incoming.plans||[]);
+      db.sessions=mergeById(db.sessions,incoming.sessions||[]);
+      if(incoming.activeEvent)db.activeEvent=incoming.activeEvent;
+      if(incoming.activePlan)db.activePlan=incoming.activePlan;
+      repairCanonicalDescriptions();
+      persist();
+      alert(`JSON importiert: ${incoming.events?.length||0} Events, ${incoming.plans?.length||0} Blöcke, ${incoming.sessions?.length||0} Einheiten.`);
+    }else{
+      const count=importCSVRows(parseCSV(text));
+      repairCanonicalDescriptions();
+      persist();
+      alert(`${count} Trainingseinheiten aus CSV importiert.`);
+    }
+  }catch(err){
+    alert("Import fehlgeschlagen: "+(err?.message||err));
+  }finally{
+    e.target.value="";
+  }
+}
+
+/* Backups */
+const BACKUP_KEY="mt_local_backups_v60";
+const BACKUP_SCHEDULE_KEY="mt_backup_schedule";
+const BACKUP_LAST_KEY="mt_backup_last";
+function getLocalBackups(){
+  try{return JSON.parse(localStorage.getItem(BACKUP_KEY)||"[]")}catch{return[]}
+}
+function saveLocalBackups(rows){
+  localStorage.setItem(BACKUP_KEY,JSON.stringify(rows.slice(0,60)));
+}
+function backupIntervalMs(schedule){
+  return {hourly:3600000,daily:86400000,weekly:604800000,monthly:2592000000,yearly:31536000000}[schedule]||0;
+}
+function setBackupSchedule(v){
+  localStorage.setItem(BACKUP_SCHEDULE_KEY,v);
+  if(v!=="manual") maybeAutoBackup();
+  if(screen==="settings")renderSettings();
+}
+async function createBackup(reason="manual",download=false){
+  const snap={id:crypto.randomUUID(),createdAt:new Date().toISOString(),reason,data:structuredClone(db)};
+  const rows=getLocalBackups();rows.unshift(snap);saveLocalBackups(rows);
+  localStorage.setItem(BACKUP_LAST_KEY,snap.createdAt);
+  if(cloudUser&&sb){
+    try{
+      await sb.from("training_backups").insert({id:snap.id,user_id:cloudUser.id,reason,snapshot:snap.data,created_at:snap.createdAt});
+    }catch(err){console.warn("Cloud backup unavailable",err)}
+  }
+  if(download){
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob([JSON.stringify(snap,null,2)],{type:"application/json"}));
+    a.download=`mein-training-backup-${snap.createdAt.slice(0,10)}.json`;
+    a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  }
+  if(screen==="settings")renderSettings();
+  return snap;
+}
+async function maybeAutoBackup(){
+  const schedule=localStorage.getItem(BACKUP_SCHEDULE_KEY)||"daily";
+  const interval=backupIntervalMs(schedule);
+  if(!interval)return;
+  const last=Date.parse(localStorage.getItem(BACKUP_LAST_KEY)||"0");
+  if(!last||Date.now()-last>=interval) await createBackup(schedule,false);
+}
+function showBackups(){
+  const rows=getLocalBackups();
+  backupList.innerHTML=rows.length?rows.map(b=>`<div class="backup-row">
+    <div><div class="backup-main">${new Date(b.createdAt).toLocaleString("de-DE")}</div><div class="backup-sub">${b.reason}</div></div>
+    <div class="backup-actions"><button onclick="restoreBackup('${b.id}')">Wiederherstellen</button><button onclick="deleteBackup('${b.id}')">Löschen</button></div>
+  </div>`).join(""):'<div class="empty">Noch keine Backups.</div>';
+  backupDialog.showModal();
+}
+function restoreBackup(id){
+  const b=getLocalBackups().find(x=>x.id===id);if(!b)return;
+  if(!confirm("Diesen Backup-Stand wiederherstellen? Aktuelle lokale Daten werden ersetzt."))return;
+  db=structuredClone(b.data);
+  repairCanonicalDescriptions();
+  localStorage.setItem(KEY,JSON.stringify(db));
+  backupDialog.close();render();queueSync();
+}
+function deleteBackup(id){
+  saveLocalBackups(getLocalBackups().filter(x=>x.id!==id));
+  showBackups();
+}
+
+/* More transparent floating controls while scrolling. */
+let navScrollTimer=null;
+window.addEventListener("scroll",()=>{
+  document.body.classList.add("nav-scrolling");
+  clearTimeout(navScrollTimer);
+  navScrollTimer=setTimeout(()=>document.body.classList.remove("nav-scrolling"),180);
+},{passive:true});
+
+/* Automatic backup checks. */
+setInterval(maybeAutoBackup,300000);
+window.addEventListener("online",maybeAutoBackup);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")maybeAutoBackup()});
 </script>
 
 <dialog id="passwordDialog">
@@ -1028,5 +1414,73 @@ document.addEventListener("pointerdown",e=>{
     <div id="passwordStatus" class="helper"></div>
     <div class="buttons"><button type="button" onclick="passwordDialog.close()">Abbrechen</button><button class="primary">Passwort speichern</button></div>
   </form>
+</dialog>
+
+<input id="importPlanFile" type="file" accept=".json,.csv,text/csv,application/json" hidden onchange="importPlanFileSelected(event)">
+
+<dialog id="eventDialog">
+  <form class="modal glass" onsubmit="saveNewEvent(event)">
+    <h2>Neues Event</h2>
+    <p class="helper">Ein Event enthält einen oder mehrere Trainingsblöcke.</p>
+    <div class="grid">
+      <label>Sportart
+        <select id="newEventSport">
+          <option value="cycling">🚴 Rad</option>
+          <option value="triathlon">🏊🚴🏃 Triathlon</option>
+          <option value="running">🏃 Laufen</option>
+          <option value="swimming">🏊 Schwimmen</option>
+          <option value="ski">⛷️ Ski / Skitour</option>
+          <option value="general">🏋️ Sonstiges</option>
+        </select>
+      </label>
+      <label class="full">Eventname
+        <input id="newEventName" required placeholder="z. B. Mondsee Radmarathon 2028">
+      </label>
+      <label class="full">Route / grobe Details
+        <input id="newEventDetails" placeholder="z. B. Route Typ C · 75 km">
+      </label>
+      <label>Erster Block
+        <input id="newEventBlockName" value="Block 1">
+      </label>
+      <label>Schwerpunkt
+        <input id="newEventBlockFocus" value="Grundlagen">
+      </label>
+    </div>
+    <div class="buttons">
+      <button type="button" onclick="eventDialog.close()">Abbrechen</button>
+      <button class="primary">Event anlegen</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="blockDialog">
+  <form class="modal glass" onsubmit="saveNewBlock(event)">
+    <h2>Neuer Trainingsblock</h2>
+    <p class="helper" id="blockEventLabel"></p>
+    <div class="grid">
+      <label>Block
+        <input id="newBlockName" required placeholder="Block 2">
+      </label>
+      <label>Schwerpunkt
+        <input id="newBlockFocus" required placeholder="Aufbau">
+      </label>
+      <label class="full">Beschreibung
+        <textarea id="newBlockDescription" rows="2" placeholder="Optional"></textarea>
+      </label>
+    </div>
+    <div class="buttons">
+      <button type="button" onclick="blockDialog.close()">Abbrechen</button>
+      <button class="primary">Block anlegen</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="backupDialog">
+  <div class="modal glass">
+    <h2>Backups</h2>
+    <p class="helper">Lokale Snapshots auf diesem Gerät. Cloud-Snapshots werden zusätzlich gespeichert, sobald die Supabase-Backup-Tabelle eingerichtet ist.</p>
+    <div id="backupList"></div>
+    <div class="buttons"><button onclick="backupDialog.close()">Schließen</button></div>
+  </div>
 </dialog>
 </body></html>
