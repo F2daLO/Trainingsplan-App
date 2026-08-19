@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.6.5</title>
+<title>Training v6.7</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1171,6 +1171,46 @@ body.modal-open{
   width:100%;
 }
 
+
+/* ===== V6.7 Pull-to-refresh / realtime ===== */
+.ptr-indicator{
+  position:fixed;
+  top:calc(8px + env(safe-area-inset-top));
+  left:50%;
+  transform:translate(-50%,-70px);
+  z-index:400;
+  min-width:140px;
+  padding:8px 14px;
+  border-radius:999px;
+  text-align:center;
+  font-size:12px;
+  color:var(--text);
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.20);
+  box-shadow:0 12px 30px rgba(0,0,0,.10);
+  backdrop-filter:blur(28px) saturate(170%);
+  -webkit-backdrop-filter:blur(28px) saturate(170%);
+  opacity:0;
+  transition:transform .18s ease,opacity .18s ease;
+  pointer-events:none;
+}
+.ptr-indicator.show{
+  opacity:1;
+}
+.ptr-indicator.ready{
+  transform:translate(-50%,0);
+}
+.ptr-indicator.syncing{
+  transform:translate(-50%,0);
+}
+.sync-flash{
+  animation:syncFlash .55s ease;
+}
+@keyframes syncFlash{
+  0%{opacity:.55}
+  100%{opacity:1}
+}
+
 </style>
 </head>
 <body>
@@ -1240,7 +1280,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6.5</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.7</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1375,7 +1415,7 @@ function renderSettings(){
    </div>
    <div class="settings-section-body">
     <div style="margin-top:12px;display:flex;justify-content:flex-end">
-      <button class="pill" type="button" onclick="syncEquipmentNow('both',true)">Equipment synchronisieren</button>
+      <button class="pill" type="button" onclick="syncAllNow(true)">Alles synchronisieren</button>
     </div>
     <div id="equipmentList" style="margin-top:12px"></div>
    </div>
@@ -2871,6 +2911,196 @@ document.addEventListener("visibilitychange",()=>{
 setTimeout(()=>{
   if(cloudUser)syncEquipmentNow("pull",false);
 },1500);
+
+/* ===== V6.7 Realtime + Pull to Refresh ===== */
+let realtimeChannel=null;
+let realtimeRefreshTimer=null;
+let globalSyncRunning=false;
+let ptrStartY=0;
+let ptrTracking=false;
+let ptrTriggered=false;
+
+async function syncAllNow(showMessage=false,mode="both"){
+  if(globalSyncRunning)return;
+  if(!cloudUser||!sb){
+    if(showMessage)alert("Bitte zuerst bei der Cloud anmelden.");
+    return;
+  }
+
+  globalSyncRunning=true;
+  const indicator=document.getElementById("ptrIndicator");
+  if(indicator){
+    indicator.textContent="↻ Synchronisiere …";
+    indicator.classList.add("show","syncing");
+  }
+
+  try{
+    // Training/App data
+    if(typeof syncCloud==="function"){
+      await syncCloud(false);
+    }
+
+    // Equipment
+    if(typeof syncEquipmentNow==="function"){
+      await syncEquipmentNow(mode==="pull"?"pull":"both",false);
+    }else{
+      if(mode!=="pull" && typeof cloudSaveEquipment==="function")await cloudSaveEquipment();
+      if(typeof cloudLoadEquipment==="function")await cloudLoadEquipment();
+    }
+
+    // Re-render current view from latest local state.
+    if(typeof render==="function")render();
+
+    document.querySelector("main")?.classList.add("sync-flash");
+    setTimeout(()=>document.querySelector("main")?.classList.remove("sync-flash"),600);
+
+    if(showMessage)alert("Synchronisierung abgeschlossen.");
+  }catch(err){
+    console.error("Global sync failed",err);
+    if(showMessage)alert("Synchronisierung fehlgeschlagen: "+(err?.message||err));
+  }finally{
+    globalSyncRunning=false;
+    if(indicator){
+      indicator.textContent="✓ Aktualisiert";
+      setTimeout(()=>{
+        indicator.classList.remove("show","ready","syncing");
+        indicator.textContent="↻ Synchronisieren";
+      },650);
+    }
+  }
+}
+
+function scheduleRealtimeRefresh(){
+  clearTimeout(realtimeRefreshTimer);
+  realtimeRefreshTimer=setTimeout(()=>{
+    if(cloudUser)syncAllNow(false,"pull");
+  },250);
+}
+
+function startRealtimeSync(){
+  if(!sb||!cloudUser)return;
+
+  if(realtimeChannel){
+    try{sb.removeChannel(realtimeChannel)}catch{}
+    realtimeChannel=null;
+  }
+
+  realtimeChannel=sb.channel(`training-live-${cloudUser.id}`);
+
+  const watchedTables=[
+    "training_sessions",
+    "training_plans",
+    "training_events",
+    "equipment_profiles",
+    "reminder_preferences"
+  ];
+
+  watchedTables.forEach(table=>{
+    realtimeChannel.on(
+      "postgres_changes",
+      {
+        event:"*",
+        schema:"public",
+        table,
+        filter:`user_id=eq.${cloudUser.id}`
+      },
+      payload=>{
+        console.log("Realtime change",table,payload.eventType);
+        scheduleRealtimeRefresh();
+      }
+    );
+  });
+
+  realtimeChannel.subscribe(status=>{
+    console.log("Realtime status",status);
+  });
+}
+
+function stopRealtimeSync(){
+  if(realtimeChannel && sb){
+    try{sb.removeChannel(realtimeChannel)}catch{}
+  }
+  realtimeChannel=null;
+}
+
+/* Auth-aware realtime lifecycle */
+setTimeout(()=>{
+  if(cloudUser)startRealtimeSync();
+},1800);
+
+if(typeof sb!=="undefined" && sb?.auth){
+  sb.auth.onAuthStateChange((_event,session)=>{
+    if(session?.user){
+      cloudUser=session.user;
+      setTimeout(()=>{
+        startRealtimeSync();
+        syncAllNow(false,"pull");
+      },150);
+    }else{
+      stopRealtimeSync();
+    }
+  });
+}
+
+/* Pull to refresh: works from every app view when page is at top. */
+document.addEventListener("touchstart",e=>{
+  if(window.scrollY>2)return;
+  if(e.touches.length!==1)return;
+  ptrStartY=e.touches[0].clientY;
+  ptrTracking=true;
+  ptrTriggered=false;
+},{passive:true});
+
+document.addEventListener("touchmove",e=>{
+  if(!ptrTracking || window.scrollY>2)return;
+  const dy=e.touches[0].clientY-ptrStartY;
+  if(dy<=0)return;
+
+  const indicator=document.getElementById("ptrIndicator");
+  if(indicator){
+    indicator.classList.add("show");
+    if(dy>72){
+      indicator.classList.add("ready");
+      indicator.textContent="↓ Loslassen zum Aktualisieren";
+      ptrTriggered=true;
+    }else{
+      indicator.classList.remove("ready");
+      indicator.textContent="↻ Zum Aktualisieren ziehen";
+      ptrTriggered=false;
+    }
+  }
+},{passive:true});
+
+document.addEventListener("touchend",()=>{
+  if(!ptrTracking)return;
+  ptrTracking=false;
+  if(ptrTriggered){
+    ptrTriggered=false;
+    syncAllNow(false);
+  }else{
+    document.getElementById("ptrIndicator")?.classList.remove("show","ready");
+  }
+},{passive:true});
+
+/* Desktop manual refresh gesture equivalent: browser focus + online + visibility */
+window.addEventListener("focus",()=>{
+  if(cloudUser){
+    syncAllNow(false,"pull");
+    startRealtimeSync();
+  }
+});
+window.addEventListener("online",()=>{
+  if(cloudUser){
+    syncAllNow(false,"pull");
+    startRealtimeSync();
+  }
+});
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible" && cloudUser){
+    syncAllNow(false,"pull");
+    startRealtimeSync();
+  }
+});
 </script>
 
 <dialog id="passwordDialog">
@@ -3034,4 +3264,5 @@ setTimeout(()=>{
 
 
 
+<div id="ptrIndicator" class="ptr-indicator glass">↻ Synchronisieren</div>
 </body></html>
