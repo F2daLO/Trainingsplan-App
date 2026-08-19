@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.6.1</title>
+<title>Training v6.6.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1240,7 +1240,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6.1</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1487,7 +1487,7 @@ async function syncCloud(show=false){
 }
 let syncTimer;function queueSync(){if(!cloudUser)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncCloud(false),700)}
 window.addEventListener("online",()=>syncCloud(false));document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")syncCloud(false)});
-migrateEquipmentStorage();repairCanonicalDescriptions();maybeAutoBackup();render();initCloud();
+migrateEquipmentStorageV662();repairCanonicalDescriptions();maybeAutoBackup();render();initCloud();
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js")
     .then(reg=>reg.update().catch(()=>{}))
@@ -2342,16 +2342,16 @@ function inferEquipmentType(session){
 }
 function equipmentForSession(session){
   const type=inferEquipmentType(session);
-  const d=(session?.training_date||session?.date||new Date().toISOString().slice(0,10)).slice(0,10);
+  const d=String(session?.training_date||session?.date||new Date().toISOString().slice(0,10)).slice(0,10);
   const rows=equipmentAll().filter(e=>
     e.type===type &&
     (!e.valid_from || e.valid_from<=d) &&
     (!e.valid_to || e.valid_to>=d)
   );
   rows.sort((a,b)=>{
-    const def=Number(!!b.is_default)-Number(!!a.is_default);
-    if(def!==0)return def;
-    return (b.valid_from||"").localeCompare(a.valid_from||"");
+    const defaultDiff=Number(!!b.is_default)-Number(!!a.is_default);
+    if(defaultDiff!==0)return defaultDiff;
+    return String(b.valid_from||"").localeCompare(String(a.valid_from||""));
   });
   return rows[0]||null;
 }
@@ -2363,13 +2363,13 @@ function renderEquipmentSettings(){
   const box=document.getElementById("equipmentList"); if(!box)return;
   const icons={bike_indoor:"🚲",bike_outdoor:"🚴",run:"🏃",swim:"🏊",strength:"💪",ski:"⛷️",other:"⚙️"};
   const names={bike_indoor:"Rad Indoor",bike_outdoor:"Rad Outdoor",run:"Laufen",swim:"Schwimmen",strength:"Kraft / BetterMe",ski:"Ski",other:"Sonstiges"};
-  const rows=equipmentAll().sort((a,b)=>(a.type+(a.valid_from||"")).localeCompare(b.type+(b.valid_from||"")));
+  const rows=equipmentAll().sort((a,b)=>(String(a.type||"")+String(a.valid_from||"")).localeCompare(String(b.type||"")+String(b.valid_from||"")));
   box.innerHTML=rows.length?rows.map(e=>`
     <div class="eq-row glass" data-equipment-id="${e.id}">
       <div class="eq-head">
         <div class="eq-emoji">${icons[e.type]||"⚙️"}</div>
         <div style="min-width:0">
-          <div class="eq-title">${escapeHtml(e.name)}</div>
+          <div class="eq-title">${escapeHtml(e.name||"Equipment")}</div>
           <div class="eq-small">${escapeHtml(names[e.type]||e.type||"Equipment")}${e.is_default?" · Standard":""}</div>
         </div>
       </div>
@@ -2377,7 +2377,6 @@ function renderEquipmentSettings(){
         ? `<button class="eq-note-btn" data-equipment-note="${e.id}" aria-label="Equipment-Info">📝</button>`:""}
     </div>`).join("")
     :'<div class="eq-row glass"><div class="eq-small">Noch kein Equipment hinterlegt.</div></div>';
-
   bindEquipmentGestures();
 }
 function openEquipmentEditor(id=""){
@@ -2715,32 +2714,9 @@ renderSettings=function(){
   },0);
 };
 
-/* ===== V6.6.1 equipment preservation / migration ===== */
-function migrateEquipmentStorage(){
-  const current=equipmentAll();
-  if(current.length) return;
-
-  const legacyKeys=[
-    "mt_equipment_v1",
-    "mt_equipment",
-    "equipment_profiles",
-    "equipment"
-  ];
-  for(const key of legacyKeys){
-    if(key===EQUIPMENT_KEY) continue;
-    try{
-      const parsed=JSON.parse(localStorage.getItem(key)||"null");
-      if(Array.isArray(parsed) && parsed.length){
-        localStorage.setItem(EQUIPMENT_KEY,JSON.stringify(parsed));
-        return;
-      }
-    }catch{}
-  }
-}
-
-const __v661OpenSession=openSession;
+const __v662OpenSession=openSession;
 openSession=function(id=null,topup=false){
-  __v661OpenSession(id,topup);
+  __v662OpenSession(id,topup);
   requestAnimationFrame(()=>{
     const hint=document.getElementById("assignedEquipmentHint");
     if(!hint)return;
@@ -2749,6 +2725,21 @@ openSession=function(id=null,topup=false){
     hint.textContent=eq ? `Equipment: ${eq.name} · ${equipmentTypeLabel(eq.type)}` : "";
   });
 };
+
+function migrateEquipmentStorageV662(){
+  try{
+    if(equipmentAll().length)return;
+    for(const key of ["mt_equipment","equipment_profiles","equipment"]){
+      try{
+        const parsed=JSON.parse(localStorage.getItem(key)||"null");
+        if(Array.isArray(parsed)&&parsed.length){
+          localStorage.setItem(EQUIPMENT_KEY,JSON.stringify(parsed));
+          break;
+        }
+      }catch{}
+    }
+  }catch(err){console.warn("Equipment migration",err)}
+}
 </script>
 
 <dialog id="passwordDialog">
