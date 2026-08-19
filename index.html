@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.6.2</title>
+<title>Training v6.6.3</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1240,7 +1240,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6.2</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6.3</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -2520,11 +2520,12 @@ function equipmentForActivity(activity){
 }
 async function cloudSaveEquipment(){
   if(!cloudUser||!sb)return;
+
   const rows=equipmentAll().map(e=>({
     id:e.id,
     user_id:cloudUser.id,
-    name:e.name,
-    type:e.type,
+    name:e.name||"Equipment",
+    type:e.type||"other",
     valid_from:e.valid_from||null,
     valid_to:e.valid_to||null,
     is_default:!!e.is_default,
@@ -2536,14 +2537,59 @@ async function cloudSaveEquipment(){
     components:e.components||"",
     updated_at:new Date().toISOString()
   }));
+
   if(!rows.length)return;
+
   const {error}=await sb.from("equipment_profiles").upsert(rows,{onConflict:"id"});
-  if(error)throw error;
+  if(error){
+    console.error("Equipment cloud save failed",error);
+    throw new Error(
+      error.message.includes('schema cache')
+        ? 'Supabase-Equipmenttabelle ist noch nicht auf dem aktuellen Stand. Bitte equipment_profiles_migration.sql aus V6.6.3 einmal im SQL Editor ausführen.'
+        : error.message
+    );
+  }
 }
 async function cloudLoadEquipment(){
-  if(!cloudUser)return;
-  const {data,error}=await sb.from("equipment_profiles").select("*").eq("user_id",cloudUser.id);
-  if(!error && data?.length)localStorage.setItem(EQUIPMENT_KEY,JSON.stringify(data.map(({user_id,updated_at,...e})=>e)));
+  if(!cloudUser||!sb)return;
+
+  try{
+    const {data,error}=await sb.from("equipment_profiles").select("*").eq("user_id",cloudUser.id);
+    if(error){
+      console.warn("Equipment cloud load skipped",error);
+      return;
+    }
+    if(!Array.isArray(data) || !data.length)return;
+
+    const local=equipmentAll();
+    const map=new Map(local.map(e=>[e.id,e]));
+
+    for(const row of data){
+      const cloudRow={
+        id:row.id,
+        name:row.name||"Equipment",
+        type:row.type||"other",
+        valid_from:row.valid_from||null,
+        valid_to:row.valid_to||null,
+        is_default:!!row.is_default,
+        note:row.note||"",
+        start_km:Number(row.start_km||0),
+        current_km:Number(row.current_km||0),
+        maintenance_interval_km:row.maintenance_interval_km===null?null:Number(row.maintenance_interval_km||0),
+        maintenance_last_km:Number(row.maintenance_last_km||0),
+        components:row.components||""
+      };
+
+      // Preserve local values when cloud fields are missing/older.
+      const existing=map.get(cloudRow.id);
+      map.set(cloudRow.id, existing ? {...cloudRow,...existing} : cloudRow);
+    }
+
+    localStorage.setItem(EQUIPMENT_KEY,JSON.stringify([...map.values()]));
+    if(screen==="settings")renderEquipmentSettings();
+  }catch(err){
+    console.warn("Equipment cloud load failed",err);
+  }
 }
 /* Replace generic training-type wording for presentation only; original plan data stays unchanged. */
 function applyEquipmentLabels(){
@@ -2740,6 +2786,23 @@ function migrateEquipmentStorageV662(){
     }
   }catch(err){console.warn("Equipment migration",err)}
 }
+
+/* ===== V6.6.3 equipment cloud resilience ===== */
+async function syncEquipmentSafe(){
+  try{
+    await cloudLoadEquipment();
+  }catch(err){
+    console.warn("Equipment sync ignored",err);
+  }
+}
+
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible" && cloudUser)syncEquipmentSafe();
+});
+
+setTimeout(()=>{
+  if(cloudUser)syncEquipmentSafe();
+},1200);
 </script>
 
 <dialog id="passwordDialog">
