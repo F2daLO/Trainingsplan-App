@@ -1,4 +1,4 @@
-const CACHE="training-v6-3-2-push-transport-fix";
+const CACHE="training-v6-5-equipment-management";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{

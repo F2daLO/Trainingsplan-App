@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.3.2</title>
+<title>Training v6.5</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -614,6 +614,74 @@ dialog#sessionDialog{
   margin-top:10px;
 }
 
+
+/* V6.4 Equipment */
+.eq-row{padding:12px;border-radius:16px;background:rgba(255,255,255,.14);margin:8px 0}
+.eq-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.eq-small{font-size:11px;color:var(--muted)}
+.empty-start{text-align:center;padding:28px 16px}
+@media(max-width:600px){.eq-grid{grid-template-columns:1fr}}
+
+/* ===== V6.5 Equipment Management ===== */
+.eq-row{
+  position:relative;
+  overflow:hidden;
+}
+.eq-metrics{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:10px 0 6px;
+}
+.eq-metric{
+  padding:8px 9px;
+  border-radius:12px;
+  background:rgba(255,255,255,.16);
+}
+.eq-metric strong{
+  display:block;
+  font-size:14px;
+  color:var(--text);
+}
+.eq-metric span{
+  display:block;
+  font-size:10px;
+  color:var(--muted);
+  margin-top:2px;
+}
+.eq-maint-due{
+  border:1px solid rgba(255,159,10,.25);
+  background:rgba(255,159,10,.08);
+}
+.eq-components{
+  margin-top:8px;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.eq-chip{
+  font-size:10px;
+  padding:4px 7px;
+  border-radius:999px;
+  background:rgba(255,255,255,.14);
+  color:var(--muted);
+}
+.eq-progress{
+  height:6px;
+  border-radius:999px;
+  background:rgba(118,118,128,.10);
+  overflow:hidden;
+  margin-top:8px;
+}
+.eq-progress > span{
+  display:block;
+  height:100%;
+  background:rgba(255,159,10,.45);
+}
+@media(max-width:600px){
+  .eq-metrics{grid-template-columns:1fr 1fr}
+}
+
 </style>
 </head>
 <body>
@@ -683,7 +751,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.3.2</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.5</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -785,6 +853,12 @@ function renderSettings(){
      <button class="pill" onclick="openImport()">⇧ Import</button>
    </div>
    <div class="import-help">Import unterstützt vollständige Mein-Training-Backups als JSON sowie CSV für Events, Blöcke und Einheiten.</div>
+ </section>
+ <section class="settings-card glass">
+   <h3>🧰 Gerätesetup & Equipment</h3>
+   <p>Hinterlege dein Equipment nach Trainingsart. Gültigkeitszeiträume sorgen dafür, dass alte und zukünftige Einheiten automatisch das passende Gerät verwenden.</p>
+   <div id="equipmentList"></div>
+   <button class="pill primary" onclick="openEquipmentEditor()">+ Equipment hinzufügen</button>
  </section>
  <section class="settings-card glass">
    <h3>🔔 Erinnerungen</h3>
@@ -1721,7 +1795,165 @@ renderSettings=function(){
   __v63RenderSettings();
   setTimeout(refreshPushStatus,0);
 };
-</script>
+
+/* ===== V6.4 Equipment profiles ===== */
+const EQUIPMENT_KEY="mt_equipment_v1";
+function equipmentAll(){
+  try{return JSON.parse(localStorage.getItem(EQUIPMENT_KEY)||"[]")}catch{return[]}
+}
+function equipmentSaveAll(rows){
+  localStorage.setItem(EQUIPMENT_KEY,JSON.stringify(rows));
+  renderEquipmentSettings();
+  cloudSaveEquipment?.().catch?.(()=>{});
+}
+function inferEquipmentType(session){
+  const t=((session?.training_type||"")+" "+(session?.title||"")).toLowerCase();
+  if(/indoor|trainer|zwift|merach/.test(t))return "bike_indoor";
+  if(/rad|bike|rennrad|cycling|outdoor/.test(t))return "bike_outdoor";
+  if(/lauf|run/.test(t))return "run";
+  if(/schwimm|swim/.test(t))return "swim";
+  if(/betterme|kraft|strength/.test(t))return "strength";
+  if(/ski/.test(t))return "ski";
+  return "other";
+}
+function equipmentForSession(session){
+  const type=inferEquipmentType(session), d=session?.training_date||new Date().toISOString().slice(0,10);
+  const rows=equipmentAll().filter(e=>e.type===type && (!e.valid_from||e.valid_from<=d) && (!e.valid_to||e.valid_to>=d));
+  rows.sort((a,b)=>(b.valid_from||"").localeCompare(a.valid_from||"") || Number(b.is_default)-Number(a.is_default));
+  return rows[0]||null;
+}
+function equipmentDisplay(session){
+  const e=equipmentForSession(session);
+  return e?e.name:null;
+}
+function renderEquipmentSettings(){
+  const box=document.getElementById("equipmentList"); if(!box)return;
+  const labels={bike_indoor:"🚲 Rad Indoor",bike_outdoor:"🚴 Rad Outdoor",run:"🏃 Laufen",swim:"🏊 Schwimmen",strength:"💪 Kraft / BetterMe",ski:"⛷️ Ski",other:"⚙️ Sonstiges"};
+  const rows=equipmentAll().sort((a,b)=>(a.type+(a.valid_from||"")).localeCompare(b.type+(b.valid_from||"")));
+  box.innerHTML=rows.length?rows.map(e=>{
+    const current=Number(e.current_km||0), startKm=Number(e.start_km||0);
+    const interval=Number(e.maintenance_interval_km||0), lastMaint=Number(e.maintenance_last_km||0);
+    const sinceMaint=Math.max(0,current-lastMaint);
+    const due=interval>0 && sinceMaint>=interval;
+    const pct=interval>0?Math.min(100,Math.round((sinceMaint/interval)*100)):0;
+    const comps=(e.components||"").split(",").map(x=>x.trim()).filter(Boolean);
+    return `<div class="eq-row ${due?"eq-maint-due":""}">
+      <strong>${labels[e.type]||e.type}: ${escapeHtml(e.name)}</strong>
+      <div class="eq-small">${e.valid_from?"ab "+e.valid_from:"ohne Startdatum"}${e.valid_to?" · bis "+e.valid_to:""}${e.is_default?" · Standard":""}</div>
+
+      <div class="eq-metrics">
+        <div class="eq-metric"><strong>${current.toFixed(0)} km</strong><span>aktuell</span></div>
+        <div class="eq-metric"><strong>${Math.max(0,current-startKm).toFixed(0)} km</strong><span>seit Start</span></div>
+        <div class="eq-metric"><strong>${sinceMaint.toFixed(0)} km</strong><span>seit Wartung</span></div>
+      </div>
+
+      ${interval>0?`<div class="eq-progress"><span style="width:${pct}%"></span></div><div class="eq-small">${due?"⚠️ Wartung fällig":"Wartung bei "+(lastMaint+interval).toFixed(0)+" km"}</div>`:""}
+      ${comps.length?`<div class="eq-components">${comps.map(c=>`<span class="eq-chip">${escapeHtml(c)}</span>`).join("")}</div>`:""}
+      ${e.note?`<div class="eq-small" style="margin-top:7px">${escapeHtml(e.note)}</div>`:""}
+
+      <div style="margin-top:9px;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="pill" onclick="openEquipmentEditor('${e.id}')">Bearbeiten</button>
+        <button class="pill" onclick="recordEquipmentKm('${e.id}')">+ km</button>
+        <button class="pill" onclick="markEquipmentMaintenance('${e.id}')">Wartung erledigt</button>
+        <button class="pill" onclick="deleteEquipment('${e.id}')">Löschen</button>
+      </div>
+    </div>`;
+  }).join(""):'<div class="eq-row eq-small">Noch kein Equipment hinterlegt.</div>';
+}
+function openEquipmentEditor(id=""){
+  const e=equipmentAll().find(x=>x.id===id)||{};
+  eqId.value=e.id||"";
+  eqName.value=e.name||"";
+  eqType.value=e.type||"bike_indoor";
+  eqFrom.value=e.valid_from||"";
+  eqTo.value=e.valid_to||"";
+  eqDefault.checked=!!e.is_default;
+  eqStartKm.value=e.start_km??0;
+  eqCurrentKm.value=e.current_km??0;
+  eqMaintInterval.value=e.maintenance_interval_km??"";
+  eqMaintLastKm.value=e.maintenance_last_km??0;
+  eqComponents.value=e.components||"";
+  eqNote.value=e.note||"";
+  equipmentModal.classList.add("show");
+}
+function closeEquipmentEditor(){equipmentModal.classList.remove("show")}
+function saveEquipment(){
+  const name=eqName.value.trim(); if(!name){alert("Bitte eine Bezeichnung eingeben.");return}
+  let rows=equipmentAll(), id=eqId.value||crypto.randomUUID();
+  if(eqDefault.checked) rows=rows.map(e=>e.type===eqType.value?{...e,is_default:false}:e);
+  const row={
+    id,
+    name,
+    type:eqType.value,
+    valid_from:eqFrom.value||null,
+    valid_to:eqTo.value||null,
+    is_default:eqDefault.checked,
+    start_km:Number(eqStartKm.value||0),
+    current_km:Number(eqCurrentKm.value||0),
+    maintenance_interval_km:eqMaintInterval.value?Number(eqMaintInterval.value):null,
+    maintenance_last_km:Number(eqMaintLastKm.value||0),
+    components:eqComponents.value.trim(),
+    note:eqNote.value.trim()
+  };
+  const i=rows.findIndex(e=>e.id===id); if(i>=0)rows[i]=row;else rows.push(row);
+  equipmentSaveAll(rows); closeEquipmentEditor();
+}
+function deleteEquipment(id){
+  if(confirm("Equipment wirklich löschen?"))equipmentSaveAll(equipmentAll().filter(e=>e.id!==id));
+}
+
+function recordEquipmentKm(id){
+  const rows=equipmentAll(), e=rows.find(x=>x.id===id); if(!e)return;
+  const add=prompt("Zusätzliche Kilometer eintragen:", "0");
+  if(add===null)return;
+  const km=Number(String(add).replace(",","."));
+  if(!Number.isFinite(km)||km<0){alert("Ungültige Kilometerangabe.");return}
+  e.current_km=Number(e.current_km||0)+km;
+  equipmentSaveAll(rows);
+}
+function markEquipmentMaintenance(id){
+  const rows=equipmentAll(), e=rows.find(x=>x.id===id); if(!e)return;
+  e.maintenance_last_km=Number(e.current_km||0);
+  equipmentSaveAll(rows);
+}
+function addDistanceToEquipment(equipmentId,km){
+  const rows=equipmentAll(), e=rows.find(x=>x.id===equipmentId); if(!e)return false;
+  e.current_km=Number(e.current_km||0)+Number(km||0);
+  equipmentSaveAll(rows);
+  return true;
+}
+/* Future Strava hook:
+   imported activity -> determine matching equipment -> addDistanceToEquipment(...)
+*/
+function equipmentForActivity(activity){
+  const sessionLike={
+    training_type:activity.type||activity.sport_type||"",
+    title:activity.name||"",
+    training_date:(activity.start_date_local||activity.date||"").slice(0,10)
+  };
+  return equipmentForSession(sessionLike);
+}
+async function cloudSaveEquipment(){
+  if(!cloudUser)return;
+  const rows=equipmentAll().map(e=>({...e,user_id:cloudUser.id,updated_at:new Date().toISOString()}));
+  if(rows.length) await sb.from("equipment_profiles").upsert(rows,{onConflict:"id"});
+}
+async function cloudLoadEquipment(){
+  if(!cloudUser)return;
+  const {data,error}=await sb.from("equipment_profiles").select("*").eq("user_id",cloudUser.id);
+  if(!error && data?.length)localStorage.setItem(EQUIPMENT_KEY,JSON.stringify(data.map(({user_id,updated_at,...e})=>e)));
+}
+/* Replace generic training-type wording for presentation only; original plan data stays unchanged. */
+function applyEquipmentLabels(){
+  document.querySelectorAll("[data-session-id]").forEach(el=>{
+    const id=el.getAttribute("data-session-id");
+    const s=(typeof sessions!=="undefined"?sessions:[]).find(x=>String(x.id)===String(id));
+    const eq=s&&equipmentDisplay(s); if(!eq)return;
+    el.querySelectorAll(".training-type,.session-type,[data-role='training-type']").forEach(n=>n.textContent=eq);
+  });
+}
+const __v64RenderSettings=renderSettings;
+renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettings,0);};</script>
 
 <dialog id="passwordDialog">
   <form class="modal glass" onsubmit="saveNewPassword(event)">
@@ -1803,4 +2035,44 @@ renderSettings=function(){
     <div class="buttons"><button onclick="backupDialog.close()">Schließen</button></div>
   </div>
 </dialog>
+
+
+<div id="equipmentModal" class="modal" onclick="if(event.target===this)closeEquipmentEditor()">
+ <div class="sheet glass">
+  <div class="sheet-head"><strong>Equipment</strong><button class="iconbtn" onclick="closeEquipmentEditor()">✕</button></div>
+  <input id="eqId" type="hidden">
+  <label>Bezeichnung<input id="eqName" placeholder="z. B. Cube Attain SLX"></label>
+  <label>Trainingsart<select id="eqType">
+   <option value="bike_indoor">🚲 Rad Indoor</option>
+   <option value="bike_outdoor">🚴 Rad Outdoor</option>
+   <option value="run">🏃 Laufen</option>
+   <option value="swim">🏊 Schwimmen</option>
+   <option value="strength">💪 Kraft / BetterMe</option>
+   <option value="ski">⛷️ Ski</option>
+   <option value="other">⚙️ Sonstiges</option>
+  </select></label>
+  <div class="eq-grid">
+   <label>Gültig ab<input id="eqFrom" type="date"></label>
+   <label>Gültig bis<input id="eqTo" type="date"></label>
+  </div>
+  <label><input id="eqDefault" type="checkbox"> Standard für diese Trainingsart</label>
+
+  <div class="eq-grid">
+    <label>Start-Kilometer<input id="eqStartKm" type="number" min="0" step="0.1" placeholder="0"></label>
+    <label>Aktueller Kilometerstand<input id="eqCurrentKm" type="number" min="0" step="0.1" placeholder="0"></label>
+  </div>
+
+  <div class="eq-grid">
+    <label>Wartung alle (km)<input id="eqMaintInterval" type="number" min="0" step="1" placeholder="z. B. 1500"></label>
+    <label>Letzte Wartung bei km<input id="eqMaintLastKm" type="number" min="0" step="0.1" placeholder="0"></label>
+  </div>
+
+  <label>Komponenten / Setup<textarea id="eqComponents" placeholder="z. B. Favero Assioma Duo, Continental GP5000, Shimano 105"></textarea></label>
+  <label>Details / Notiz<textarea id="eqNote" placeholder="z. B. Outdoor-Rad, Einsatz bis Saisonende"></textarea></label>
+
+  <button class="pill primary" onclick="saveEquipment()">Speichern</button>
+ </div>
+</div>
+
+
 </body></html>
