@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.5.4</title>
+<title>Training v6.6</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1079,6 +1079,98 @@ body.modal-open{
   }
 }
 
+
+/* ===== V6.6 Settings accordion ===== */
+.settings-accordion{
+  display:grid;
+  gap:10px;
+}
+.settings-section{
+  border-radius:20px;
+  overflow:hidden;
+}
+.settings-section-head{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  padding:15px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  text-align:left;
+}
+.settings-section-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.settings-section-title .emoji{
+  font-size:20px;
+  flex:0 0 auto;
+}
+.settings-section-title strong{
+  font-size:15px;
+}
+.settings-section-sub{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px;
+}
+.settings-section-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:0 0 auto;
+}
+.settings-chevron{
+  color:var(--muted);
+  font-size:16px;
+  transition:transform .18s ease;
+}
+.settings-section.open .settings-chevron{
+  transform:rotate(90deg);
+}
+.settings-section-body{
+  display:none;
+  padding:0 16px 16px;
+  border-top:1px solid rgba(127,127,127,.08);
+}
+.settings-section.open .settings-section-body{
+  display:block;
+}
+.settings-inline-plus{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.24);
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  line-height:1;
+  box-shadow:0 8px 20px rgba(0,0,0,.08),inset 0 1px rgba(255,255,255,.2);
+  backdrop-filter:blur(24px) saturate(170%);
+  -webkit-backdrop-filter:blur(24px) saturate(170%);
+}
+#equipmentSettingsFab.eq-fab{
+  display:none !important;
+}
+.settings-section-body .settings-card{
+  margin:0;
+  padding:0;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+}
+.settings-section-body select{
+  width:100%;
+}
+
 </style>
 </head>
 <body>
@@ -1148,7 +1240,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.5.4</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1232,67 +1324,106 @@ function setStatus(id,status){const s=db.sessions.find(x=>x.id===id);if(!s)retur
 function moveTomorrow(id){const s=db.sessions.find(x=>x.id===id);if(!s)return;const d=new Date((s.scheduledAt||s.date+"T19:00")+":00");d.setDate(d.getDate()+1);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());s.scheduledAt=d.toISOString().slice(0,16);s.date=s.scheduledAt.slice(0,10);s.status="move";s.updatedAt=new Date().toISOString();persist()}
 
 function renderSettings(){
- const schedule=localStorage.getItem("mt_backup_schedule")||"daily";
+ const schedule=localStorage.getItem(BACKUP_SCHEDULE_KEY)||"daily";
  const backups=getLocalBackups();
  const last=backups[0]?.createdAt;
+
  main.innerHTML=head("Einstellungen")+`
- <section class="settings-card glass">
-   <h3>☁️ Cloud</h3>
-   <p id="settingsCloud">Status wird geprüft …</p>
-   ${cloudUser?'<button class="pill" onclick="syncCloud(true)">Jetzt synchronisieren</button> <button class="pill" onclick="logout()">Abmelden</button>':'<button class="pill primary" onclick="loginDialog.showModal()">Mit E-Mail + Passwort anmelden</button>'}
- </section>
- <section class="settings-card glass">
-   <h3>🗂 Trainingsstruktur</h3>
-   <p>Events, Trainingsblöcke und Importe verwalten.</p>
-   <div style="display:flex;gap:8px;flex-wrap:wrap">
-     <button class="pill primary" onclick="openNewEvent()">＋ Event</button>
-     <button class="pill" onclick="openNewBlock()">＋ Block</button>
-     <button class="pill" onclick="openImport()">⇧ Import</button>
+ <div class="settings-accordion">
+
+  <section class="settings-section glass" data-settings-section="cloud">
+   <button class="settings-section-head" type="button" onclick="toggleSettingsSection('cloud')">
+    <div class="settings-section-title">
+      <span class="emoji">☁️</span>
+      <div><strong>Cloud</strong><div class="settings-section-sub">Anmeldung & Synchronisierung</div></div>
+    </div>
+    <div class="settings-section-right"><span class="settings-chevron">›</span></div>
+   </button>
+   <div class="settings-section-body">
+    <p id="settingsCloud">Status wird geprüft …</p>
+    ${cloudUser?'<button class="pill" onclick="syncCloud(true)">Jetzt synchronisieren</button> <button class="pill" onclick="logout()">Abmelden</button>':'<button class="pill primary" onclick="loginDialog.showModal()">Mit E-Mail + Passwort anmelden</button>'}
    </div>
-   <div class="import-help">Import unterstützt vollständige Mein-Training-Backups als JSON sowie CSV für Events, Blöcke und Einheiten.</div>
- </section>
- <section class="settings-card glass">
-   <h3>🧰 Gerätesetup & Equipment</h3>
-   <p>Hinterlege dein Equipment nach Trainingsart. Gültigkeitszeiträume sorgen dafür, dass alte und zukünftige Einheiten automatisch das passende Gerät verwenden.</p>
-   <div id="equipmentList"></div>
-   <button type="button" class="eq-fab" aria-label="Equipment hinzufügen" title="Equipment hinzufügen" onclick="openEquipmentEditor()">＋</button>
- </section>
- <section class="settings-card glass">
-   <h3>🔔 Erinnerungen</h3>
-   <p>Standard: täglich um <strong>18:00 Uhr</strong>. Heute hat immer Vorrang; an trainingsfreien Tagen erinnert die App an ein Training am nächsten Tag.</p>
-   <div id="pushDeviceStatus" class="push-status"><span class="push-dot"></span><span>Status wird geprüft …</span></div>
-   <div style="display:flex;gap:8px;flex-wrap:wrap">
-     <button class="pill primary" onclick="enablePushOnThisDevice()">Mitteilungen auf diesem Gerät aktivieren</button>
-     <button class="pill" onclick="sendTestPush()">Test-Mitteilung</button>
-     <button class="pill" onclick="disablePushOnThisDevice()">Auf diesem Gerät deaktivieren</button>
+  </section>
+
+  <section class="settings-section glass" data-settings-section="structure">
+   <button class="settings-section-head" type="button" onclick="toggleSettingsSection('structure')">
+    <div class="settings-section-title">
+      <span class="emoji">🗂</span>
+      <div><strong>Trainingsstruktur</strong><div class="settings-section-sub">Events, Blöcke & Import</div></div>
+    </div>
+    <div class="settings-section-right"><span class="settings-chevron">›</span></div>
+   </button>
+   <div class="settings-section-body">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="pill primary" onclick="openNewEvent()">＋ Event</button>
+      <button class="pill" onclick="openNewBlock()">＋ Block</button>
+      <button class="pill" onclick="openImport()">⇧ Import</button>
+    </div>
    </div>
-   <div class="reminder-rule">
-     <strong>Automatische Regel:</strong><br>
-     • Heute Training → nur Erinnerung an heute.<br>
-     • Heute trainingsfrei / Regeneration / Urlaub und morgen Training → Erinnerung an morgen.<br>
-     • On-Top-Einheiten lösen standardmäßig keine Erinnerung aus.<br>
-     • Erledigte oder ausgefallene Einheiten werden nicht erinnert.
+  </section>
+
+  <section class="settings-section glass" data-settings-section="equipment">
+   <div class="settings-section-head" role="button" tabindex="0" onclick="toggleSettingsSection('equipment')">
+    <div class="settings-section-title">
+      <span class="emoji">🧰</span>
+      <div><strong>Gerätesetup & Equipment</strong><div class="settings-section-sub">Ausrüstung, Kilometer & Wartung</div></div>
+    </div>
+    <div class="settings-section-right">
+      <button type="button" class="settings-inline-plus" onclick="event.stopPropagation();openEquipmentEditor()" aria-label="Equipment hinzufügen">＋</button>
+      <span class="settings-chevron">›</span>
+    </div>
    </div>
- </section>
- <section class="settings-card glass">
-   <h3>💾 Backups</h3>
-   <p>Automatische Snapshots werden fälligkeitsbasiert erstellt, wenn die App aktiv ist. Letztes Backup: ${last?new Date(last).toLocaleString("de-DE"):"noch keines"}.</p>
-   <label>Automatik
-     <select onchange="setBackupSchedule(this.value)">
-       <option value="manual" ${schedule==="manual"?"selected":""}>Nur manuell</option>
-       <option value="hourly" ${schedule==="hourly"?"selected":""}>Stündlich</option>
-       <option value="daily" ${schedule==="daily"?"selected":""}>Täglich</option>
-       <option value="weekly" ${schedule==="weekly"?"selected":""}>Wöchentlich</option>
-       <option value="monthly" ${schedule==="monthly"?"selected":""}>Monatlich</option>
-       <option value="yearly" ${schedule==="yearly"?"selected":""}>Jährlich</option>
-     </select>
-   </label>
-   <div style="margin-top:12px">
-     <button class="pill primary" onclick="createBackup('manual',true)">Jetzt sichern</button>
-     <button class="pill" onclick="showBackups()">Backups verwalten (${backups.length})</button>
+   <div class="settings-section-body">
+    <div id="equipmentList" style="margin-top:12px"></div>
    </div>
-   <div class="import-help">Cloud-Snapshots benötigen einmalig die mitgelieferte Supabase-Migration. Ohne Migration funktionieren lokale automatische Backups trotzdem.</div>
- </section>`;
+  </section>
+
+  <section class="settings-section glass" data-settings-section="reminders">
+   <button class="settings-section-head" type="button" onclick="toggleSettingsSection('reminders')">
+    <div class="settings-section-title">
+      <span class="emoji">🔔</span>
+      <div><strong>Erinnerungen</strong><div class="settings-section-sub">iPhone/iPad Push · 18:00</div></div>
+    </div>
+    <div class="settings-section-right"><span class="settings-chevron">›</span></div>
+   </button>
+   <div class="settings-section-body">
+    <p>Heute Training hat Vorrang; an trainingsfreien Tagen wird an morgen erinnert.</p>
+    <div id="pushDeviceStatus" class="push-status"><span class="push-dot"></span><span>Status wird geprüft …</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="pill primary" onclick="enablePushOnThisDevice()">Mitteilungen aktivieren</button>
+      <button class="pill" onclick="sendTestPush()">Test-Mitteilung</button>
+      <button class="pill" onclick="disablePushOnThisDevice()">Auf diesem Gerät deaktivieren</button>
+    </div>
+   </div>
+  </section>
+
+  <section class="settings-section glass" data-settings-section="backup">
+   <button class="settings-section-head" type="button" onclick="toggleSettingsSection('backup')">
+    <div class="settings-section-title">
+      <span class="emoji">💾</span>
+      <div><strong>Backups</strong><div class="settings-section-sub">${schedule==="manual"?"manuell":schedule==="hourly"?"stündlich":schedule==="daily"?"täglich":schedule==="weekly"?"wöchentlich":schedule==="monthly"?"monatlich":"jährlich"}${last?" · "+new Date(last).toLocaleDateString("de-DE"):""}</div></div>
+    </div>
+    <div class="settings-section-right"><span class="settings-chevron">›</span></div>
+   </button>
+   <div class="settings-section-body">
+    <label style="margin-top:12px">Automatik
+      <select id="backupScheduleSelect" onchange="setBackupSchedule(this.value)">
+        <option value="manual" ${schedule==="manual"?"selected":""}>Nur manuell</option>
+        <option value="hourly" ${schedule==="hourly"?"selected":""}>Stündlich</option>
+        <option value="daily" ${schedule==="daily"?"selected":""}>Täglich</option>
+        <option value="weekly" ${schedule==="weekly"?"selected":""}>Wöchentlich</option>
+        <option value="monthly" ${schedule==="monthly"?"selected":""}>Monatlich</option>
+        <option value="yearly" ${schedule==="yearly"?"selected":""}>Jährlich</option>
+      </select>
+    </label>
+    <div style="margin-top:12px">
+      <button class="pill primary" onclick="createBackup('manual',true)">Jetzt sichern</button>
+      <button class="pill" onclick="showBackups()">Backups verwalten (${backups.length})</button>
+    </div>
+   </div>
+  </section>
+
+ </div>`;
 }
 
 function updateCloud(){
@@ -2187,11 +2318,7 @@ async function sendTestPush(){
   }
 }
 
-const __v63RenderSettings=renderSettings;
-renderSettings=function(){
-  __v63RenderSettings();
-  setTimeout(refreshPushStatus,0);
-};
+
 
 /* ===== V6.4 Equipment profiles ===== */
 const EQUIPMENT_KEY="mt_equipment_v1";
@@ -2415,8 +2542,7 @@ function applyEquipmentLabels(){
     el.querySelectorAll(".training-type,.session-type,[data-role='training-type']").forEach(n=>n.textContent=eq);
   });
 }
-const __v64RenderSettings=renderSettings;
-renderSettings=function(){__v64RenderSettings();setTimeout(renderEquipmentSettings,0);};
+
 /* V6.5.3 guaranteed HTML escaping helper */
 function escapeHtml(value){
   return String(value??"").replace(/[&<>"']/g,ch=>({
@@ -2518,6 +2644,63 @@ function bindEquipmentGestures(){
     });
   });
 }
+
+/* ===== V6.6 settings accordion + backup persistence ===== */
+const SETTINGS_OPEN_KEY="mt_settings_open_section";
+
+function toggleSettingsSection(name){
+  const sections=[...document.querySelectorAll(".settings-section")];
+  const target=sections.find(s=>s.dataset.settingsSection===name);
+  if(!target)return;
+
+  const willOpen=!target.classList.contains("open");
+  sections.forEach(s=>s.classList.remove("open"));
+
+  if(willOpen){
+    target.classList.add("open");
+    localStorage.setItem(SETTINGS_OPEN_KEY,name);
+    if(name==="equipment")setTimeout(renderEquipmentSettings,0);
+    if(name==="reminders")setTimeout(refreshPushStatus,0);
+  }else{
+    localStorage.removeItem(SETTINGS_OPEN_KEY);
+  }
+}
+
+function restoreSettingsOpenSection(){
+  const name=localStorage.getItem(SETTINGS_OPEN_KEY);
+  if(!name)return;
+  const target=document.querySelector(`.settings-section[data-settings-section="${name}"]`);
+  if(target){
+    target.classList.add("open");
+    if(name==="equipment")setTimeout(renderEquipmentSettings,0);
+    if(name==="reminders")setTimeout(refreshPushStatus,0);
+  }
+}
+
+function setBackupSchedule(v){
+  const allowed=["manual","hourly","daily","weekly","monthly","yearly"];
+  const value=allowed.includes(v)?v:"daily";
+  localStorage.setItem(BACKUP_SCHEDULE_KEY,value);
+
+  // Keep the currently selected option stable immediately.
+  const select=document.getElementById("backupScheduleSelect");
+  if(select)select.value=value;
+
+  if(value!=="manual")maybeAutoBackup();
+
+  // Do not force a full render here; that was causing the UI to jump back visually.
+  localStorage.setItem(SETTINGS_OPEN_KEY,"backup");
+}
+
+const __v66RenderSettings=renderSettings;
+renderSettings=function(){
+  __v66RenderSettings();
+  setTimeout(()=>{
+    restoreSettingsOpenSection();
+    renderEquipmentSettings();
+    refreshPushStatus();
+  },0);
+};
 </script>
 
 <dialog id="passwordDialog">
