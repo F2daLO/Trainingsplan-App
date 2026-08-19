@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.6.4</title>
+<title>Training v6.6.5</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1240,7 +1240,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6.4</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.6.5</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1374,6 +1374,9 @@ function renderSettings(){
     </div>
    </div>
    <div class="settings-section-body">
+    <div style="margin-top:12px;display:flex;justify-content:flex-end">
+      <button class="pill" type="button" onclick="syncEquipmentNow('both',true)">Equipment synchronisieren</button>
+    </div>
     <div id="equipmentList" style="margin-top:12px"></div>
    </div>
   </section>
@@ -2328,7 +2331,9 @@ function equipmentAll(){
 function equipmentSaveAll(rows){
   localStorage.setItem(EQUIPMENT_KEY,JSON.stringify(rows));
   renderEquipmentSettings();
-  cloudSaveEquipment?.().catch?.(()=>{});
+  if(cloudUser){
+    syncEquipmentNow("push",false).catch?.(()=>{});
+  }
 }
 function inferEquipmentType(session){
   const t=(
@@ -2524,7 +2529,7 @@ function equipmentForActivity(activity){
   return equipmentForSession(sessionLike);
 }
 async function cloudSaveEquipment(){
-  if(!cloudUser||!sb)return;
+  if(!cloudUser||!sb)return {saved:0};
 
   const rows=equipmentAll().map(e=>({
     id:e.id,
@@ -2543,58 +2548,51 @@ async function cloudSaveEquipment(){
     updated_at:new Date().toISOString()
   }));
 
-  if(!rows.length)return;
+  if(!rows.length)return {saved:0};
 
   const {error}=await sb.from("equipment_profiles").upsert(rows,{onConflict:"id"});
-  if(error){
-    console.error("Equipment cloud save failed",error);
-    throw new Error(
-      error.message.includes('schema cache')
-        ? 'Supabase-Equipmenttabelle ist noch nicht auf dem aktuellen Stand. Bitte equipment_profiles_migration.sql aus V6.6.3 einmal im SQL Editor ausführen.'
-        : error.message
-    );
-  }
+  if(error)throw error;
+  return {saved:rows.length};
 }
 async function cloudLoadEquipment(){
-  if(!cloudUser||!sb)return;
+  if(!cloudUser||!sb)return {loaded:0};
 
-  try{
-    const {data,error}=await sb.from("equipment_profiles").select("*").eq("user_id",cloudUser.id);
-    if(error){
-      console.warn("Equipment cloud load skipped",error);
-      return;
-    }
-    if(!Array.isArray(data) || !data.length)return;
+  const {data,error}=await sb.from("equipment_profiles")
+    .select("*")
+    .eq("user_id",cloudUser.id);
 
-    const local=equipmentAll();
-    const map=new Map(local.map(e=>[e.id,e]));
-
-    for(const row of data){
-      const cloudRow={
-        id:row.id,
-        name:row.name||"Equipment",
-        type:row.type||"other",
-        valid_from:row.valid_from||null,
-        valid_to:row.valid_to||null,
-        is_default:!!row.is_default,
-        note:row.note||"",
-        start_km:Number(row.start_km||0),
-        current_km:Number(row.current_km||0),
-        maintenance_interval_km:row.maintenance_interval_km===null?null:Number(row.maintenance_interval_km||0),
-        maintenance_last_km:Number(row.maintenance_last_km||0),
-        components:row.components||""
-      };
-
-      // Preserve local values when cloud fields are missing/older.
-      const existing=map.get(cloudRow.id);
-      map.set(cloudRow.id, existing ? {...cloudRow,...existing} : cloudRow);
-    }
-
-    localStorage.setItem(EQUIPMENT_KEY,JSON.stringify([...map.values()]));
-    if(screen==="settings")renderEquipmentSettings();
-  }catch(err){
-    console.warn("Equipment cloud load failed",err);
+  if(error){
+    console.warn("Equipment cloud load failed",error);
+    throw error;
   }
+
+  const local=equipmentAll();
+  const localMap=new Map(local.map(e=>[String(e.id),e]));
+
+  for(const row of data||[]){
+    const cloudRow={
+      id:row.id,
+      name:row.name||"Equipment",
+      type:row.type||"other",
+      valid_from:row.valid_from||null,
+      valid_to:row.valid_to||null,
+      is_default:!!row.is_default,
+      note:row.note||"",
+      start_km:Number(row.start_km||0),
+      current_km:Number(row.current_km||0),
+      maintenance_interval_km:row.maintenance_interval_km===null?null:Number(row.maintenance_interval_km||0),
+      maintenance_last_km:Number(row.maintenance_last_km||0),
+      components:row.components||""
+    };
+    localMap.set(String(cloudRow.id),cloudRow);
+  }
+
+  const merged=[...localMap.values()];
+  localStorage.setItem(EQUIPMENT_KEY,JSON.stringify(merged));
+
+  if(screen==="settings")renderEquipmentSettings();
+  if(screen==="plan")render();
+  return {loaded:(data||[]).length};
 }
 /* Replace generic training-type wording for presentation only; original plan data stays unchanged. */
 function applyEquipmentLabels(){
@@ -2819,6 +2817,60 @@ function debugEquipmentMatch(sessionId){
     allEquipment:equipmentAll()
   };
 }
+
+/* ===== V6.6.5 explicit equipment sync ===== */
+let equipmentSyncRunning=false;
+
+async function syncEquipmentNow(direction="both",showMessage=false){
+  if(equipmentSyncRunning)return;
+  if(!cloudUser||!sb){
+    if(showMessage)alert("Bitte zuerst bei der Cloud anmelden.");
+    return;
+  }
+
+  equipmentSyncRunning=true;
+  try{
+    if(direction==="push"||direction==="both") await cloudSaveEquipment();
+    if(direction==="pull"||direction==="both") await cloudLoadEquipment();
+
+    if(showMessage)alert("Equipment synchronisiert.");
+  }catch(err){
+    console.error("Equipment sync failed",err);
+    if(showMessage)alert("Equipment-Sync fehlgeschlagen: "+(err?.message||err));
+  }finally{
+    equipmentSyncRunning=false;
+  }
+}
+
+function scheduleEquipmentPull(){
+  setTimeout(()=>{
+    if(cloudUser)syncEquipmentNow("pull",false);
+  },300);
+}
+
+/* On auth/session availability, load equipment from cloud. */
+if(typeof sb!=="undefined" && sb?.auth){
+  sb.auth.onAuthStateChange((_event,session)=>{
+    if(session?.user){
+      cloudUser=session.user;
+      scheduleEquipmentPull();
+    }
+  });
+}
+
+window.addEventListener("focus",()=>{
+  if(cloudUser)syncEquipmentNow("pull",false);
+});
+
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible" && cloudUser){
+    syncEquipmentNow("pull",false);
+  }
+});
+
+setTimeout(()=>{
+  if(cloudUser)syncEquipmentNow("pull",false);
+},1500);
 </script>
 
 <dialog id="passwordDialog">
