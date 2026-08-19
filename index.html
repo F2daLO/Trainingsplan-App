@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.0</title>
+<title>Training v6.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -528,6 +528,71 @@ dialog#sessionDialog{
   body.nav-scrolling .nav button{background:rgba(28,29,32,.035) !important}
 }
 
+
+/* ===== V6.1 Overview FAB / create menu ===== */
+.overview-fab{
+  position:fixed;
+  z-index:70;
+  right:18px;
+  bottom:calc(92px + env(safe-area-inset-bottom));
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.24);
+  background:rgba(255,255,255,.075);
+  color:var(--text);
+  font-size:27px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 14px 34px rgba(20,22,28,.12),inset 0 1px 0 rgba(255,255,255,.26);
+  backdrop-filter:blur(36px) saturate(185%);
+  -webkit-backdrop-filter:blur(36px) saturate(185%);
+}
+.overview-fab:active{transform:scale(.95)}
+.create-menu{
+  position:fixed;
+  z-index:145;
+  right:16px;
+  bottom:calc(150px + env(safe-area-inset-bottom));
+  width:min(86vw,300px);
+  padding:10px;
+  border-radius:22px;
+}
+.create-menu button{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:13px 14px;
+  margin:4px 0;
+  text-align:left;
+  background:rgba(255,255,255,.28);
+  color:var(--text);
+}
+.create-menu-backdrop{
+  position:fixed;
+  z-index:144;
+  inset:0;
+  background:rgba(0,0,0,.10);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+@media(min-width:1200px){
+  .overview-fab{
+    right:28px;
+    bottom:28px;
+  }
+  .create-menu{
+    right:28px;
+    bottom:88px;
+  }
+}
+@media(prefers-color-scheme:dark){
+  .overview-fab{background:rgba(28,29,32,.08);border-color:rgba(255,255,255,.08)}
+  .create-menu button{background:rgba(255,255,255,.08)}
+}
+
 </style>
 </head>
 <body>
@@ -587,7 +652,7 @@ function isoWeek(d){const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.get
 function isUuid(v){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||""))}
 function activeEvent(){return db.events.find(e=>e.id===db.activeEvent)||db.events[0]}
 function activePlan(){return db.plans.find(p=>p.id===db.activePlan)||db.plans.find(p=>p.eventId===db.activeEvent)}
-function unitEmoji(s){const t=((s.type||"")+" "+(s.title||"")).toLowerCase();if(/betterme|kraft|core|calis/.test(t))return"💪";if(/ruhe|regeneration|erholung|urlaub/.test(t))return"😴";if(/mobil/.test(t))return"🧘";if(/indoor/.test(t)&&/rad|bike/.test(t))return"🚲";if(/outdoor/.test(t)&&/rad|bike/.test(t))return"🚴";if(/rad|bike|rennrad/.test(t))return"🚴";if(/lauf|run/.test(t))return"🏃";if(/schwimm|swim/.test(t))return"🏊";if(/ski/.test(t))return"⛷️";return"🏋️"}
+function unitEmoji(s){const t=((s.type||"")+" "+(s.title||"")).toLowerCase();if(/betterme|kraft|core|calis/.test(t))return"💪";if(/urlaub|ferien|vacation/.test(t))return"🏖️";if(/ruhe|ruhetag|regeneration|erholung/.test(t))return"😴";if(/mobil/.test(t))return"🧘";if(/indoor/.test(t)&&/rad|bike/.test(t))return"🚲";if(/outdoor/.test(t)&&/rad|bike/.test(t))return"🚴";if(/rad|bike|rennrad/.test(t))return"🚴";if(/lauf|run/.test(t))return"🏃";if(/schwimm|swim/.test(t))return"🏊";if(/ski/.test(t))return"⛷️";return"🏋️"}
 
 function persist(){localStorage.setItem(KEY,JSON.stringify(db));render();queueSync();maybeAutoBackup()}
 function go(s){screen=s;document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));if(s==="overview")navOverview.classList.add("active");if(s==="plan")navPlan.classList.add("active");if(s==="settings")navSettings.classList.add("active");render()}
@@ -595,7 +660,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.0</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -614,11 +679,8 @@ function renderOverview(){
   </article>`;
 }).join("");
  main.innerHTML=head("Übersicht")+`
- <div class="overview-actions">
-   <button class="pill primary" onclick="openNewEvent()">＋ Event</button>
-   <button class="pill" onclick="openImport()">⇧ Import</button>
- </div>
- <div class="event-grid">${cards||'<div class="empty">Noch keine Events.</div>'}</div>`;
+ <div class="event-grid">${cards||'<div class="empty">Noch keine Events.</div>'}</div>
+ <button class="overview-fab glass" aria-label="Hinzufügen" title="Hinzufügen" onclick="openCreateMenu()">＋</button>`;
 }
 
 function renderPlan(){
@@ -626,7 +688,7 @@ function renderPlan(){
  const blocks=db.plans.filter(x=>x.eventId===e.id);
  const controls=`<section class="plan-head glass"><div class="plan-event">${esc(e.name)}</div><div class="plan-controls"><select onchange="selectPlan(this.value)">${blocks.map(b=>`<option value="${b.id}" ${b.id===p.id?"selected":""}>${esc(b.name)}</option>`).join("")}</select><div class="segment"><button class="${planView==="list"?"active":""}" onclick="planView='list';render()">Liste</button><button class="${planView==="week"?"active":""}" onclick="planView='week';render()">Woche</button></div></div></section>
  <div class="actions-top"><button class="pill primary" onclick="openSession()">＋ Training</button><button class="pill gold" onclick="openSession(null,true)">⭐ On Top</button></div>
- <div class="plan-extra-actions"><button class="pill" onclick="openNewBlock()">＋ Block</button><button class="pill" onclick="openImport()">⇧ Import</button></div>`;
+ `;
  main.innerHTML=head("Plan")+controls+`<div id="planContent"></div>`;
  if(planView==="list")renderList();else renderWeek();
 }
@@ -634,8 +696,18 @@ function renderPlan(){
 function currentSessions(){return db.sessions.filter(s=>s.planId===db.activePlan).sort((a,b)=>a.date.localeCompare(b.date))}
 function renderList(){
  const arr=currentSessions(), root=document.getElementById("planContent");if(!arr.length){root.innerHTML='<div class="empty">Noch keine Einheiten in diesem Block.</div>';return}
- const groups={};arr.forEach(s=>{const d=new Date(s.date+"T12:00:00"),k=`KW ${isoWeek(d)} · ${d.toLocaleDateString("de-DE",{month:"long",year:"numeric"})}`;(groups[k]??=[]).push(s)})
- root.innerHTML=Object.entries(groups).map(([w,items])=>`<div class="week-title">${w}</div>${items.map(card).join("")}`).join("")
+ const groups={};
+ arr.forEach(s=>{
+   const d=new Date(s.date+"T12:00:00");
+   const k=`${d.getFullYear()}-${String(isoWeek(d)).padStart(2,"0")}`;
+   (groups[k]??=[]).push(s);
+ })
+ root.innerHTML=Object.entries(groups)
+   .sort(([a],[b])=>a.localeCompare(b))
+   .map(([w,items])=>{
+     const [year,week]=w.split("-");
+     return `<div class="week-title">KW ${Number(week)} · ${year}</div>${items.map(card).join("")}`;
+   }).join("")
 }
 function card(s){
  const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");
@@ -682,10 +754,14 @@ function renderSettings(){
    ${cloudUser?'<button class="pill" onclick="syncCloud(true)">Jetzt synchronisieren</button> <button class="pill" onclick="logout()">Abmelden</button>':'<button class="pill primary" onclick="loginDialog.showModal()">Mit E-Mail + Passwort anmelden</button>'}
  </section>
  <section class="settings-card glass">
-   <h3>⇧ Import</h3>
-   <p>Trainingspläne und Backups importieren.</p>
-   <button class="pill" onclick="openImport()">Datei importieren</button>
-   <div class="import-help">Unterstützt: vollständige Mein-Training-Backups als JSON sowie CSV für Events, Blöcke und Einheiten.</div>
+   <h3>🗂 Trainingsstruktur</h3>
+   <p>Events, Trainingsblöcke und Importe verwalten.</p>
+   <div style="display:flex;gap:8px;flex-wrap:wrap">
+     <button class="pill primary" onclick="openNewEvent()">＋ Event</button>
+     <button class="pill" onclick="openNewBlock()">＋ Block</button>
+     <button class="pill" onclick="openImport()">⇧ Import</button>
+   </div>
+   <div class="import-help">Import unterstützt vollständige Mein-Training-Backups als JSON sowie CSV für Events, Blöcke und Einheiten.</div>
  </section>
  <section class="settings-card glass">
    <h3>💾 Backups</h3>
@@ -1401,6 +1477,56 @@ window.addEventListener("scroll",()=>{
 setInterval(maybeAutoBackup,300000);
 window.addEventListener("online",maybeAutoBackup);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")maybeAutoBackup()});
+
+/* ===== V6.1 menu flow cleanup ===== */
+function closeCreateMenu(){
+  document.querySelector(".create-menu-backdrop")?.remove();
+  document.querySelector(".create-menu")?.remove();
+}
+function openCreateMenu(){
+  closeCreateMenu();
+  const back=document.createElement("div");
+  back.className="create-menu-backdrop";
+  back.onclick=closeCreateMenu;
+
+  const menu=document.createElement("div");
+  menu.className="create-menu glass";
+  menu.innerHTML=`
+    <button onclick="closeCreateMenu();openNewEvent()">＋ Neues Event</button>
+    <button onclick="closeCreateMenu();openNewBlock()">＋ Neuer Block</button>
+    <button onclick="closeCreateMenu();openImport()">⇧ Importieren</button>
+    <button onclick="closeCreateMenu()">Abbrechen</button>`;
+  document.body.append(back,menu);
+}
+
+/* Always close the action menu after a terminal action. */
+function runMenuAction(fn){
+  try{ fn(); }
+  finally{ closeQuickMenu(); }
+}
+
+/* Replace the action menu with guaranteed close/forward behavior. */
+function sessionActionMenu(id){
+  closeQuickMenu();
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+
+  const back=document.createElement("div");
+  back.className="quick-menu-backdrop";
+  back.onclick=closeQuickMenu;
+
+  const menu=document.createElement("div");
+  menu.className="quick-menu glass";
+  menu.innerHTML=`<div class="quick-menu-title">${unitEmoji(s)} ${esc(s.title)}</div>
+    <button class="ok" onclick="runMenuAction(()=>setStatus('${id}','done'))">✓ Erledigt</button>
+    <button class="neutral" onclick="runMenuAction(()=>neutralizeSession('${id}'))">○ Neutralisieren</button>
+    <button class="warn" onclick="closeQuickMenu();openMoveMenu('${id}',true)">↪ Verschieben</button>
+    <button class="bad" onclick="runMenuAction(()=>setStatus('${id}','cancel'))">✕ Ausgefallen</button>
+    <button onclick="closeQuickMenu();openSession('${id}')">✏️ Bearbeiten</button>
+    <button class="bad" onclick="runMenuAction(()=>deleteSession('${id}'))">🗑 Löschen</button>
+    <button onclick="closeQuickMenu()">Abbrechen</button>`;
+  document.body.append(back,menu);
+}
 </script>
 
 <dialog id="passwordDialog">
