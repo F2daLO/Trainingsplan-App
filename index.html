@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.7</title>
+<title>Training v6.8</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1211,6 +1211,59 @@ body.modal-open{
   100%{opacity:1}
 }
 
+
+/* ===== V6.8 Moved date + ChatGPT handoff ===== */
+.sdate-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:2px;
+  min-width:0;
+}
+.original-date{
+  font-size:10px;
+  line-height:1.15;
+  color:var(--muted);
+  opacity:.72;
+  white-space:nowrap;
+}
+.original-date .move-emoji{
+  font-size:9px;
+  margin-right:3px;
+}
+.chatgpt-btn{
+  border:0 !important;
+  background:rgba(255,255,255,.20) !important;
+  color:var(--muted) !important;
+  border-radius:10px !important;
+  min-width:32px;
+  height:30px;
+  padding:0 8px !important;
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  font-size:13px !important;
+}
+.chatgpt-toast{
+  position:fixed;
+  z-index:500;
+  left:50%;
+  bottom:calc(100px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(88vw,380px);
+  padding:10px 13px;
+  border-radius:18px;
+  text-align:center;
+  font-size:12px;
+  color:var(--text);
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.20);
+  box-shadow:0 14px 34px rgba(0,0,0,.12);
+  backdrop-filter:blur(28px) saturate(170%);
+  -webkit-backdrop-filter:blur(28px) saturate(170%);
+}
+
 </style>
 </head>
 <body>
@@ -1280,7 +1333,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.7</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.8</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1332,13 +1385,20 @@ function renderList(){
 function card(s){
  const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");
  const hasManualNote=!!((s.note||"").trim());
+ const original=s.originalDate&&s.originalDate!==s.date
+   ? new Date(s.originalDate+"T12:00:00")
+   : null;
  return `<article class="session glass ${s.status} ${s.topup?"topup":""}" data-session-id="${s.id}">
    ${s.topup?'<div class="badge">⭐ ON TOP</div>':""}
    <div class="row">
      <div class="stitle">${unitEmoji(s)} ${esc(s.title)}</div>
      <div class="right-tools">
        ${hasManualNote?`<button class="note-icon" title="Eigene Notiz" aria-label="Eigene Notiz" data-note-id="${s.id}">📝</button>`:""}
-       <div class="sdate" data-move-id="${s.id}">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div>
+       <button class="chatgpt-btn" title="Mit ChatGPT erklären" aria-label="Mit ChatGPT erklären" data-chatgpt-id="${s.id}">💬</button>
+       <div class="sdate-wrap">
+         <div class="sdate" data-move-id="${s.id}">${dt.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} · ${dt.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}</div>
+         ${original?`<div class="original-date"><span class="move-emoji">↪</span>ursprünglich ${original.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})}</div>`:""}
+       </div>
      </div>
    </div>
    <div class="meta">${esc(equipmentDisplay(s)||s.type||"")}${s.desc?` · ${esc(s.desc)}`:""}</div>
@@ -1356,12 +1416,52 @@ function openSession(id=null,topup=false){
  sDateTime.value=s?.scheduledAt||nowLocal();sType.value=s?.type||"Indoor Rad";sTitle.value=s?.title||"";sDesc.value=s?.desc||"";sStatus.value=s?.status||"open";sReminder.value="auto";sReminderTime.value="18:00";sTopup.checked=!!(s?.topup||topup);sNote.value=s?.note||"";sessionDialog.showModal()
 }
 function saveSession(e){
- e.preventDefault();const scheduledAt=sDateTime.value||nowLocal(),date=scheduledAt.slice(0,10);
- const obj={id:editId||crypto.randomUUID(),planId:db.activePlan,date,scheduledAt,type:sType.value,title:sTitle.value,desc:sDesc.value,note:sNote.value,status:sStatus.value,topup:sTopup.checked,reminder:"auto",reminderTime:"18:00",updatedAt:new Date().toISOString()};
- const i=db.sessions.findIndex(x=>x.id===obj.id);if(i>=0)db.sessions[i]=obj;else db.sessions.push(obj);sessionDialog.close();persist()
+ e.preventDefault();
+ const scheduledAt=sDateTime.value||nowLocal(),date=scheduledAt.slice(0,10);
+ const previous=editId?db.sessions.find(x=>x.id===editId):null;
+ let originalDate=previous?.originalDate||null;
+ let status=sStatus.value;
+
+ if(previous && movingSessionId===editId && date!==previous.date){
+   originalDate=originalDate||previous.date;
+   status="move";
+ }
+
+ const obj={
+   id:editId||crypto.randomUUID(),
+   planId:db.activePlan,
+   date,
+   scheduledAt,
+   originalDate,
+   type:sType.value,
+   title:sTitle.value,
+   desc:sDesc.value,
+   note:sNote.value,
+   status,
+   topup:sTopup.checked,
+   reminder:"auto",
+   reminderTime:"18:00",
+   updatedAt:new Date().toISOString()
+ };
+ const i=db.sessions.findIndex(x=>x.id===obj.id);
+ if(i>=0)db.sessions[i]=obj;else db.sessions.push(obj);
+ movingSessionId=null;
+ sessionDialog.close();
+ persist();
 }
 function setStatus(id,status){const s=db.sessions.find(x=>x.id===id);if(!s)return;s.status=status;s.updatedAt=new Date().toISOString();persist()}
-function moveTomorrow(id){const s=db.sessions.find(x=>x.id===id);if(!s)return;const d=new Date((s.scheduledAt||s.date+"T19:00")+":00");d.setDate(d.getDate()+1);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());s.scheduledAt=d.toISOString().slice(0,16);s.date=s.scheduledAt.slice(0,10);s.status="move";s.updatedAt=new Date().toISOString();persist()}
+function moveTomorrow(id){
+  const s=db.sessions.find(x=>x.id===id);if(!s)return;
+  if(!s.originalDate)s.originalDate=s.date;
+  const d=new Date((s.scheduledAt||s.date+"T19:00")+":00");
+  d.setDate(d.getDate()+1);
+  d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
+  s.scheduledAt=d.toISOString().slice(0,16);
+  s.date=s.scheduledAt.slice(0,10);
+  s.status="move";
+  s.updatedAt=new Date().toISOString();
+  persist();
+}
 
 function renderSettings(){
  const schedule=localStorage.getItem(BACKUP_SCHEDULE_KEY)||"daily";
@@ -1475,7 +1575,13 @@ function updateCloud(){
 }
 function exportBackup(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:"application/json"}));a.download="mein-training-backup.json";a.click();URL.revokeObjectURL(a.href)}
 
-function packDesc(s){return "__MT__"+JSON.stringify({desc:s.desc||"",scheduledAt:s.scheduledAt||s.date+"T19:00"})}
+function packDesc(s){
+  return "__MT__"+JSON.stringify({
+    desc:s.desc||"",
+    scheduledAt:s.scheduledAt||s.date+"T19:00",
+    originalDate:s.originalDate||null
+  });
+}
 function unpackDesc(v){if(String(v||"").startsWith("__MT__")){try{return JSON.parse(String(v).slice(6))}catch{}}return{desc:v||"",scheduledAt:null}}
 function planRemote(p){return{id:p.id,user_id:cloudUser.id,name:p.name,description:"__MTP__"+JSON.stringify({eventId:p.eventId,focus:p.focus||"",description:p.description||"",eventName:db.events.find(e=>e.id===p.eventId)?.name||""})}}
 function planLocal(r){let meta={};if(String(r.description||"").startsWith("__MTP__"))try{meta=JSON.parse(String(r.description).slice(7))}catch{};if(meta.eventId&&!db.events.some(e=>e.id===meta.eventId))db.events.push({id:meta.eventId,name:meta.eventName||"Event",description:""});return{id:r.id,eventId:meta.eventId||db.activeEvent,name:r.name,focus:meta.focus||"",description:meta.description||""}}
@@ -1492,7 +1598,7 @@ function sessionLocal(r){
    desc=canonical;
    updatedAt=new Date().toISOString();
  }
- return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,reminder:"auto",reminderTime:"18:00",updatedAt};
+ return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",originalDate:d.originalDate||null,type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,reminder:"auto",reminderTime:"18:00",updatedAt};
 }
 
 function makeClient(){
@@ -1659,6 +1765,7 @@ function sessionActionMenu(id){
     <button class="neutral" onclick="neutralizeSession('${id}');closeQuickMenu()">○ Neutralisieren</button>
     <button class="warn" onclick="openMoveMenu('${id}',true)">↪ Verschieben</button>
     <button class="bad" onclick="setStatus('${id}','cancel');closeQuickMenu()">✕ Ausgefallen</button>
+    <button onclick="closeQuickMenu();askChatGPTAboutSession('${id}')">💬 Mit ChatGPT erklären</button>
     <button onclick="openSession('${id}');closeQuickMenu()">✏️ Bearbeiten</button>
     <button class="bad" onclick="deleteSession('${id}');closeQuickMenu()">🗑 Löschen</button>
     <button onclick="closeQuickMenu()">Abbrechen</button>`;
@@ -1688,6 +1795,7 @@ function chooseMoveDate(id){
   closeQuickMenu();
   const s=db.sessions.find(x=>x.id===id);
   if(!s)return;
+  movingSessionId=id;
   openSession(id);
   requestAnimationFrame(()=>{
     const f=document.getElementById("sDateTime");
@@ -3100,6 +3208,80 @@ document.addEventListener("visibilitychange",()=>{
     syncAllNow(false,"pull");
     startRealtimeSync();
   }
+});
+
+let movingSessionId=null;
+
+/* ===== V6.8 ChatGPT handoff ===== */
+function buildTrainingQuestion(s){
+  const equipment=equipmentDisplay(s)||s.type||"";
+  const date=new Date((s.scheduledAt||s.date+"T19:00")+":00")
+    .toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});
+
+  return `Bitte erkläre mir diese Trainingseinheit konkret und praxisnah.
+
+Datum: ${date}
+Training: ${s.title}
+Trainingsart / Equipment: ${equipment}
+Planbeschreibung: ${s.desc||"keine"}
+${s.note?`Meine eigene Notiz: ${s.note}\n`:""}
+Bitte erkläre insbesondere:
+- was die einzelnen Begriffe und Abschnitte bedeuten,
+- in welchen Intensitätsbereichen ich mich bewegen soll,
+- falls sinnvoll Herzfrequenz-/Leistungs-/RPE-Bereiche,
+- Dauer und Aufbau der einzelnen Abschnitte,
+- worauf ich technisch achten soll,
+- wie sich die Einheit anfühlen sollte und woran ich erkenne, dass ich zu hart oder zu locker fahre/trainiere.
+
+Wenn Angaben im Plan zu ungenau sind, mache eine sinnvolle konkrete Umsetzung daraus, ohne die Einheit unnötig härter zu machen.`;
+}
+
+function showChatGPTToast(text){
+  document.querySelector(".chatgpt-toast")?.remove();
+  const el=document.createElement("div");
+  el.className="chatgpt-toast";
+  el.textContent=text;
+  document.body.append(el);
+  setTimeout(()=>el.remove(),2600);
+}
+
+async function askChatGPTAboutSession(id){
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+
+  const prompt=buildTrainingQuestion(s);
+  let copied=false;
+  try{
+    await navigator.clipboard.writeText(prompt);
+    copied=true;
+  }catch{
+    try{
+      const ta=document.createElement("textarea");
+      ta.value=prompt;
+      ta.style.position="fixed";
+      ta.style.opacity="0";
+      document.body.append(ta);
+      ta.select();
+      copied=document.execCommand("copy");
+      ta.remove();
+    }catch{}
+  }
+
+  showChatGPTToast(copied
+    ?"Frage kopiert – in ChatGPT nur noch einfügen."
+    :"ChatGPT wird geöffnet. Die Einheit kann dort erklärt werden.");
+
+  setTimeout(()=>{
+    window.open("https://chatgpt.com/","_blank","noopener,noreferrer");
+  },180);
+}
+
+document.addEventListener("click",e=>{
+  const btn=e.target.closest?.("[data-chatgpt-id]");
+  if(!btn)return;
+  e.preventDefault();
+  e.stopPropagation();
+  askChatGPTAboutSession(btn.dataset.chatgptId);
 });
 </script>
 

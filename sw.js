@@ -1,4 +1,4 @@
-const CACHE="training-v6-7-realtime-pullrefresh";
+const CACHE="training-v6-8-moveddate-chatgpt";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
