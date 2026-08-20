@@ -1,4 +1,4 @@
-const CACHE="training-v6-10-1-moved-status";
+const CACHE="training-v6-10-2-restday-logic";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{

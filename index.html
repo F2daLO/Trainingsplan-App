@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.10.1</title>
+<title>Training v6.10.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1512,7 +1512,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.10.1</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.10.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1544,8 +1544,48 @@ function isSessionMoved(s){
   );
 }
 
+
+function isRestLikeSession(s){
+  const t=(String(s?.type||"")+" "+String(s?.title||"")+" "+String(s?.desc||"")).toLowerCase();
+  return /ruhe|ruhetag|regeneration|erholung|urlaub|ferien|recovery|rest day/.test(t);
+}
+function isRealTrainingSession(s){
+  return !isRestLikeSession(s);
+}
+function sameDaySessions(date){
+  return (db.sessions||[]).filter(s=>s.date===date);
+}
+function dayHasRealTraining(date,ignoreId=null){
+  return sameDaySessions(date).some(s=>String(s.id)!==String(ignoreId||"") && isRealTrainingSession(s));
+}
+function reconcileRestDaysForDate(date){
+  const rows=sameDaySessions(date);
+  const hasReal=rows.some(isRealTrainingSession);
+  if(hasReal){
+    const before=db.sessions.length;
+    db.sessions=db.sessions.filter(s=>!(s.date===date && isRestLikeSession(s)));
+    return db.sessions.length!==before;
+  }
+  return false;
+}
+function autoCompletePastRestDays(){
+  const today=new Date().toISOString().slice(0,10);
+  let changed=false;
+  for(const s of db.sessions||[]){
+    if(!isRestLikeSession(s))continue;
+    if(s.date>=today)continue;
+    const hasReal=dayHasRealTraining(s.date,s.id);
+    if(!hasReal && s.status!=="done"){
+      s.status="done";
+      s.updatedAt=new Date().toISOString();
+      changed=true;
+    }
+  }
+  if(changed)localStorage.setItem(KEY,JSON.stringify(db));
+  return changed;
+}
 function blockStats(planId){
-  const rows=db.sessions.filter(s=>s.planId===planId);
+  const rows=db.sessions.filter(s=>s.planId===planId && isRealTrainingSession(s));
   const total=rows.length;
   let done=0,moved=0,cancel=0,open=0;
 
@@ -1694,6 +1734,11 @@ function saveSession(e){
  };
  const i=db.sessions.findIndex(x=>x.id===obj.id);
  if(i>=0)db.sessions[i]=obj;else db.sessions.push(obj);
+
+ if(isRealTrainingSession(obj)){
+   reconcileRestDaysForDate(obj.date);
+ }
+
  movingSessionId=null;
  sessionDialog.close();
  persist();
@@ -1709,6 +1754,7 @@ function moveTomorrow(id){
   s.date=s.scheduledAt.slice(0,10);
   s.status="move";
   s.updatedAt=new Date().toISOString();
+  if(isRealTrainingSession(s))reconcileRestDaysForDate(s.date);
   persist();
 }
 
@@ -1885,7 +1931,7 @@ async function syncCloud(show=false){
 }
 let syncTimer;function queueSync(){if(!cloudUser)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncCloud(false),700)}
 window.addEventListener("online",()=>syncCloud(false));document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")syncCloud(false)});
-migrateEquipmentStorageV662();repairCanonicalDescriptions();repairMovedOriginalDates();maybeAutoBackup();render();initCloud();
+migrateEquipmentStorageV662();repairCanonicalDescriptions();repairMovedOriginalDates();autoCompletePastRestDays();maybeAutoBackup();render();initCloud();
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js")
     .then(reg=>reg.update().catch(()=>{}))
@@ -3545,6 +3591,19 @@ function sessionActionMenu(id){
 function sessionVisualStatus(s){
   return (isSessionMoved(s) && s.status!=="done" && s.status!=="cancel") ? "move" : s.status;
 }
+
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible"){
+    if(autoCompletePastRestDays()){
+      persist();
+    }
+  }
+});
+window.addEventListener("focus",()=>{
+  if(autoCompletePastRestDays()){
+    persist();
+  }
+});
 </script>
 
 <dialog id="passwordDialog">
