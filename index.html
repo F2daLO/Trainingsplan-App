@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.9.1</title>
+<title>Training v6.9.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1405,7 +1405,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.9.1</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.9.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1457,12 +1457,11 @@ function renderList(){
 function card(s){
  const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");
  const hasManualNote=!!((s.note||"").trim());
+ const builtInOriginal=ORIGINAL_SESSION_DATES[String(s.id)]||null;
  const originalDateValue =
    (s.originalDate && s.originalDate!==s.date)
      ? s.originalDate
-     : ((s.status==="move" && ORIGINAL_SESSION_DATES[String(s.id)] && ORIGINAL_SESSION_DATES[String(s.id)]!==s.date)
-        ? ORIGINAL_SESSION_DATES[String(s.id)]
-        : null);
+     : ((builtInOriginal && builtInOriginal!==s.date) ? builtInOriginal : null);
  const original=originalDateValue ? new Date(originalDateValue+"T12:00:00") : null;
  return `<article class="session glass ${s.status} ${s.topup?"topup":""}" data-session-id="${s.id}">
    ${s.topup?'<div class="badge">⭐ ON TOP</div>':""}
@@ -1713,7 +1712,7 @@ async function syncCloud(show=false){
 }
 let syncTimer;function queueSync(){if(!cloudUser)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncCloud(false),700)}
 window.addEventListener("online",()=>syncCloud(false));document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")syncCloud(false)});
-migrateEquipmentStorageV662();repairCanonicalDescriptions();maybeAutoBackup();render();initCloud();
+migrateEquipmentStorageV662();repairCanonicalDescriptions();repairMovedOriginalDates();maybeAutoBackup();render();initCloud();
 if("serviceWorker" in navigator){
   navigator.serviceWorker.register("sw.js")
     .then(reg=>reg.update().catch(()=>{}))
@@ -1826,28 +1825,7 @@ function closeQuickMenu(){
   document.querySelector(".quick-menu")?.remove();
 }
 
-function sessionActionMenu(id){
-  closeQuickMenu();
-  const s=db.sessions.find(x=>x.id===id);
-  if(!s)return;
 
-  const back=document.createElement("div");
-  back.className="quick-menu-backdrop";
-  back.onclick=closeQuickMenu;
-
-  const menu=document.createElement("div");
-  menu.className="quick-menu glass";
-  menu.innerHTML=`<div class="quick-menu-title">${unitEmoji(s)} ${esc(s.title)}</div>
-    <button class="ok" onclick="setStatus('${id}','done');closeQuickMenu()">✓ Erledigt</button>
-    <button class="neutral" onclick="neutralizeSession('${id}');closeQuickMenu()">○ Neutralisieren</button>
-    <button class="warn" onclick="openMoveMenu('${id}',true)">↪ Verschieben</button>
-    <button class="bad" onclick="setStatus('${id}','cancel');closeQuickMenu()">✕ Ausgefallen</button>
-    <button onclick="explainTrainingWithGPT('${id}')">💬 Mit GPT erklären</button>
-    <button onclick="openSession('${id}');closeQuickMenu()">✏️ Bearbeiten</button>
-    <button class="bad" onclick="deleteSession('${id}');closeQuickMenu()">🗑 Löschen</button>
-    <button onclick="closeQuickMenu()">Abbrechen</button>`;
-  document.body.append(back,menu);
-}
 
 function openMoveMenu(id,fromActionMenu=false){
   if(fromActionMenu) closeQuickMenu();
@@ -2380,27 +2358,7 @@ function runMenuAction(fn){
 }
 
 /* Replace the action menu with guaranteed close/forward behavior. */
-function sessionActionMenu(id){
-  closeQuickMenu();
-  const s=db.sessions.find(x=>x.id===id);
-  if(!s)return;
 
-  const back=document.createElement("div");
-  back.className="quick-menu-backdrop";
-  back.onclick=closeQuickMenu;
-
-  const menu=document.createElement("div");
-  menu.className="quick-menu glass";
-  menu.innerHTML=`<div class="quick-menu-title">${unitEmoji(s)} ${esc(s.title)}</div>
-    <button class="ok" onclick="runMenuAction(()=>setStatus('${id}','done'))">✓ Erledigt</button>
-    <button class="neutral" onclick="runMenuAction(()=>neutralizeSession('${id}'))">○ Neutralisieren</button>
-    <button class="warn" onclick="closeQuickMenu();openMoveMenu('${id}',true)">↪ Verschieben</button>
-    <button class="bad" onclick="runMenuAction(()=>setStatus('${id}','cancel'))">✕ Ausgefallen</button>
-    <button onclick="closeQuickMenu();openSession('${id}')">✏️ Bearbeiten</button>
-    <button class="bad" onclick="runMenuAction(()=>deleteSession('${id}'))">🗑 Löschen</button>
-    <button onclick="closeQuickMenu()">Abbrechen</button>`;
-  document.body.append(back,menu);
-}
 
 /* ===== V6.3 Web Push / Reminder client ===== */
 function b64UrlToUint8Array(base64String){
@@ -3134,7 +3092,7 @@ async function syncAllNow(showMessage=false,mode="both"){
     }
 
     // Re-render current view from latest local state.
-    if(typeof render==="function")render();
+    repairMovedOriginalDates();if(typeof render==="function")render();
 
     document.querySelector("main")?.classList.add("sync-flash");
     setTimeout(()=>document.querySelector("main")?.classList.remove("sync-flash"),600);
@@ -3370,6 +3328,45 @@ async function explainTrainingWithGPT(id){
     console.error("GPT explanation",err);
     body.innerHTML=`<div class="gpt-error"><strong>GPT-Erklärung nicht verfügbar.</strong><br>${escapeHtml(err?.message||String(err))}</div>`;
   }
+}
+
+/* ===== V6.9.2 moved-date repair + canonical action menu ===== */
+function repairMovedOriginalDates(){
+  let changed=false;
+  for(const s of db.sessions||[]){
+    const original=ORIGINAL_SESSION_DATES[String(s.id)];
+    if(!original)continue;
+    if(s.date!==original && !s.originalDate){
+      s.originalDate=original;
+      changed=true;
+    }
+  }
+  if(changed){
+    localStorage.setItem(KEY,JSON.stringify(db));
+  }
+}
+
+function sessionActionMenu(id){
+  closeQuickMenu();
+  const s=db.sessions.find(x=>x.id===id);
+  if(!s)return;
+
+  const back=document.createElement("div");
+  back.className="quick-menu-backdrop";
+  back.onclick=closeQuickMenu;
+
+  const menu=document.createElement("div");
+  menu.className="quick-menu glass";
+  menu.innerHTML=`<div class="quick-menu-title">${unitEmoji(s)} ${esc(s.title)}</div>
+    <button class="ok" onclick="setStatus('${id}','done');closeQuickMenu()">✓ Erledigt</button>
+    <button class="neutral" onclick="neutralizeSession('${id}');closeQuickMenu()">○ Neutralisieren</button>
+    <button class="warn" onclick="openMoveMenu('${id}',true)">↪ Verschieben</button>
+    <button class="bad" onclick="setStatus('${id}','cancel');closeQuickMenu()">✕ Ausgefallen</button>
+    <button onclick="closeQuickMenu();explainTrainingWithGPT('${id}')">💬 Mit GPT erklären</button>
+    <button onclick="openSession('${id}');closeQuickMenu()">✏️ Bearbeiten</button>
+    <button class="bad" onclick="deleteSession('${id}');closeQuickMenu()">🗑 Löschen</button>
+    <button onclick="closeQuickMenu()">Abbrechen</button>`;
+  document.body.append(back,menu);
 }
 </script>
 

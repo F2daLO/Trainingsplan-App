@@ -1,4 +1,4 @@
-const CACHE="training-v6-9-1-startup-fix";
+const CACHE="training-v6-9-2-menu-moverepair";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
