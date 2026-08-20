@@ -1,4 +1,4 @@
-const CACHE="training-v6-9-move-gpt-explain";
+const CACHE="training-v6-9-1-startup-fix";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
