@@ -1,4 +1,4 @@
-const CACHE="training-v6-10-block-stats-german-gpt";
+const CACHE="training-v6-10-1-moved-status";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{

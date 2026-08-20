@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.10</title>
+<title>Training v6.10.1</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1512,7 +1512,7 @@ function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.10</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.10.1</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1536,15 +1536,23 @@ function renderOverview(){
 }
 
 
+function isSessionMoved(s){
+  const builtInOriginal=ORIGINAL_SESSION_DATES[String(s.id)]||null;
+  return !!(
+    (s.originalDate && s.originalDate!==s.date) ||
+    (builtInOriginal && builtInOriginal!==s.date)
+  );
+}
+
 function blockStats(planId){
   const rows=db.sessions.filter(s=>s.planId===planId);
   const total=rows.length;
   let done=0,moved=0,cancel=0,open=0;
 
   rows.forEach(s=>{
+    if(isSessionMoved(s))moved++;
     if(s.status==="done")done++;
     else if(s.status==="cancel")cancel++;
-    else if(s.status==="move")moved++;
     else open++;
   });
 
@@ -1627,7 +1635,8 @@ function card(s){
      ? s.originalDate
      : ((builtInOriginal && builtInOriginal!==s.date) ? builtInOriginal : null);
  const original=originalDateValue ? new Date(originalDateValue+"T12:00:00") : null;
- return `<article class="session glass ${s.status} ${s.topup?"topup":""}" data-session-id="${s.id}">
+ const visualStatus=(isSessionMoved(s) && s.status!=="done" && s.status!=="cancel")?"move":s.status;
+ return `<article class="session glass ${visualStatus} ${s.topup?"topup":""}" data-session-id="${s.id}">
    ${s.topup?'<div class="badge">⭐ ON TOP</div>':""}
    <div class="row">
      <div class="stitle">${unitEmoji(s)} ${esc(s.title)}</div>
@@ -3531,6 +3540,10 @@ function sessionActionMenu(id){
     <button class="bad" onclick="deleteSession('${id}');closeQuickMenu()">🗑 Löschen</button>
     <button onclick="closeQuickMenu()">Abbrechen</button>`;
   document.body.append(back,menu);
+}
+
+function sessionVisualStatus(s){
+  return (isSessionMoved(s) && s.status!=="done" && s.status!=="cancel") ? "move" : s.status;
 }
 </script>
 
