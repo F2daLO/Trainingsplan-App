@@ -1,4 +1,4 @@
-const CACHE="training-v6-12-analytics-ui";
+const CACHE="training-v6-12-1-trueglass-floatingnav";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
