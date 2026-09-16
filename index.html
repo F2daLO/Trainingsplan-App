@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.14</title>
+<title>Training v6.14.1</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2321,6 +2321,129 @@ main.can-scroll,.overview-wrap.can-scroll,.settings-wrap.can-scroll,.modal.can-s
 /* Keep overview fixed when content fits. */
 body:not(:has(.plan-screen)) main:not(.can-scroll){height:100dvh!important;overflow:hidden!important}
 
+
+/* ===== V6.14.1 CORRECTIVE FIX ===== */
+
+/* Undo V6.14 JS-driven scroll locking. Let browsers scroll only when overflow exists naturally. */
+html,body{height:100%!important;overflow:hidden!important;overscroll-behavior:none!important}
+.shell{
+ height:100dvh!important;
+ min-height:0!important;
+ overflow:hidden!important;
+ display:flex!important;
+ flex-direction:column!important;
+}
+main{
+ flex:1 1 auto!important;
+ min-height:0!important;
+ height:auto!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ overscroll-behavior-y:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-y!important;
+}
+.plan-screen{overflow:hidden!important}
+.plan-scroll{
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ overscroll-behavior-y:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-y!important;
+}
+/* No nested wrappers may independently move the page when content fits. */
+.overview-wrap,.settings-wrap,.analytics-wrap{
+ overflow:visible!important;
+ height:auto!important;
+ min-height:0!important;
+}
+
+/*
+ ONE SELECT STYLE, EVERYWHERE.
+ No separate filter/modal/settings select materials.
+ This intentionally overrides every earlier select rule.
+ */
+select,
+.plan-fixed select,
+#planFilterDialog select,
+.modal select,
+.settings-card select,
+.glass select,
+form select{
+ -webkit-appearance:menulist!important;
+ appearance:auto!important;
+ background:transparent!important;
+ background-color:transparent!important;
+ background-image:none!important;
+ border:1px solid rgba(210,214,221,.42)!important;
+ box-shadow:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+ filter:none!important;
+ opacity:1!important;
+ color:#1c1c1e!important;
+}
+select:focus{
+ background:transparent!important;
+ background-color:transparent!important;
+ box-shadow:none!important;
+ outline:none!important;
+}
+
+/* Plan action capsule: explicit icons, labels hidden on touch and revealed on hover/focus desktop. */
+.plan-fixed .actions-top .pill{
+ font-size:inherit!important;
+ width:34px!important;
+ min-width:34px!important;
+ height:32px!important;
+ padding:0!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:5px!important;
+ overflow:hidden!important;
+ color:#202124!important;
+}
+.plan-fixed .actions-top .action-icon{
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ flex:0 0 auto!important;
+ width:22px!important;
+ height:22px!important;
+ font-size:18px!important;
+ line-height:1!important;
+ color:#202124!important;
+ opacity:1!important;
+ visibility:visible!important;
+}
+.plan-fixed .actions-top .action-label{
+ display:none!important;
+ font-size:10px!important;
+ line-height:1!important;
+ white-space:nowrap!important;
+}
+.plan-fixed .actions-top .filter-pill #filterCount{
+ position:absolute!important;
+ transform:translate(11px,-10px)!important;
+}
+@media(hover:hover) and (pointer:fine){
+ .plan-fixed .actions-top .pill:hover,
+ .plan-fixed .actions-top .pill:focus-visible{
+   width:auto!important;
+   padding:0 9px!important;
+ }
+ .plan-fixed .actions-top .pill:hover .action-label,
+ .plan-fixed .actions-top .pill:focus-visible .action-label{display:inline!important}
+}
+@media(hover:none) and (pointer:coarse){
+ .plan-fixed .actions-top .pill{width:36px!important;min-width:36px!important}
+ .plan-fixed .actions-top .action-label{display:none!important}
+}
+
+/* Keep the non-plan top area fixed inside the app shell; only main content can scroll. */
+header,.topbar,.app-head{flex:0 0 auto!important}
+
 </style>
 </head>
 <body>
@@ -2413,7 +2536,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.14</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.14.1</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -2543,9 +2666,9 @@ function renderPlan(){
      ${blockStatsHTML(p.id)}
    </section>
    <div class="actions-top">
-     <button class="pill primary" onclick="openSession()">＋ Training</button>
-     <button class="pill gold" onclick="openSession(null,true)">⭐ On Top</button>
-     <button class="pill filter-pill" onclick="openPlanFilter()">⌁ Filter <span id="filterCount">${activePlanFilterCount()}</span></button>
+     <button class="pill primary" onclick="openSession()" aria-label="Training hinzufügen"><span class="action-icon">＋</span><span class="action-label">Training</span></button>
+     <button class="pill gold" onclick="openSession(null,true)" aria-label="On Top hinzufügen"><span class="action-icon">☆</span><span class="action-label">On Top</span></button>
+     <button class="pill filter-pill" onclick="openPlanFilter()" aria-label="Plan filtern"><span class="action-icon">⌁</span><span class="action-label">Filter</span><span id="filterCount">${activePlanFilterCount()}</span></button>
    </div>
  </div>`;
  main.innerHTML=fixed+`<div id="planContent" class="plan-scroll"></div>`;
@@ -4660,15 +4783,6 @@ document.addEventListener("touchmove",()=>{
   adaptiveNavTimer=setTimeout(()=>setFloatingNavCompact(false),180);
 },{passive:true});
 
-function updateScrollableState(){
- document.querySelectorAll("main,.plan-scroll,.modal,.settings-wrap,.overview-wrap").forEach(el=>{
-   const can=el.scrollHeight>el.clientHeight+2;
-   el.classList.toggle("can-scroll",can);
- });
-}
-const _renderForOverflow=render;
-render=function(){_renderForOverflow.apply(this,arguments);requestAnimationFrame(()=>requestAnimationFrame(updateScrollableState));}
-window.addEventListener("resize",()=>requestAnimationFrame(updateScrollableState));
 </script>
 
 <dialog id="passwordDialog">

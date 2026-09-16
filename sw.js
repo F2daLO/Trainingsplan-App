@@ -1,4 +1,4 @@
-const CACHE="training-v6-14-clean-glass-controls";
+const CACHE="training-v6-14-1-corrective";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
