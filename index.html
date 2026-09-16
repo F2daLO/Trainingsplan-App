@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.12.1</title>
+<title>Training v6.12.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1760,6 +1760,84 @@ main{padding-bottom:82px!important}
  .nav button{color:rgba(255,255,255,.72)!important}.nav button.active{color:#fff!important;background:rgba(255,255,255,.10)!important}
 }
 
+
+/* ===== V6.12.2 WHITE APP / ADAPTIVE FLOATING BAR / SCROLL FIX ===== */
+:root{--bg:#fff!important;--glass:rgba(255,255,255,.72)!important;--glass2:rgba(255,255,255,.82)!important}
+html,body{
+ background:#fff!important;
+ background-image:none!important;
+}
+body::before,body::after{display:none!important;content:none!important}
+.shell,main,.plan-screen,.plan-fixed,.plan-scroll{background:#fff!important}
+.page-head,.plan-fixed,.page-title{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
+.page-head::before,.page-head::after,.plan-fixed::before,.plan-fixed::after{display:none!important;content:none!important}
+.glass,.event-card,.session,.analytics-card,.analytics-hero,.metric,.plan-head{
+ background:rgba(255,255,255,.76)!important;
+ border:1px solid rgba(225,227,232,.72)!important;
+ box-shadow:0 2px 10px rgba(20,24,32,.035)!important;
+ backdrop-filter:blur(16px) saturate(145%)!important;
+ -webkit-backdrop-filter:blur(16px) saturate(145%)!important;
+}
+.session{background:rgba(250,250,251,.72)!important}
+.plan-fixed .plan-head{background:rgba(255,255,255,.86)!important}
+.plan-scroll{
+ mask-image:none!important;-webkit-mask-image:none!important;
+ overscroll-behavior-y:auto!important;
+}
+select,input,textarea,.segment,.pill{
+ background:rgba(247,247,249,.78)!important;
+ border:1px solid rgba(224,225,230,.78)!important;
+ box-shadow:none!important;
+}
+.nav{
+ width:min(500px,calc(100vw - 24px))!important;
+ background:rgba(255,255,255,.78)!important;
+ border:1px solid rgba(218,220,225,.72)!important;
+ box-shadow:0 5px 22px rgba(20,24,32,.13)!important;
+ backdrop-filter:blur(22px) saturate(155%)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(155%)!important;
+ border-radius:25px!important;
+ padding:5px!important;
+ transition:width .22s ease,padding .22s ease,border-radius .22s ease,transform .22s ease,opacity .22s ease!important;
+ transform:translateX(-50%) scale(1)!important;
+ transform-origin:center bottom!important;
+}
+.nav button{
+ min-height:45px!important;
+ font-size:9px!important;
+ transition:min-height .22s ease,padding .22s ease,font-size .22s ease,opacity .22s ease,background .22s ease!important;
+}
+.nav button span{
+ font-size:19px!important;height:21px!important;line-height:21px!important;
+ transition:font-size .22s ease,height .22s ease,transform .22s ease!important;
+}
+.nav button.active{background:rgba(239,240,243,.92)!important}
+.nav.scrolling{
+ width:min(390px,calc(100vw - 54px))!important;
+ padding:3px!important;
+ border-radius:20px!important;
+ transform:translateX(-50%) scale(.92)!important;
+ opacity:.91!important;
+}
+.nav.scrolling button{min-height:31px!important;padding:2px!important;font-size:0!important}
+.nav.scrolling button span{font-size:16px!important;height:18px!important;line-height:18px!important}
+.nav.scrolling button.active{background:rgba(238,239,242,.88)!important}
+.plan-fixed .page-head{background:#fff!important}
+@media(max-width:767px){
+ main{padding-top:5px!important}
+ .plan-fixed{background:#fff!important}
+ .plan-fixed .plan-head{padding:6px 8px!important}
+ .nav{width:calc(100vw - 20px)!important}
+ .nav.scrolling{width:calc(100vw - 72px)!important}
+}
+@media(prefers-color-scheme:dark){
+ html,body,.shell,main,.plan-screen,.plan-fixed,.plan-scroll{background:#fff!important;color:#1c1c1e!important}
+ .glass,.event-card,.session,.analytics-card,.analytics-hero,.metric,.plan-head{background:rgba(255,255,255,.78)!important;border-color:rgba(225,227,232,.72)!important}
+ .nav{background:rgba(255,255,255,.80)!important;border-color:rgba(218,220,225,.75)!important}
+ .nav button{color:rgba(28,31,36,.72)!important}.nav button.active{color:#111!important;background:rgba(239,240,243,.94)!important}
+ .meta,.a-muted,.cloud,.block-stat span,.event-sub{color:#76767d!important}
+}
+
 </style>
 </head>
 <body>
@@ -1830,7 +1908,9 @@ function unitEmoji(s){const t=((s.type||"")+" "+(s.title||"")).toLowerCase();if(
 
 function persist(){localStorage.setItem(KEY,JSON.stringify(db));render();queueSync();maybeAutoBackup()}
 function go(s){
+ const enteringPlan=s==="plan"&&screen!=="plan";
  screen=s;
+ if(enteringPlan)planInitialScrollKey=null;
  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
  if(s==="overview")navOverview.classList.add("active");
  if(s==="plan")navPlan.classList.add("active");
@@ -1839,7 +1919,7 @@ function go(s){
  render();
 }
 function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===id);if(p)db.activePlan=p.id;localStorage.setItem(KEY,JSON.stringify(db));screen="plan";go("plan")}
-function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
+function selectPlan(id){db.activePlan=id;planInitialScrollKey=null;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
 function render(){
  main.classList.toggle("plan-screen",screen==="plan");
@@ -1849,7 +1929,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.12.1</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.12.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1971,8 +2051,8 @@ function renderPlan(){
            ${blocks.map(b=>`<option value="${b.id}" ${b.id===p.id?"selected":""}>${esc(b.name)}</option>`).join("")}
          </select>
          <div class="segment">
-           <button class="${planView==="list"?"active":""}" onclick="planView='list';render()">Liste</button>
-           <button class="${planView==="week"?"active":""}" onclick="planView='week';render()">Woche</button>
+           <button class="${planView==="list"?"active":""}" onclick="planView='list';planInitialScrollKey=null;render()">Liste</button>
+           <button class="${planView==="week"?"active":""}" onclick="planView='week';planInitialScrollKey=null;render()">Woche</button>
          </div>
        </div>
      </div>
@@ -2095,8 +2175,12 @@ function renderAnalytics(){
  <section class="analytics-card glass"><h3>Fortschritt nach Block</h3>${plans.map(p=>{const b=blockStats(p.id);return `<div class="block-analysis-row"><div class="block-analysis-title"><strong>${esc(p.name)}</strong><span>${b.done}/${b.total} erledigt · ${b.moved} verschoben · ${b.open} offen</span></div><div class="a-bar-track"><span style="width:${b.percent}%"></span></div><strong>${b.percent}%</strong></div>`}).join("")}</section>
  <section class="analytics-card glass"><h3>Verschiebungen im Detail</h3><p class="a-muted">${moved.length} verschoben · ${movedDone} erledigt · ${movedOpen} offen.</p>${moveRows||'<div class="empty-small">Keine Verschiebungen.</div>'}</section>`;
 }
+let planInitialScrollKey=null;
 function scrollPlanToToday(){
  const root=document.getElementById("planContent");if(!root)return;
+ const key=`${db.activePlan||""}:${planView}`;
+ if(planInitialScrollKey===key)return;
+ planInitialScrollKey=key;
  const today=new Date().toISOString().slice(0,10);
  let target=root.querySelector(`[data-date="${today}"]`)||root.querySelector('[data-future-anchor="1"]');
  if(!target){target=[...root.querySelectorAll("[data-session-id]")].find(el=>{const s=db.sessions.find(x=>String(x.id)===String(el.dataset.sessionId));return s&&s.date>=today})}
@@ -4041,6 +4125,21 @@ window.addEventListener("focus",()=>{
     persist();
   }
 });
+
+let adaptiveNavTimer=null;
+function setFloatingNavCompact(compact){
+  document.querySelector(".nav")?.classList.toggle("scrolling",!!compact);
+}
+document.addEventListener("scroll",()=>{
+  setFloatingNavCompact(true);
+  clearTimeout(adaptiveNavTimer);
+  adaptiveNavTimer=setTimeout(()=>setFloatingNavCompact(false),180);
+},true);
+document.addEventListener("touchmove",()=>{
+  setFloatingNavCompact(true);
+  clearTimeout(adaptiveNavTimer);
+  adaptiveNavTimer=setTimeout(()=>setFloatingNavCompact(false),180);
+},{passive:true});
 </script>
 
 <dialog id="passwordDialog">
