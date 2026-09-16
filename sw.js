@@ -1,4 +1,4 @@
-const CACHE="training-v6-18-2-context-scroll-analytics-return";
+const CACHE="training-v6-18-3-filterboot-skisplit";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
