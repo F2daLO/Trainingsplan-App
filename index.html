@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.18.3.1</title>
+<title>Training v6.18.3.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2900,7 +2900,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.3.1</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.3.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -3232,11 +3232,14 @@ function renderAnalytics(){
  <section class="analytics-card glass"><h3>Verschiebungen im Detail</h3><p class="a-muted">${moved.length} verschoben · ${movedDone} erledigt · ${movedOpen} offen.</p>${moveRows||'<div class="empty-small">Keine Verschiebungen.</div>'}</section>`;
 }
 let planInitialScrollKey=null;
+let forcePlanTodayOnEntry=false;
 function localTodayISO(){
  const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
  return `${y}-${m}-${day}`;
 }
 function scrollPlanToToday(){
+ const forced=forcePlanTodayOnEntry;
+ if(forced){planInitialScrollKey=null;forcePlanTodayOnEntry=false;}
  const root=document.getElementById("planContent");if(!root)return;
  const key=`${db.activePlan||""}:${planView}:${planFilter.week}:${planFilter.equipment}:${planFilter.status}:${planFilter.weekday||"all"}`;
  if(planInitialScrollKey===key)return;
@@ -5216,6 +5219,7 @@ document.addEventListener("pointerdown",e=>{
  const b=e.target.closest("#navPlan");
  if(!b)return;
  planInitialScrollKey=null;
+ forcePlanTodayOnEntry=true;
 },{capture:true});
 
 /* V6.18.2: status changes inside Plan must not jump to block start. */
