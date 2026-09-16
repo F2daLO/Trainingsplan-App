@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.10.2</title>
+<title>Training v6.11</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1439,6 +1439,139 @@ body.modal-open{
   .block-stat.cancel strong{color:#ff453a}
 }
 
+
+/* ===== V6.11 iOS 27 ultra-clear Liquid Glass + fixed plan + analytics ===== */
+:root{
+  --bg:#f4f5f7;
+  --glass:rgba(255,255,255,.16);
+  --glass2:rgba(255,255,255,.24);
+  --border:rgba(255,255,255,.62);
+  --shadow:0 14px 38px rgba(28,30,36,.075);
+}
+body{
+  background:
+    radial-gradient(circle at 12% 8%,rgba(255,255,255,.96),transparent 31%),
+    radial-gradient(circle at 88% 12%,rgba(220,224,231,.30),transparent 31%),
+    radial-gradient(circle at 52% 78%,rgba(235,237,241,.48),transparent 38%),
+    linear-gradient(180deg,#fafafa 0%,#f0f1f3 54%,#e9ebee 100%);
+}
+.glass{
+  background:linear-gradient(145deg,rgba(255,255,255,.24),rgba(255,255,255,.10));
+  border:1px solid rgba(255,255,255,.64);
+  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.78),inset 0 -1px 0 rgba(255,255,255,.16);
+  backdrop-filter:blur(26px) saturate(155%) brightness(1.045);
+  -webkit-backdrop-filter:blur(26px) saturate(155%) brightness(1.045);
+}
+.nav{
+  background:rgba(255,255,255,.13)!important;
+  border-color:rgba(255,255,255,.58)!important;
+  backdrop-filter:blur(34px) saturate(180%) brightness(1.07)!important;
+  -webkit-backdrop-filter:blur(34px) saturate(180%) brightness(1.07)!important;
+  box-shadow:0 12px 34px rgba(30,32,38,.10),inset 0 1px rgba(255,255,255,.82)!important;
+}
+.nav button.active,.segment button.active{
+  background:rgba(255,255,255,.42)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.82),0 4px 14px rgba(20,22,26,.07)!important;
+}
+select,input,textarea{
+  background:rgba(255,255,255,.24);
+  border-color:rgba(255,255,255,.62);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.pill{background:rgba(255,255,255,.18)}
+.pill.primary{background:rgba(46,48,52,.74)}
+.plan-screen{
+  height:calc(100dvh - 92px - env(safe-area-inset-bottom));
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  padding-bottom:0;
+}
+.plan-fixed{
+  flex:0 0 auto;
+  position:relative;
+  z-index:8;
+  padding-bottom:2px;
+}
+.plan-scroll{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:26px;
+  scrollbar-gutter:stable;
+  mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 100%);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 10px,#000 100%);
+}
+.analytics-hero{
+  border-radius:28px;padding:22px;display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:14px;
+}
+.analytics-hero h2{margin:3px 0 5px;font-size:22px}.analytics-hero p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.a-eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:750}
+.a-big{text-align:center;min-width:88px}.a-big strong{display:block;font-size:31px;letter-spacing:-1px}.a-big span{font-size:11px;color:var(--muted)}
+.metric-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}
+.metric{border-radius:20px;padding:14px;text-align:center}.metric span{display:block;font-size:10px;color:var(--muted)}.metric strong{display:block;font-size:24px;margin:3px 0}.metric small{font-size:10px;color:var(--muted)}
+.metric.done strong{color:var(--green)}.metric.move strong{color:var(--yellow)}.metric.cancel strong{color:var(--red)}.metric.topup strong{color:var(--gold)}
+.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.analytics-card{border-radius:24px;padding:18px;margin-bottom:12px}.analytics-card h3{margin:0 0 4px;font-size:16px}.a-muted{color:var(--muted);font-size:11px;line-height:1.4}
+.a-bar-row{margin:12px 0}.a-bar-label{display:flex;justify-content:space-between;gap:12px;font-size:11px;margin-bottom:5px}.a-bar-label strong{font-size:11px}
+.a-bar-track{height:8px;border-radius:999px;background:rgba(118,118,128,.10);overflow:hidden}.a-bar-track>span{display:block;height:100%;border-radius:inherit;background:rgba(72,74,80,.48)}
+.block-analysis-row{display:grid;grid-template-columns:minmax(180px,1fr) minmax(120px,2fr) 42px;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(127,127,127,.08)}
+.block-analysis-row:last-child{border-bottom:0}.block-analysis-title span{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.move-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(127,127,127,.08)}.move-row:last-child{border-bottom:0}
+.a-status{font-size:10px;padding:5px 8px;border-radius:999px;background:rgba(118,118,128,.10)}.a-status.done{color:var(--green)}.a-status.cancel{color:var(--red)}.a-status.move{color:#987000}
+.empty-small{padding:20px 0;color:var(--muted);font-size:12px}
+html.modal-open,body.modal-open{overflow:hidden!important;height:100%!important;overscroll-behavior:none!important}
+.gpt-explain-modal{overscroll-behavior:contain;touch-action:none;background:rgba(238,240,244,.20)}
+.gpt-explain-sheet{
+  height:min(88dvh,820px);
+  max-height:calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  background:rgba(250,250,252,.70)!important;
+  border:1px solid rgba(255,255,255,.78);
+  box-shadow:0 24px 70px rgba(25,28,34,.18),inset 0 1px rgba(255,255,255,.9);
+}
+.gpt-explain-body{
+  min-height:0!important;max-height:none!important;
+  overflow-y:scroll!important;overscroll-behavior:contain!important;
+  touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch!important;
+  padding:18px 18px 34px!important;
+  white-space:pre-wrap!important;
+  word-break:normal;overflow-wrap:anywhere;
+}
+.gpt-explain-head,.gpt-explain-foot{
+  background:rgba(255,255,255,.34)!important;
+  backdrop-filter:blur(30px) saturate(170%)!important;
+  -webkit-backdrop-filter:blur(30px) saturate(170%)!important;
+}
+.gpt-explain-foot{justify-content:flex-end}
+@media(max-width:820px){
+  .metric-grid{grid-template-columns:repeat(3,1fr)}
+  .analytics-grid{grid-template-columns:1fr}
+}
+@media(max-width:767px){
+  main{padding-top:14px}
+  .plan-screen{height:calc(100dvh - 88px - env(safe-area-inset-bottom));padding-top:10px}
+  .plan-fixed .page-head{margin-bottom:8px}
+  .plan-fixed .plan-head{padding:12px;margin-bottom:7px}
+  .plan-fixed .actions-top{margin:7px 0}
+  .gpt-explain-sheet{height:calc(100dvh - max(6px,env(safe-area-inset-top)));max-height:none;background:rgba(250,250,252,.78)!important}
+}
+@media(max-width:430px){
+  .nav button{font-size:9px!important;padding-left:5px!important;padding-right:5px!important}
+  .nav button span{font-size:18px!important}
+  .analytics-hero{padding:17px}.analytics-hero h2{font-size:18px}
+  .metric-grid{grid-template-columns:repeat(3,1fr)}
+  .metric{padding:11px 6px}.metric strong{font-size:20px}
+  .block-analysis-row{grid-template-columns:1fr 42px}.block-analysis-row .a-bar-track{grid-column:1/-1}
+}
+@media(prefers-color-scheme:dark){
+  body{background:linear-gradient(180deg,#151619,#0e0f11)}
+  .gpt-explain-sheet{background:rgba(28,29,32,.76)!important}
+}
+
 </style>
 </head>
 <body>
@@ -1447,6 +1580,7 @@ body.modal-open{
 <nav class="nav">
 <button id="navOverview" class="active" onclick="go('overview')"><span>⌂</span>Übersicht</button>
 <button id="navPlan" onclick="go('plan')"><span>▤</span>Plan</button>
+<button id="navAnalytics" onclick="go('analytics')"><span>◫</span>Auswertung</button>
 <button onclick="openSession()"><span>＋</span>Training</button>
 <button id="navSettings" onclick="go('settings')"><span>⚙︎</span>Einstellungen</button>
 </nav>
@@ -1507,12 +1641,27 @@ function activePlan(){return db.plans.find(p=>p.id===db.activePlan)||db.plans.fi
 function unitEmoji(s){const t=((s.type||"")+" "+(s.title||"")).toLowerCase();if(/betterme|kraft|core|calis/.test(t))return"💪";if(/urlaub|ferien|vacation/.test(t))return"🏖️";if(/ruhe|ruhetag|regeneration|erholung/.test(t))return"😴";if(/mobil/.test(t))return"🧘";if(/indoor/.test(t)&&/rad|bike/.test(t))return"🚲";if(/outdoor/.test(t)&&/rad|bike/.test(t))return"🚴";if(/rad|bike|rennrad/.test(t))return"🚴";if(/lauf|run/.test(t))return"🏃";if(/schwimm|swim/.test(t))return"🏊";if(/ski/.test(t))return"⛷️";return"🏋️"}
 
 function persist(){localStorage.setItem(KEY,JSON.stringify(db));render();queueSync();maybeAutoBackup()}
-function go(s){screen=s;document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));if(s==="overview")navOverview.classList.add("active");if(s==="plan")navPlan.classList.add("active");if(s==="settings")navSettings.classList.add("active");render()}
+function go(s){
+ screen=s;
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+ if(s==="overview")navOverview.classList.add("active");
+ if(s==="plan")navPlan.classList.add("active");
+ if(s==="analytics")navAnalytics.classList.add("active");
+ if(s==="settings")navSettings.classList.add("active");
+ render();
+}
 function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===id);if(p)db.activePlan=p.id;localStorage.setItem(KEY,JSON.stringify(db));screen="plan";go("plan")}
 function selectPlan(id){db.activePlan=id;localStorage.setItem(KEY,JSON.stringify(db));render()}
 
-function render(){if(screen==="overview")renderOverview();else if(screen==="plan")renderPlan();else renderSettings();updateCloud()}
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.10.2</div></div></div>`}
+function render(){
+ main.classList.toggle("plan-screen",screen==="plan");
+ if(screen==="overview")renderOverview();
+ else if(screen==="plan")renderPlan();
+ else if(screen==="analytics")renderAnalytics();
+ else renderSettings();
+ updateCloud();
+}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.11</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1623,30 +1772,30 @@ function renderPlan(){
    main.innerHTML=head("Plan")+'<div class="empty">Kein Plan ausgewählt.</div>';
    return;
  }
-
  const blocks=db.plans.filter(x=>x.eventId===e.id);
-
- const controls=`<section class="plan-head glass">
-   <div class="plan-main">
-     <div class="plan-event">${esc(e.name)}</div>
-     <div class="plan-controls">
-       <select onchange="selectPlan(this.value)">
-         ${blocks.map(b=>`<option value="${b.id}" ${b.id===p.id?"selected":""}>${esc(b.name)}</option>`).join("")}
-       </select>
-       <div class="segment">
-         <button class="${planView==="list"?"active":""}" onclick="planView='list';render()">Liste</button>
-         <button class="${planView==="week"?"active":""}" onclick="planView='week';render()">Woche</button>
+ const fixed=`<div class="plan-fixed">
+   ${head("Plan")}
+   <section class="plan-head glass">
+     <div class="plan-main">
+       <div class="plan-event">${esc(e.name)}</div>
+       <div class="plan-controls">
+         <select onchange="selectPlan(this.value)">
+           ${blocks.map(b=>`<option value="${b.id}" ${b.id===p.id?"selected":""}>${esc(b.name)}</option>`).join("")}
+         </select>
+         <div class="segment">
+           <button class="${planView==="list"?"active":""}" onclick="planView='list';render()">Liste</button>
+           <button class="${planView==="week"?"active":""}" onclick="planView='week';render()">Woche</button>
+         </div>
        </div>
      </div>
+     ${blockStatsHTML(p.id)}
+   </section>
+   <div class="actions-top">
+     <button class="pill primary" onclick="openSession()">＋ Training</button>
+     <button class="pill gold" onclick="openSession(null,true)">⭐ On Top</button>
    </div>
-   ${blockStatsHTML(p.id)}
- </section>
- <div class="actions-top">
-   <button class="pill primary" onclick="openSession()">＋ Training</button>
-   <button class="pill gold" onclick="openSession(null,true)">⭐ On Top</button>
  </div>`;
-
- main.innerHTML=head("Plan")+controls+`<div id="planContent"></div>`;
+ main.innerHTML=fixed+`<div id="planContent" class="plan-scroll"></div>`;
  if(planView==="list")renderList();else renderWeek();
 }
 
@@ -1697,6 +1846,98 @@ function renderWeek(){
  root.innerHTML=Object.keys(by).sort().map(k=>{const m=new Date(k+"T12:00:00");let days="";for(let i=0;i<7;i++){const d=new Date(m);d.setDate(m.getDate()+i);const ds=d.toISOString().slice(0,10);const items=by[k].filter(x=>x.date===ds);days+=`<div class="day glass ${ds===new Date().toISOString().slice(0,10)?"today":""}"><div class="daynum">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit"})}</div>${items.map(x=>`<div class="dayitem ${x.status||"open"} ${x.topup?"topup":""}" data-session-id="${x.id}"><span class="week-emoji">${x.topup?"⭐":""}${unitEmoji(x)}</span><span class="week-text"> ${esc(x.title)}</span></div>`).join("")}</div>`}return `<div class="week-title">${esc(activePlan().name)} · Woche ab ${m.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</div><div class="calendar">${days}</div>`}).join("")
 }
 
+
+function analyticsScope(){
+  const event=activeEvent();
+  const planIds=event ? new Set(db.plans.filter(p=>p.eventId===event.id).map(p=>p.id)) : new Set(db.plans.map(p=>p.id));
+  const sessions=(db.sessions||[]).filter(s=>planIds.has(s.planId) && isRealTrainingSession(s));
+  return {event,sessions,plans:db.plans.filter(p=>planIds.has(p.id))};
+}
+function pct(n,d){return d?Math.round(n/d*100):0}
+function weekdayName(date){
+  return new Date(date+"T12:00:00").toLocaleDateString("de-DE",{weekday:"long"});
+}
+function analyticsBar(label,value,max,sub=""){
+  const w=max?Math.max(3,Math.round(value/max*100)):0;
+  return `<div class="a-bar-row"><div class="a-bar-label"><span>${esc(label)}</span><strong>${value}${sub}</strong></div><div class="a-bar-track"><span style="width:${w}%"></span></div></div>`;
+}
+function renderAnalytics(){
+  const {event,sessions,plans}=analyticsScope();
+  const total=sessions.length;
+  const done=sessions.filter(s=>s.status==="done").length;
+  const cancelled=sessions.filter(s=>s.status==="cancel").length;
+  const moved=sessions.filter(isSessionMoved);
+  const open=sessions.filter(s=>s.status!=="done"&&s.status!=="cancel").length;
+  const topup=sessions.filter(s=>s.topup).length;
+
+  const wd=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+  const wdCounts=Object.fromEntries(wd.map(x=>[x,0]));
+  sessions.filter(s=>s.status==="done").forEach(s=>{const n=weekdayName(s.date);wdCounts[n]=(wdCounts[n]||0)+1});
+  const wdMax=Math.max(1,...Object.values(wdCounts));
+
+  const typeCounts={};
+  sessions.forEach(s=>{const k=equipmentDisplay(s)||s.type||"Sonstiges";typeCounts[k]=(typeCounts[k]||0)+1});
+  const typeRows=Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]);
+  const typeMax=Math.max(1,...typeRows.map(x=>x[1]));
+
+  const blockRows=plans.map(p=>{
+    const st=blockStats(p.id);
+    return {name:p.name,...st};
+  });
+
+  const moveRows=moved.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(s=>{
+    const from=s.originalDate||ORIGINAL_SESSION_DATES[String(s.id)]||"";
+    const to=s.date||"";
+    return `<div class="move-row">
+      <div><strong>${unitEmoji(s)} ${esc(s.title)}</strong><div class="a-muted">${from?`${new Date(from+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} → `:""}${new Date(to+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})}</div></div>
+      <span class="a-status ${sessionVisualStatus(s)}">${s.status==="done"?"erledigt":s.status==="cancel"?"ausgefallen":"offen"}</span>
+    </div>`;
+  }).join("");
+
+  main.innerHTML=head("Auswertung")+`
+    <section class="analytics-hero glass">
+      <div><div class="a-eyebrow">Gesamtauswertung</div><h2>${esc(event?.name||"Alle Trainings")}</h2><p>Alle tatsächlichen Trainingseinheiten über die zugehörigen Blöcke. Ruhetage, Regeneration und Urlaub sind ausgeschlossen.</p></div>
+      <div class="a-big"><strong>${pct(done,total)}%</strong><span>erledigt</span></div>
+    </section>
+
+    <div class="metric-grid">
+      <div class="metric glass"><span>Gesamt</span><strong>${total}</strong></div>
+      <div class="metric glass done"><span>Erledigt</span><strong>${done}</strong><small>${pct(done,total)}%</small></div>
+      <div class="metric glass move"><span>Verschoben</span><strong>${moved.length}</strong><small>${pct(moved.length,total)}%</small></div>
+      <div class="metric glass cancel"><span>Ausgefallen</span><strong>${cancelled}</strong><small>${pct(cancelled,total)}%</small></div>
+      <div class="metric glass"><span>Offen</span><strong>${open}</strong><small>${pct(open,total)}%</small></div>
+      <div class="metric glass topup"><span>On Top</span><strong>${topup}</strong><small>${pct(topup,total)}%</small></div>
+    </div>
+
+    <div class="analytics-grid">
+      <section class="analytics-card glass">
+        <h3>Training nach Wochentag</h3>
+        <p class="a-muted">Erledigte Trainings nach tatsächlichem Trainingstag.</p>
+        ${wd.map(d=>analyticsBar(d,wdCounts[d]||0,wdMax)).join("")}
+      </section>
+      <section class="analytics-card glass">
+        <h3>Trainingsarten & Equipment</h3>
+        <p class="a-muted">Verteilung aller tatsächlichen Einheiten.</p>
+        ${typeRows.length?typeRows.map(([k,v])=>analyticsBar(k,v,typeMax)).join(""):'<div class="empty-small">Noch keine Daten.</div>'}
+      </section>
+    </div>
+
+    <section class="analytics-card glass">
+      <h3>Fortschritt nach Block</h3>
+      <div class="block-analysis">${blockRows.map(b=>`
+        <div class="block-analysis-row">
+          <div class="block-analysis-title"><strong>${esc(b.name)}</strong><span>${b.done}/${b.total} erledigt · ${b.moved} verschoben · ${b.open} offen</span></div>
+          <div class="a-bar-track"><span style="width:${b.percent}%"></span></div>
+          <strong>${b.percent}%</strong>
+        </div>`).join("")}</div>
+    </section>
+
+    <section class="analytics-card glass">
+      <h3>Verschiebungen im Detail</h3>
+      <p class="a-muted">${moved.length} verschobene Einheit${moved.length===1?"":"en"} – jeweils vom ursprünglichen auf den tatsächlichen Termin.</p>
+      <div class="move-list">${moveRows||'<div class="empty-small">Bisher keine Verschiebungen.</div>'}</div>
+    </section>`;
+}
 function openSession(id=null,topup=false){
  editId=id;const s=id?db.sessions.find(x=>x.id===id):null;
  sessionHeading.textContent=s?"Training bearbeiten":(topup?"On-Top-Training":"Training hinzufügen");
@@ -1722,6 +1963,8 @@ function saveSession(e){
    date,
    scheduledAt,
    originalDate,
+   gptExplanation:previous?.gptExplanation||null,
+   gptExplanationKey:previous?.gptExplanationKey||null,
    type:sType.value,
    title:sTitle.value,
    desc:sDesc.value,
@@ -1732,6 +1975,11 @@ function saveSession(e){
    reminderTime:"18:00",
    updatedAt:new Date().toISOString()
  };
+ const newGptKey=gptExplanationKeyFor(obj);
+ if(obj.gptExplanationKey && obj.gptExplanationKey!==newGptKey){
+   obj.gptExplanation=null;
+   obj.gptExplanationKey=null;
+ }
  const i=db.sessions.findIndex(x=>x.id===obj.id);
  if(i>=0)db.sessions[i]=obj;else db.sessions.push(obj);
 
@@ -1874,7 +2122,9 @@ function packDesc(s){
   return "__MT__"+JSON.stringify({
     desc:s.desc||"",
     scheduledAt:s.scheduledAt||s.date+"T19:00",
-    originalDate:s.originalDate||null
+    originalDate:s.originalDate||null,
+    gptExplanation:s.gptExplanation||null,
+    gptExplanationKey:s.gptExplanationKey||null
   });
 }
 function unpackDesc(v){if(String(v||"").startsWith("__MT__")){try{return JSON.parse(String(v).slice(6))}catch{}}return{desc:v||"",scheduledAt:null}}
@@ -1893,7 +2143,7 @@ function sessionLocal(r){
    desc=canonical;
    updatedAt=new Date().toISOString();
  }
- return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",originalDate:d.originalDate||null,type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,reminder:"auto",reminderTime:"18:00",updatedAt};
+ return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",originalDate:d.originalDate||null,gptExplanation:d.gptExplanation||null,gptExplanationKey:d.gptExplanationKey||null,type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,reminder:"auto",reminderTime:"18:00",updatedAt};
 }
 
 function makeClient(){
@@ -3476,10 +3726,20 @@ let movingSessionId=null;
 
 
 /* ===== V6.9 embedded GPT explanation ===== */
+let currentGPTSessionId=null;
 function closeGPTExplanation(){
   const modal=document.getElementById("gptExplainModal");
   modal?.classList.remove("show");
   modal?.setAttribute("aria-hidden","true");
+  document.documentElement.classList.remove("modal-open");
+  document.body.classList.remove("modal-open");
+  currentGPTSessionId=null;
+}
+function gptExplanationKeyFor(s){
+  return JSON.stringify({
+    title:s.title||"",type:s.type||"",equipment:equipmentDisplay(s)||"",
+    desc:s.desc||"",note:s.note||""
+  });
 }
 
 function trainingPayloadForGPT(s){
@@ -3497,35 +3757,41 @@ function trainingPayloadForGPT(s){
   };
 }
 
-async function explainTrainingWithGPT(id){
+async function explainTrainingWithGPT(id,force=false){
   closeQuickMenu?.();
-
   const s=db.sessions.find(x=>String(x.id)===String(id));
   if(!s)return;
 
+  currentGPTSessionId=String(id);
   const modal=document.getElementById("gptExplainModal");
   const title=document.getElementById("gptExplainTitle");
   const body=document.getElementById("gptExplainBody");
+  const regen=document.getElementById("gptRegenerateBtn");
+  const key=gptExplanationKeyFor(s);
 
   title.textContent=`${unitEmoji(s)} ${s.title}`;
-  body.innerHTML='<div class="gpt-loading">GPT analysiert die Einheit …</div>';
   modal.classList.add("show");
   modal.setAttribute("aria-hidden","false");
+  document.documentElement.classList.add("modal-open");
+  document.body.classList.add("modal-open");
+
+  if(!force && s.gptExplanation && s.gptExplanationKey===key){
+    body.textContent=s.gptExplanation;
+    body.scrollTop=0;
+    regen.style.display="";
+    return;
+  }
+
+  body.innerHTML='<div class="gpt-loading">GPT analysiert die Einheit vollständig …</div>';
+  regen.style.display="none";
 
   try{
-    if(!cloudUser){
-      throw new Error("Bitte zuerst bei der Cloud anmelden.");
-    }
-
+    if(!cloudUser)throw new Error("Bitte zuerst bei der Cloud anmelden.");
     const {data:{session},error:sessionError}=await sb.auth.getSession();
-    if(sessionError||!session?.access_token){
-      throw new Error("Keine gültige Anmeldung vorhanden.");
-    }
+    if(sessionError||!session?.access_token)throw new Error("Keine gültige Anmeldung vorhanden.");
 
     const res=await fetch(`${SUPABASE_URL}/functions/v1/explain-training`,{
-      method:"POST",
-      mode:"cors",
-      cache:"no-store",
+      method:"POST",mode:"cors",cache:"no-store",
       headers:{
         "Content-Type":"application/json",
         "Authorization":`Bearer ${session.access_token}`,
@@ -3533,20 +3799,27 @@ async function explainTrainingWithGPT(id){
       },
       body:JSON.stringify({training:trainingPayloadForGPT(s)})
     });
-
     const text=await res.text();
-    let data={};
-    try{data=text?JSON.parse(text):{}}catch{data={raw:text}}
+    let data={};try{data=text?JSON.parse(text):{}}catch{data={raw:text}}
+    if(!res.ok)throw new Error(data.error||data.raw||`HTTP ${res.status}`);
 
-    if(!res.ok){
-      throw new Error(data.error||data.raw||`HTTP ${res.status}`);
-    }
-
-    body.textContent=data.explanation||"Keine Erklärung erhalten.";
+    const explanation=data.explanation||"Keine Erklärung erhalten.";
+    s.gptExplanation=explanation;
+    s.gptExplanationKey=key;
+    s.updatedAt=new Date().toISOString();
+    localStorage.setItem(KEY,JSON.stringify(db));
+    queueSync();
+    body.textContent=explanation;
+    body.scrollTop=0;
+    regen.style.display="";
   }catch(err){
     console.error("GPT explanation",err);
     body.innerHTML=`<div class="gpt-error"><strong>GPT-Erklärung nicht verfügbar.</strong><br>${escapeHtml(err?.message||String(err))}</div>`;
+    regen.style.display="";
   }
+}
+function regenerateGPTExplanation(){
+  if(currentGPTSessionId)explainTrainingWithGPT(currentGPTSessionId,true);
 }
 
 /* ===== V6.9.2 moved-date repair + canonical action menu ===== */
@@ -3780,7 +4053,8 @@ window.addEventListener("focus",()=>{
     </div>
     <div id="gptExplainBody" class="gpt-explain-body"></div>
     <div class="gpt-explain-foot">
-      <button type="button" class="pill" onclick="closeGPTExplanation()">Schließen</button>
+      <button id="gptRegenerateBtn" type="button" class="pill" onclick="regenerateGPTExplanation()">Neu erstellen</button>
+      <button type="button" class="pill primary" onclick="closeGPTExplanation()">Schließen</button>
     </div>
   </div>
 </div>

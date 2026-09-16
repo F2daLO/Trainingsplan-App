@@ -1,4 +1,4 @@
-const CACHE="training-v6-10-2-restday-logic";
+const CACHE="training-v6-11-analytics-gpt-ios27";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
