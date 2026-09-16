@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.11</title>
+<title>Training v6.12</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1572,6 +1572,20 @@ html.modal-open,body.modal-open{overflow:hidden!important;height:100%!important;
   .gpt-explain-sheet{background:rgba(28,29,32,.76)!important}
 }
 
+/* V6.12 */
+body{background:linear-gradient(135deg,rgba(255,255,255,.98),rgba(238,241,246,.82)),radial-gradient(circle at 20% 20%,rgba(210,225,255,.5),transparent 32%)!important;background-attachment:fixed!important}
+.glass{background:rgba(255,255,255,.07)!important;border:1px solid rgba(255,255,255,.84)!important;box-shadow:0 10px 28px rgba(40,44,52,.05),inset 0 1px rgba(255,255,255,.94)!important;backdrop-filter:blur(18px) saturate(195%) brightness(1.08)!important;-webkit-backdrop-filter:blur(18px) saturate(195%) brightness(1.08)!important}
+.nav{width:auto!important;max-width:calc(100vw - 20px)!important;padding:5px 7px!important;bottom:calc(7px + env(safe-area-inset-bottom))!important;border-radius:22px!important;background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.78)!important;box-shadow:0 9px 30px rgba(30,32,38,.12),inset 0 1px rgba(255,255,255,.94)!important}
+.shell{padding-bottom:72px!important}.plan-screen{height:calc(100dvh - 66px - env(safe-area-inset-bottom))!important}
+.plan-fixed .page-head{margin:0 0 5px!important}.plan-fixed .page-title{font-size:22px!important}.plan-fixed .cloud{font-size:9px!important}.plan-fixed .app-version{font-size:8px!important}
+.plan-fixed .plan-head{padding:9px 11px!important;margin-bottom:4px!important;border-radius:17px!important;gap:6px 9px!important}.plan-fixed .plan-event{font-size:15px!important;margin-bottom:3px!important}
+.plan-fixed .plan-controls{margin-top:2px!important;gap:5px!important}.plan-fixed select{padding:6px 8px!important;font-size:13px!important}.plan-fixed .segment button{padding:5px 8px!important;font-size:12px!important}
+.plan-fixed .block-stats{gap:3px!important}.plan-fixed .block-progress{height:4px!important}.plan-fixed .block-stat{padding:3px!important}.plan-fixed .block-stat strong{font-size:11px!important}.plan-fixed .block-stat span{font-size:8px!important}
+.plan-fixed .actions-top{margin:3px 0 5px!important;gap:5px!important}.plan-fixed .actions-top .pill{padding:6px 9px!important;font-size:12px!important}
+.metric-grid{grid-template-columns:repeat(4,1fr)}.metric.overdue strong{color:#ff7a00}.cross-row{display:grid;grid-template-columns:minmax(130px,220px) 1fr;gap:12px;padding:10px 0;border-bottom:1px solid rgba(127,127,127,.08)}
+.data-chip{display:inline-block;margin:2px 4px 2px 0;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.58);font-size:11px}
+@media(max-width:767px){main{padding-left:9px!important;padding-right:9px!important}.plan-screen{height:calc(100dvh - 64px - env(safe-area-inset-bottom))!important;padding-top:4px!important}.plan-fixed .page-head{display:none!important}.plan-fixed .plan-head{grid-template-columns:1fr!important}.plan-fixed .block-stats-top{display:none!important}.plan-fixed .block-stat-grid{grid-template-columns:repeat(4,1fr)!important}.nav button{padding:4px 5px!important}.metric-grid{grid-template-columns:repeat(2,1fr)}.cross-row{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -1661,7 +1675,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.11</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.12</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -1812,8 +1826,11 @@ function renderList(){
    .sort(([a],[b])=>a.localeCompare(b))
    .map(([w,items])=>{
      const [year,week]=w.split("-");
-     return `<div class="week-title">KW ${Number(week)} · ${year}</div>${items.map(card).join("")}`;
-   }).join("")
+     const today=new Date().toISOString().slice(0,10);
+     const anchor=items.some(x=>x.date>=today)?' data-future-anchor="1"':"";
+     return `<div class="week-title"${anchor}>KW ${Number(week)} · ${year}</div>${items.map(card).join("")}`;
+   }).join("");
+ requestAnimationFrame(scrollPlanToToday);
 }
 function card(s){
  const dt=new Date((s.scheduledAt||s.date+"T19:00")+":00");
@@ -1825,7 +1842,7 @@ function card(s){
      : ((builtInOriginal && builtInOriginal!==s.date) ? builtInOriginal : null);
  const original=originalDateValue ? new Date(originalDateValue+"T12:00:00") : null;
  const visualStatus=(isSessionMoved(s) && s.status!=="done" && s.status!=="cancel")?"move":s.status;
- return `<article class="session glass ${visualStatus} ${s.topup?"topup":""}" data-session-id="${s.id}">
+ return `<article class="session glass ${visualStatus} ${s.topup?"topup":""}" data-session-id="${s.id}" data-date="${s.date}">
    ${s.topup?'<div class="badge">⭐ ON TOP</div>':""}
    <div class="row">
      <div class="stitle">${unitEmoji(s)} ${esc(s.title)}</div>
@@ -1843,7 +1860,9 @@ function card(s){
 function renderWeek(){
  const arr=currentSessions(), root=document.getElementById("planContent");if(!arr.length){root.innerHTML='<div class="empty">Noch keine Einheiten in diesem Block.</div>';return}
  const by={};arr.forEach(s=>{const d=new Date(s.date+"T12:00:00"),n=(d.getDay()+6)%7,m=new Date(d);m.setDate(d.getDate()-n);const k=m.toISOString().slice(0,10);(by[k]??=[]).push(s)})
- root.innerHTML=Object.keys(by).sort().map(k=>{const m=new Date(k+"T12:00:00");let days="";for(let i=0;i<7;i++){const d=new Date(m);d.setDate(m.getDate()+i);const ds=d.toISOString().slice(0,10);const items=by[k].filter(x=>x.date===ds);days+=`<div class="day glass ${ds===new Date().toISOString().slice(0,10)?"today":""}"><div class="daynum">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit"})}</div>${items.map(x=>`<div class="dayitem ${x.status||"open"} ${x.topup?"topup":""}" data-session-id="${x.id}"><span class="week-emoji">${x.topup?"⭐":""}${unitEmoji(x)}</span><span class="week-text"> ${esc(x.title)}</span></div>`).join("")}</div>`}return `<div class="week-title">${esc(activePlan().name)} · Woche ab ${m.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</div><div class="calendar">${days}</div>`}).join("")
+ root.innerHTML=Object.keys(by).sort().map(k=>{const m=new Date(k+"T12:00:00");let days="";for(let i=0;i<7;i++){const d=new Date(m);d.setDate(m.getDate()+i);const ds=d.toISOString().slice(0,10);const items=by[k].filter(x=>x.date===ds);days+=`<div class="day glass ${ds===new Date().toISOString().slice(0,10)?"today":""}" data-date="${ds}"><div class="daynum">${d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit"})}</div>${items.map(x=>`<div class="dayitem ${x.status||"open"} ${x.topup?"topup":""}" data-session-id="${x.id}"><span class="week-emoji">${x.topup?"⭐":""}${unitEmoji(x)}</span><span class="week-text"> ${esc(x.title)}</span></div>`).join("")}</div>`}return `<div class="week-title">${esc(activePlan().name)} · Woche ab ${m.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</div><div class="calendar">${days}</div>`}).join("")
+
+ requestAnimationFrame(scrollPlanToToday);
 }
 
 
@@ -1862,81 +1881,52 @@ function analyticsBar(label,value,max,sub=""){
   return `<div class="a-bar-row"><div class="a-bar-label"><span>${esc(label)}</span><strong>${value}${sub}</strong></div><div class="a-bar-track"><span style="width:${w}%"></span></div></div>`;
 }
 function renderAnalytics(){
-  const {event,sessions,plans}=analyticsScope();
-  const total=sessions.length;
-  const done=sessions.filter(s=>s.status==="done").length;
-  const cancelled=sessions.filter(s=>s.status==="cancel").length;
-  const moved=sessions.filter(isSessionMoved);
-  const open=sessions.filter(s=>s.status!=="done"&&s.status!=="cancel").length;
-  const topup=sessions.filter(s=>s.topup).length;
-
-  const wd=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
-  const wdCounts=Object.fromEntries(wd.map(x=>[x,0]));
-  sessions.filter(s=>s.status==="done").forEach(s=>{const n=weekdayName(s.date);wdCounts[n]=(wdCounts[n]||0)+1});
-  const wdMax=Math.max(1,...Object.values(wdCounts));
-
-  const typeCounts={};
-  sessions.forEach(s=>{const k=equipmentDisplay(s)||s.type||"Sonstiges";typeCounts[k]=(typeCounts[k]||0)+1});
-  const typeRows=Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]);
-  const typeMax=Math.max(1,...typeRows.map(x=>x[1]));
-
-  const blockRows=plans.map(p=>{
-    const st=blockStats(p.id);
-    return {name:p.name,...st};
-  });
-
-  const moveRows=moved.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).map(s=>{
-    const from=s.originalDate||ORIGINAL_SESSION_DATES[String(s.id)]||"";
-    const to=s.date||"";
-    return `<div class="move-row">
-      <div><strong>${unitEmoji(s)} ${esc(s.title)}</strong><div class="a-muted">${from?`${new Date(from+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})} → `:""}${new Date(to+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})}</div></div>
-      <span class="a-status ${sessionVisualStatus(s)}">${s.status==="done"?"erledigt":s.status==="cancel"?"ausgefallen":"offen"}</span>
-    </div>`;
-  }).join("");
-
-  main.innerHTML=head("Auswertung")+`
-    <section class="analytics-hero glass">
-      <div><div class="a-eyebrow">Gesamtauswertung</div><h2>${esc(event?.name||"Alle Trainings")}</h2><p>Alle tatsächlichen Trainingseinheiten über die zugehörigen Blöcke. Ruhetage, Regeneration und Urlaub sind ausgeschlossen.</p></div>
-      <div class="a-big"><strong>${pct(done,total)}%</strong><span>erledigt</span></div>
-    </section>
-
-    <div class="metric-grid">
-      <div class="metric glass"><span>Gesamt</span><strong>${total}</strong></div>
-      <div class="metric glass done"><span>Erledigt</span><strong>${done}</strong><small>${pct(done,total)}%</small></div>
-      <div class="metric glass move"><span>Verschoben</span><strong>${moved.length}</strong><small>${pct(moved.length,total)}%</small></div>
-      <div class="metric glass cancel"><span>Ausgefallen</span><strong>${cancelled}</strong><small>${pct(cancelled,total)}%</small></div>
-      <div class="metric glass"><span>Offen</span><strong>${open}</strong><small>${pct(open,total)}%</small></div>
-      <div class="metric glass topup"><span>On Top</span><strong>${topup}</strong><small>${pct(topup,total)}%</small></div>
-    </div>
-
-    <div class="analytics-grid">
-      <section class="analytics-card glass">
-        <h3>Training nach Wochentag</h3>
-        <p class="a-muted">Erledigte Trainings nach tatsächlichem Trainingstag.</p>
-        ${wd.map(d=>analyticsBar(d,wdCounts[d]||0,wdMax)).join("")}
-      </section>
-      <section class="analytics-card glass">
-        <h3>Trainingsarten & Equipment</h3>
-        <p class="a-muted">Verteilung aller tatsächlichen Einheiten.</p>
-        ${typeRows.length?typeRows.map(([k,v])=>analyticsBar(k,v,typeMax)).join(""):'<div class="empty-small">Noch keine Daten.</div>'}
-      </section>
-    </div>
-
-    <section class="analytics-card glass">
-      <h3>Fortschritt nach Block</h3>
-      <div class="block-analysis">${blockRows.map(b=>`
-        <div class="block-analysis-row">
-          <div class="block-analysis-title"><strong>${esc(b.name)}</strong><span>${b.done}/${b.total} erledigt · ${b.moved} verschoben · ${b.open} offen</span></div>
-          <div class="a-bar-track"><span style="width:${b.percent}%"></span></div>
-          <strong>${b.percent}%</strong>
-        </div>`).join("")}</div>
-    </section>
-
-    <section class="analytics-card glass">
-      <h3>Verschiebungen im Detail</h3>
-      <p class="a-muted">${moved.length} verschobene Einheit${moved.length===1?"":"en"} – jeweils vom ursprünglichen auf den tatsächlichen Termin.</p>
-      <div class="move-list">${moveRows||'<div class="empty-small">Bisher keine Verschiebungen.</div>'}</div>
-    </section>`;
+ const {event,sessions,plans}=analyticsScope(),today=new Date().toISOString().slice(0,10),total=sessions.length;
+ const done=sessions.filter(s=>s.status==="done").length,cancelled=sessions.filter(s=>s.status==="cancel").length;
+ const moved=sessions.filter(isSessionMoved),movedDone=moved.filter(s=>s.status==="done").length,movedOpen=moved.filter(s=>s.status!=="done"&&s.status!=="cancel").length;
+ const overdue=sessions.filter(s=>s.date<today&&s.status!=="done"&&s.status!=="cancel").length;
+ const future=sessions.filter(s=>s.date>=today&&s.status!=="done"&&s.status!=="cancel").length,topup=sessions.filter(s=>s.topup).length;
+ const wd=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"],wdCounts=Object.fromEntries(wd.map(x=>[x,0]));
+ sessions.filter(s=>s.status==="done").forEach(s=>wdCounts[weekdayName(s.date)]++); const wdMax=Math.max(1,...Object.values(wdCounts));
+ const equipCounts={},typeEquipment={};
+ sessions.forEach(s=>{const type=s.type||"Sonstiges",eq=equipmentDisplay(s)||type;equipCounts[eq]=(equipCounts[eq]||0)+1;typeEquipment[type]??={};typeEquipment[type][eq]=(typeEquipment[type][eq]||0)+1});
+ const equipRows=Object.entries(equipCounts).sort((a,b)=>b[1]-a[1]),equipMax=Math.max(1,...equipRows.map(x=>x[1]));
+ const pairs={};moved.forEach(s=>{const f=s.originalDate||ORIGINAL_SESSION_DATES[String(s.id)];if(f){const k=`${weekdayName(f)} → ${weekdayName(s.date)}`;pairs[k]=(pairs[k]||0)+1}});
+ const pairRows=Object.entries(pairs).sort((a,b)=>b[1]-a[1]),pairMax=Math.max(1,...pairRows.map(x=>x[1]));
+ const originals=new Map((INITIAL_DB.sessions||[]).map(s=>[String(s.id),s])),changes=[],changeCounts={};
+ sessions.forEach(s=>{const o=originals.get(String(s.id));if(!o)return;const oldEq=equipmentDisplay(o)||o.type||"Sonstiges",newEq=equipmentDisplay(s)||s.type||"Sonstiges";
+   if((o.type||"")!==(s.type||"")||oldEq!==newEq){const k=`${oldEq} → ${newEq}`;changeCounts[k]=(changeCounts[k]||0)+1;changes.push({s,oldEq,newEq,from:s.originalDate||ORIGINAL_SESSION_DATES[String(s.id)]||o.date,to:s.date})}});
+ const moveRows=moved.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(s=>{const f=s.originalDate||ORIGINAL_SESSION_DATES[String(s.id)]||"",to=s.date;
+   return `<div class="move-row"><div><strong>${unitEmoji(s)} ${esc(s.title)}</strong><div class="a-muted">${f?new Date(f+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})+" → ":""}${new Date(to+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"})}</div></div><span class="a-status ${sessionVisualStatus(s)}">${s.status==="done"?"erledigt":s.status==="cancel"?"ausgefallen":"offen"}</span></div>`}).join("");
+ main.innerHTML=head("Auswertung")+`
+ <section class="analytics-hero glass"><div><div class="a-eyebrow">Gesamtauswertung</div><h2>${esc(event?.name||"Alle Trainings")}</h2><p>Nur tatsächliche Trainingseinheiten; Ruhetage, Regeneration und Urlaub sind ausgeschlossen.</p></div><div class="a-big"><strong>${pct(done,total)}%</strong><span>erledigt</span></div></section>
+ <div class="metric-grid">
+  <div class="metric glass"><span>Gesamt</span><strong>${total}</strong></div><div class="metric glass done"><span>Erledigt</span><strong>${done}</strong></div>
+  <div class="metric glass move"><span>Verschoben</span><strong>${moved.length}</strong><small>${movedDone} erledigt</small></div>
+  <div class="metric glass move"><span>Verschoben offen</span><strong>${movedOpen}</strong></div>
+  <div class="metric glass overdue"><span>Überfällig offen</span><strong>${overdue}</strong><small>Termin vor heute</small></div>
+  <div class="metric glass"><span>Zukünftig offen</span><strong>${future}</strong><small>heute oder später</small></div>
+  <div class="metric glass cancel"><span>Ausgefallen</span><strong>${cancelled}</strong></div><div class="metric glass topup"><span>On Top</span><strong>${topup}</strong></div>
+ </div>
+ <div class="analytics-grid">
+  <section class="analytics-card glass"><h3>Training nach Wochentag</h3><p class="a-muted">Erledigte Trainings nach tatsächlichem Trainingstag.</p>${wd.map(d=>analyticsBar(d,wdCounts[d],wdMax)).join("")}</section>
+  <section class="analytics-card glass"><h3>Equipment gesamt</h3><p class="a-muted">Tatsächliche Anzahl der Einheiten je Equipment.</p>${equipRows.map(([k,v])=>analyticsBar(k,v,equipMax)).join("")}</section>
+ </div>
+ <section class="analytics-card glass"><h3>Trainingsart × Equipment</h3><p class="a-muted">Welche Trainingsarten wie oft mit welchem Equipment geplant bzw. durchgeführt werden.</p>
+ ${Object.entries(typeEquipment).sort().map(([t,eqs])=>`<div class="cross-row"><strong>${esc(t)}</strong><div>${Object.entries(eqs).sort((a,b)=>b[1]-a[1]).map(([eq,n])=>`<span class="data-chip">${esc(eq)} <b>${n}</b></span>`).join("")}</div></div>`).join("")}</section>
+ <section class="analytics-card glass"><h3>Verschiebungen nach Wochentag</h3><p class="a-muted">Ursprünglicher → tatsächlicher Wochentag.</p>${pairRows.length?pairRows.map(([k,v])=>analyticsBar(k,v,pairMax)).join(""):'<div class="empty-small">Keine Verschiebungen.</div>'}</section>
+ <section class="analytics-card glass"><h3>Equipment-/Trainingsart geändert</h3><p class="a-muted">${changes.length} Abweichung${changes.length===1?"":"en"} vom ursprünglichen eingebauten Plan erkannt.</p>
+ ${Object.entries(changeCounts).map(([k,v])=>`<span class="data-chip">${esc(k)} <b>${v}×</b></span>`).join("")||'<div class="empty-small">Keine erkannten Änderungen.</div>'}
+ ${changes.map(x=>`<div class="move-row"><div><strong>${esc(x.oldEq)} → ${esc(x.newEq)}</strong><div class="a-muted">${esc(x.s.title)} · ${new Date(x.from+"T12:00:00").toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})} → ${new Date(x.to+"T12:00:00").toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})}</div></div></div>`).join("")}</section>
+ <section class="analytics-card glass"><h3>Fortschritt nach Block</h3>${plans.map(p=>{const b=blockStats(p.id);return `<div class="block-analysis-row"><div class="block-analysis-title"><strong>${esc(p.name)}</strong><span>${b.done}/${b.total} erledigt · ${b.moved} verschoben · ${b.open} offen</span></div><div class="a-bar-track"><span style="width:${b.percent}%"></span></div><strong>${b.percent}%</strong></div>`}).join("")}</section>
+ <section class="analytics-card glass"><h3>Verschiebungen im Detail</h3><p class="a-muted">${moved.length} verschoben · ${movedDone} erledigt · ${movedOpen} offen.</p>${moveRows||'<div class="empty-small">Keine Verschiebungen.</div>'}</section>`;
+}
+function scrollPlanToToday(){
+ const root=document.getElementById("planContent");if(!root)return;
+ const today=new Date().toISOString().slice(0,10);
+ let target=root.querySelector(`[data-date="${today}"]`)||root.querySelector('[data-future-anchor="1"]');
+ if(!target){target=[...root.querySelectorAll("[data-session-id]")].find(el=>{const s=db.sessions.find(x=>String(x.id)===String(el.dataset.sessionId));return s&&s.date>=today})}
+ if(target)root.scrollTop=Math.max(0,target.offsetTop-root.offsetTop-6);
 }
 function openSession(id=null,topup=false){
  editId=id;const s=id?db.sessions.find(x=>x.id===id):null;
