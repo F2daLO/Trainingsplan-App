@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.16</title>
+<title>Training v6.16.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2831,6 +2831,171 @@ select,input[type=date]{
  box-shadow:inset 0 1px rgba(255,255,255,.62)!important;
 }
 
+
+/* ===== V6.16.1 CLEAR PICKER / NO BLUE FOCUS =====
+   Korrektur zu V6.16: kein milchiger Picker, keine blaue Browser-Fokusmarkierung.
+*/
+
+/* Der Dialog selbst darf keinerlei eigene weiße Fläche erzeugen. */
+#glassPickerDialog,
+.glass-picker-dialog{
+ background:transparent!important;
+ background-color:transparent!important;
+ border:0!important;
+ box-shadow:none!important;
+ outline:0!important;
+}
+
+/* Sehr klare Scheibe: praktisch keine weiße Füllung und bewusst kein starker Blur,
+   weil Blur vor dem weißen App-Canvas wieder milchig wirken würde. */
+.glass-picker-shell{
+ background:rgba(255,255,255,.018)!important;
+ background-color:rgba(255,255,255,.018)!important;
+ border:1px solid rgba(190,196,205,.28)!important;
+ box-shadow:0 10px 30px rgba(24,29,37,.075),inset 0 1px 0 rgba(255,255,255,.58)!important;
+ backdrop-filter:blur(3px) saturate(115%)!important;
+ -webkit-backdrop-filter:blur(3px) saturate(115%)!important;
+}
+
+/* Kein milchiger/abgedunkelter Bildschirm hinter geöffneten Menüs. */
+.glass-picker-dialog::backdrop,
+#planFilterDialog::backdrop,
+#sessionDialog::backdrop{
+ background:transparent!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}
+
+/* Vorbelegte Auswahl: KEINE Fläche mehr. Nur Text + dezentes Häkchen. */
+.gp-option,
+.gp-option.selected,
+.gp-calendar button,
+.gp-calendar button.selected{
+ background:transparent!important;
+ background-color:transparent!important;
+ box-shadow:none!important;
+}
+.gp-option.selected{
+ font-weight:650!important;
+}
+.gp-check{
+ color:rgba(28,29,32,.72)!important;
+ font-size:13px!important;
+}
+
+/* Kalender: Auswahl nur über feinen Ring, nicht über Füllung. */
+.gp-calendar button.selected{
+ outline:1px solid rgba(70,74,80,.30)!important;
+ outline-offset:-2px!important;
+}
+
+/* Browser/iOS-Fokusringe vollständig entfernen – insbesondere der blaue Rand. */
+#glassPickerDialog *,
+#planFilterDialog *,
+#sessionDialog *,
+select,
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+button{
+ -webkit-tap-highlight-color:transparent!important;
+}
+#glassPickerDialog *:focus,
+#glassPickerDialog *:focus-visible,
+#planFilterDialog *:focus,
+#planFilterDialog *:focus-visible,
+#sessionDialog *:focus,
+#sessionDialog *:focus-visible,
+select:focus,select:focus-visible,
+input:focus,input:focus-visible,
+button:focus,button:focus-visible{
+ outline:none!important;
+ -webkit-focus-ring-color:transparent!important;
+}
+
+/* Filter und Training-Fenster selbst ebenfalls klarer als in V6.16. */
+#planFilterDialog .plan-filter-modal,
+#sessionDialog .modal{
+ background:rgba(255,255,255,.025)!important;
+ background-color:rgba(255,255,255,.025)!important;
+ border:1px solid rgba(190,196,205,.28)!important;
+ box-shadow:0 12px 34px rgba(24,29,37,.085),inset 0 1px 0 rgba(255,255,255,.60)!important;
+ backdrop-filter:blur(4px) saturate(120%)!important;
+ -webkit-backdrop-filter:blur(4px) saturate(120%)!important;
+}
+
+/* Optionen selbst ohne "Karten"-Look. */
+.gp-options{gap:0!important}
+.gp-option{
+ border:0!important;
+ border-bottom:1px solid rgba(120,125,132,.10)!important;
+ border-radius:0!important;
+ min-height:40px!important;
+}
+.gp-option:last-child{border-bottom:0!important}
+
+
+/* ===== V6.16.2 LISTE / WOCHE FINAL CLEAN FIX =====
+   Kein äußerer Container, keine weiße Fläche, keine eckige Markierung.
+*/
+.plan-fixed .segment,
+.segment:has(#viewList),
+.segment:has(#viewWeek){
+ display:flex!important;
+ width:max-content!important;
+ margin:4px auto!important;
+ padding:0!important;
+ gap:16px!important;
+ background:transparent!important;
+ background-color:transparent!important;
+ background-image:none!important;
+ border:0!important;
+ border-radius:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}
+.plan-fixed .segment button,
+.segment:has(#viewList) button,
+.segment:has(#viewWeek) button{
+ appearance:none!important;
+ -webkit-appearance:none!important;
+ background:transparent!important;
+ background-color:transparent!important;
+ background-image:none!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+ border-radius:14px!important;
+ padding:5px 8px!important;
+ min-height:28px!important;
+ color:rgba(55,57,61,.48)!important;
+ font-size:12px!important;
+ font-weight:600!important;
+}
+.plan-fixed .segment button.active,
+.segment:has(#viewList) button.active,
+.segment:has(#viewWeek) button.active{
+ background:rgba(255,255,255,.025)!important;
+ background-color:rgba(255,255,255,.025)!important;
+ border:1px solid rgba(120,125,132,.13)!important;
+ border-radius:14px!important;
+ outline:0!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.38)!important;
+ color:rgba(25,26,29,.90)!important;
+ padding:4px 7px!important;
+}
+.plan-fixed .segment button::before,
+.plan-fixed .segment button::after,
+.segment:has(#viewList) button::before,
+.segment:has(#viewList) button::after,
+.segment:has(#viewWeek) button::before,
+.segment:has(#viewWeek) button::after{
+ content:none!important;
+ display:none!important;
+}
+
 </style>
 </head>
 <body>
@@ -2924,7 +3089,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.16</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.16.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
