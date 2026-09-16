@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.12.2</title>
+<title>Training v6.13</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1838,7 +1838,7 @@ select,input,textarea,.segment,.pill{
  .meta,.a-muted,.cloud,.block-stat span,.event-sub{color:#76767d!important}
 }
 
-</style>
+/* V6.13 */ .plan-scroll{mask:none!important;-webkit-mask:none!important;mask-image:none!important;-webkit-mask-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}.plan-scroll:before,.plan-scroll:after,.plan-fixed:before,.plan-fixed:after{display:none!important;content:none!important}.plan-fixed,.plan-fixed .plan-head,.week-title{background:#fff!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;box-shadow:none!important}.nav,.nav.scrolling{background:rgba(255,255,255,.58)!important}.nav button,.nav button.active{background:transparent!important;box-shadow:none!important}.nav button.active{font-weight:700!important;color:#111!important}.filter-pill{display:flex!important;gap:4px!important;align-items:center!important}#filterCount:empty{display:none}#filterCount:not(:empty){display:inline-flex;width:17px;height:17px;border-radius:50%;align-items:center;justify-content:center;background:#111;color:#fff;font-size:9px}.plan-filter-modal{background:rgba(255,255,255,.94)!important}@media(max-width:767px){.plan-fixed .actions-top{flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none}.plan-fixed .actions-top::-webkit-scrollbar{display:none}.plan-fixed .actions-top .pill{white-space:nowrap!important;flex:0 0 auto!important}}</style>
 </head>
 <body>
 <div class="shell"><main id="main"></main></div>
@@ -1851,6 +1851,7 @@ select,input,textarea,.segment,.pill{
 <button id="navSettings" onclick="go('settings')"><span>⚙︎</span>Einstellungen</button>
 </nav>
 
+<dialog id="planFilterDialog"><form class="modal glass plan-filter-modal" onsubmit="applyPlanFilter(event)"><h2>Plan filtern</h2><div class="grid"><label>Kalenderwoche<select id="pfWeek"></select></label><label>Equipment / Trainingsart<select id="pfEquipment"></select></label><label class="full">Status<select id="pfStatus"><option value="all">Alle Status</option><option value="open">Nur offen</option><option value="overdue">Nur überfällig offen</option><option value="done">Nur erledigt</option><option value="moved">Nur verschoben</option><option value="cancel">Nur ausgefallen</option><option value="topup">Nur On Top</option></select></label></div><div class="modal-actions"><button type="button" class="pill" onclick="resetPlanFilter()">Zurücksetzen</button><button type="button" class="pill" onclick="planFilterDialog.close()">Abbrechen</button><button class="pill primary">Anwenden</button></div></form></dialog>
 <dialog id="sessionDialog"><form class="modal glass" onsubmit="saveSession(event)">
 <h2 id="sessionHeading" tabindex="-1">Training</h2><p class="helper">Datum und Uhrzeit werden für neue Einheiten automatisch auf jetzt gesetzt.</p>
 <div class="grid">
@@ -1896,7 +1897,7 @@ const ORIGINAL_SESSION_DATES=Object.fromEntries(
   (INITIAL_DB.sessions||[]).map(s=>[String(s.id),s.date])
 );
 let db=JSON.parse(localStorage.getItem(KEY)||"null")||structuredClone(INITIAL_DB);
-let screen="overview", planView="list", editId=null, sb=null, cloudUser=null, syncing=false, lastSync=localStorage.getItem("mt_last_sync")||"";
+let screen="overview", planView="list", planFilter={week:"all",equipment:"all",status:"all"}, editId=null, sb=null, cloudUser=null, syncing=false, lastSync=localStorage.getItem("mt_last_sync")||"";
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function nowLocal(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)}
@@ -1929,7 +1930,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.12.2</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.13</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -2061,13 +2062,38 @@ function renderPlan(){
    <div class="actions-top">
      <button class="pill primary" onclick="openSession()">＋ Training</button>
      <button class="pill gold" onclick="openSession(null,true)">⭐ On Top</button>
+     <button class="pill filter-pill" onclick="openPlanFilter()">⌁ Filter <span id="filterCount">${activePlanFilterCount()}</span></button>
    </div>
  </div>`;
  main.innerHTML=fixed+`<div id="planContent" class="plan-scroll"></div>`;
  if(planView==="list")renderList();else renderWeek();
 }
 
-function currentSessions(){return db.sessions.filter(s=>s.planId===db.activePlan).sort((a,b)=>a.date.localeCompare(b.date))}
+function activePlanFilterCount(){return ["week","equipment","status"].filter(k=>planFilter[k]!=="all").length||""}
+function sessionWeekKey(s){const d=new Date(s.date+"T12:00:00");return `${d.getFullYear()}-${String(isoWeek(d)).padStart(2,"0")}`}
+function sessionEquipmentKey(s){return equipmentDisplay(s)||s.type||"Sonstiges"}
+function matchesPlanFilter(s){
+ if(planFilter.week!=="all"&&sessionWeekKey(s)!==planFilter.week)return false;
+ if(planFilter.equipment!=="all"&&sessionEquipmentKey(s)!==planFilter.equipment)return false;
+ if(planFilter.status!=="all"){
+  const today=new Date().toISOString().slice(0,10);
+  if(planFilter.status==="moved"&&!isSessionMoved(s))return false;
+  if(planFilter.status==="overdue"&&!(s.date<today&&s.status!=="done"&&s.status!=="cancel"))return false;
+  if(planFilter.status==="open"&&!(s.status!=="done"&&s.status!=="cancel"))return false;
+  if(planFilter.status==="done"&&s.status!=="done")return false;
+  if(planFilter.status==="cancel"&&s.status!=="cancel")return false;
+  if(planFilter.status==="topup"&&!s.topup)return false;
+ } return true;
+}
+function currentSessions(){return db.sessions.filter(s=>s.planId===db.activePlan&&matchesPlanFilter(s)).sort((a,b)=>a.date.localeCompare(b.date))}
+function openPlanFilter(){
+ const all=db.sessions.filter(s=>s.planId===db.activePlan),weeks=[...new Set(all.map(sessionWeekKey))].sort(),eq=[...new Set(all.map(sessionEquipmentKey))].sort();
+ pfWeek.innerHTML='<option value="all">Alle Kalenderwochen</option>'+weeks.map(k=>{const [y,w]=k.split("-");return `<option value="${k}">KW ${Number(w)} · ${y}</option>`}).join("");
+ pfEquipment.innerHTML='<option value="all">Alle Geräte / Arten</option>'+eq.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
+ pfWeek.value=planFilter.week;pfEquipment.value=planFilter.equipment;pfStatus.value=planFilter.status;planFilterDialog.showModal();
+}
+function applyPlanFilter(e){e.preventDefault();planFilter={week:pfWeek.value,equipment:pfEquipment.value,status:pfStatus.value};planInitialScrollKey=null;planFilterDialog.close();render()}
+function resetPlanFilter(){planFilter={week:"all",equipment:"all",status:"all"};planInitialScrollKey=null;planFilterDialog.close();render()}
 function renderList(){
  const arr=currentSessions(), root=document.getElementById("planContent");if(!arr.length){root.innerHTML='<div class="empty">Noch keine Einheiten in diesem Block.</div>';return}
  const groups={};
@@ -2178,13 +2204,11 @@ function renderAnalytics(){
 let planInitialScrollKey=null;
 function scrollPlanToToday(){
  const root=document.getElementById("planContent");if(!root)return;
- const key=`${db.activePlan||""}:${planView}`;
- if(planInitialScrollKey===key)return;
- planInitialScrollKey=key;
- const today=new Date().toISOString().slice(0,10);
- let target=root.querySelector(`[data-date="${today}"]`)||root.querySelector('[data-future-anchor="1"]');
- if(!target){target=[...root.querySelectorAll("[data-session-id]")].find(el=>{const s=db.sessions.find(x=>String(x.id)===String(el.dataset.sessionId));return s&&s.date>=today})}
- if(target)root.scrollTop=Math.max(0,target.offsetTop-root.offsetTop-6);
+ const key=`${db.activePlan||""}:${planView}:${planFilter.week}:${planFilter.equipment}:${planFilter.status}`;
+ if(planInitialScrollKey===key)return; planInitialScrollKey=key;
+ const today=new Date().toISOString().slice(0,10),dated=[...root.querySelectorAll("[data-date]")];
+ const target=dated.find(el=>el.dataset.date===today)||dated.find(el=>el.dataset.date>today);if(!target)return;
+ requestAnimationFrame(()=>{const rr=root.getBoundingClientRect(),tr=target.getBoundingClientRect();root.scrollTop+=tr.top-rr.top-4});
 }
 function openSession(id=null,topup=false){
  editId=id;const s=id?db.sessions.find(x=>x.id===id):null;
