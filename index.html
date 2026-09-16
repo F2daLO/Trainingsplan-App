@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.21</title>
+<title>Training v6.21.1</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2819,6 +2819,51 @@ button.metric.analytics-link{border:inherit}
 #gptDialog .actions{position:sticky!important;bottom:calc(72px + env(safe-area-inset-bottom))!important;z-index:50!important;padding:10px 0 4px!important;background:rgba(255,255,255,.92)!important;border-radius:16px!important}
 .gpt-export-workout{border-radius:14px!important}
 
+
+/* V6.21.1 GPT modal – single top action bar, no bottom controls behind navbar */
+#gptDialog{
+ z-index:10000!important;
+}
+#gptDialog .modal{
+ display:flex!important;
+ flex-direction:column!important;
+ max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px)!important;
+ padding-bottom:16px!important;
+ overflow:hidden!important;
+}
+#gptDialog .actions{
+ order:-1!important;
+ position:relative!important;
+ top:auto!important;bottom:auto!important;
+ z-index:5!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:flex-end!important;
+ gap:8px!important;
+ margin:0 0 10px!important;
+ padding:0!important;
+ background:transparent!important;
+ border-radius:0!important;
+ flex:0 0 auto!important;
+}
+#gptDialog .gpt-body,#gptDialog #gptContent,#gptDialog .content,#gptDialog .body{
+ overflow:auto!important;
+ -webkit-overflow-scrolling:touch!important;
+ min-height:0!important;
+ flex:1 1 auto!important;
+ padding-bottom:12px!important;
+}
+#gptDialog .x,#gptDialog .close-x,#gptDialog [aria-label="Schließen"]{
+ background:transparent!important;
+ box-shadow:none!important;
+ border:0!important;
+}
+#gptDialog .gpt-export-workout{
+ display:inline-flex!important;
+ visibility:visible!important;
+ opacity:1!important;
+}
+
 </style>
 </head>
 <body>
@@ -2911,7 +2956,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.21</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.21.1</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5448,6 +5493,39 @@ exportSessionWorkout=function(id){
  if(sessionStructuredWorkout(s))return exportStructuredSessionWorkout(id);
  return _oldExportSessionWorkout(id);
 };
+
+/* V6.21.1 normalize GPT controls into one visible top bar */
+function normalizeGPTControls(){
+ const d=document.getElementById("gptDialog");if(!d)return;
+ const modal=d.querySelector(".modal")||d;
+ let actions=d.querySelector(".actions");
+ if(!actions){
+  actions=document.createElement("div");actions.className="actions gpt-top-actions";
+  modal.insertBefore(actions,modal.firstChild);
+ }
+ /* Ensure export is always present, independent of mutation timing. */
+ let exp=actions.querySelector(".gpt-export-workout");
+ if(!exp){
+  exp=document.createElement("button");exp.type="button";exp.className="pill gpt-export-workout";
+  exp.textContent="⇩ Workout";exp.onclick=exportGPTWorkoutZWO;
+  actions.insertBefore(exp,actions.firstChild);
+ }
+ /* The bottom 'Schließen' button is now the single close control in the top action bar.
+    Remove/hide separate X controls to avoid duplicate close affordances and first-open white square. */
+ const closeBtn=[...actions.querySelectorAll("button")].find(b=>/schließen/i.test(b.textContent||""));
+ const xs=[...d.querySelectorAll("button")].filter(b=>
+   (b.textContent||"").trim()==="×"||(b.textContent||"").trim()==="✕"||
+   /schließen/i.test(b.getAttribute("aria-label")||"")
+ );
+ for(const x of xs){if(x!==closeBtn&&x.parentElement!==actions)x.style.display="none"}
+}
+const _gptControlsObserver=new MutationObserver(normalizeGPTControls);
+document.addEventListener("DOMContentLoaded",()=>{
+ const d=document.getElementById("gptDialog");
+ if(d)_gptControlsObserver.observe(d,{childList:true,subtree:true,attributes:true,attributeFilter:["open","class","style"]});
+ normalizeGPTControls();
+});
+document.addEventListener("click",()=>requestAnimationFrame(normalizeGPTControls),true);
 </script>
 
 <dialog id="passwordDialog">

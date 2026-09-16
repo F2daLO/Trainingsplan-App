@@ -1,4 +1,4 @@
-const CACHE="training-v6-21-plan-package";
+const CACHE="training-v6-21-1-gpt-header-actions";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
