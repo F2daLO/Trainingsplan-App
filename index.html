@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.16.2</title>
+<title>Training v6.17</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2703,9 +2703,12 @@ input[type="date"],input[type="time"],input[type="datetime-local"],input[type="m
 }
 
 
-/* ===== V6.16 CUSTOM GLASS PICKERS ===== */
+/* ===== V6.17 NATIVE DROPDOWN RESTORE =====
+   Native iOS dropdown/picker behavior is intentionally retained.
+   Dialogs are readable surfaces; only their form controls use the Block-style material.
+*/
 
-/* Analytics: it is real content, therefore main must be the scroll container. */
+/* Auswertung wieder scrollbar */
 body:has(#navAnalytics.active) main{
  overflow-y:auto!important;
  overflow-x:hidden!important;
@@ -2715,285 +2718,63 @@ body:has(#navAnalytics.active) main{
  padding-bottom:calc(90px + env(safe-area-inset-bottom))!important;
 }
 
-/* LISTE / WOCHE: no surrounding capsule/frame; just two clean tabs. */
+/* Liste/Woche: frei, ohne gemeinsamen Rahmen; aktive Auswahl weich abgerundet. */
 .plan-fixed .segment{
- background:transparent!important;
- border:0!important;
- box-shadow:none!important;
- backdrop-filter:none!important;
- -webkit-backdrop-filter:none!important;
- border-radius:0!important;
- padding:0!important;
- gap:18px!important;
-}
-.plan-fixed .segment button{
- min-width:auto!important;
- padding:5px 3px 6px!important;
- border-radius:0!important;
- background:transparent!important;
- color:#8b8d92!important;
- font-size:12px!important;
- font-weight:600!important;
- position:relative!important;
-}
-.plan-fixed .segment button.active{
- background:transparent!important;
- box-shadow:none!important;
- color:#17181a!important;
-}
-.plan-fixed .segment button.active::after{
- content:""!important;
- position:absolute!important;
- left:18%!important;right:18%!important;bottom:0!important;
- height:2px!important;border-radius:2px!important;
- background:rgba(30,31,34,.68)!important;
-}
-
-/* Custom picker backdrop: NO milky full-screen veil. */
-.glass-picker-dialog{
- border:0!important;padding:0!important;background:transparent!important;
- width:min(92vw,430px)!important;max-height:78dvh!important;
- overflow:visible!important;
-}
-.glass-picker-dialog::backdrop{
- background:rgba(0,0,0,.035)!important;
- backdrop-filter:none!important;
- -webkit-backdrop-filter:none!important;
-}
-.glass-picker-shell{
- overflow:hidden!important;
- max-height:78dvh!important;
- border-radius:24px!important;
- background:rgba(255,255,255,.10)!important;
- border:1px solid rgba(255,255,255,.72)!important;
- box-shadow:0 18px 50px rgba(24,29,37,.13),inset 0 1px rgba(255,255,255,.92)!important;
- backdrop-filter:blur(18px) saturate(170%)!important;
- -webkit-backdrop-filter:blur(18px) saturate(170%)!important;
- padding:10px!important;
-}
-.glass-picker-head{
- display:grid!important;grid-template-columns:36px 1fr 36px!important;
- align-items:center!important;text-align:center!important;
- padding:3px 2px 9px!important;
-}
-.glass-picker-head strong{font-size:14px!important;text-transform:capitalize!important}
-.gp-icon,.gp-action,.gp-option,.gp-calendar button{
- border:0!important;background:transparent!important;box-shadow:none!important;color:#1c1d20!important;
-}
-.gp-icon{width:34px!important;height:34px!important;border-radius:17px!important;font-size:27px!important;line-height:1!important}
-.gp-options{
- max-height:58dvh!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;
- display:flex!important;flex-direction:column!important;gap:3px!important;
-}
-.gp-option{
- width:100%!important;min-height:42px!important;padding:7px 12px!important;
- border-radius:14px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
- text-align:left!important;font-size:13px!important;
-}
-.gp-option.selected{background:rgba(255,255,255,.23)!important}
-.gp-check{font-weight:800!important}
-.glass-picker-actions{display:flex!important;justify-content:center!important;padding-top:8px!important}
-.gp-action{
- min-height:34px!important;padding:0 16px!important;border-radius:17px!important;
- border:1px solid rgba(255,255,255,.52)!important;background:rgba(255,255,255,.08)!important;
-}
-
-/* Glass calendar */
-.gp-weekdays,.gp-calendar{display:grid!important;grid-template-columns:repeat(7,1fr)!important;gap:4px!important}
-.gp-weekdays{padding:2px 2px 5px!important}
-.gp-weekdays span{text-align:center!important;font-size:9px!important;color:#777!important}
-.gp-calendar button{
- aspect-ratio:1!important;border-radius:50%!important;font-size:12px!important;
-}
-.gp-calendar button.selected{
- background:rgba(255,255,255,.30)!important;
- box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)!important;
- font-weight:800!important;
-}
-
-/* Filter + Training dialog themselves: clear glass, no full-screen milk. */
-#planFilterDialog::backdrop,#sessionDialog::backdrop{
- background:rgba(0,0,0,.025)!important;
+ display:flex!important;width:max-content!important;margin:4px auto!important;
+ padding:0!important;gap:14px!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
 }
+.plan-fixed .segment button{
+ -webkit-appearance:none!important;appearance:none!important;
+ background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;
+ border-radius:14px!important;padding:5px 9px!important;min-height:28px!important;
+ color:rgba(55,57,61,.48)!important;font-size:12px!important;font-weight:600!important;
+}
+.plan-fixed .segment button.active{
+ background:rgba(255,255,255,.16)!important;
+ border:1px solid rgba(160,165,173,.22)!important;
+ border-radius:14px!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.55)!important;
+ color:rgba(25,26,29,.92)!important;
+}
+.plan-fixed .segment button::before,.plan-fixed .segment button::after{content:none!important;display:none!important}
+
+/* Dialoge selbst NICHT durchsichtig: Inhalt muss ruhig und gut lesbar bleiben. */
+#planFilterDialog::backdrop,#sessionDialog::backdrop{
+ background:rgba(20,22,26,.10)!important;
+ backdrop-filter:blur(1px)!important;-webkit-backdrop-filter:blur(1px)!important;
+}
 #planFilterDialog .plan-filter-modal,#sessionDialog .modal{
- background:rgba(255,255,255,.10)!important;
- border:1px solid rgba(255,255,255,.70)!important;
- box-shadow:0 18px 50px rgba(24,29,37,.12),inset 0 1px rgba(255,255,255,.92)!important;
- backdrop-filter:blur(18px) saturate(170%)!important;
- -webkit-backdrop-filter:blur(18px) saturate(170%)!important;
+ background:rgba(250,250,251,.94)!important;
+ border:1px solid rgba(220,223,228,.78)!important;
+ box-shadow:0 18px 48px rgba(25,30,38,.16)!important;
+ backdrop-filter:blur(18px) saturate(125%)!important;
+ -webkit-backdrop-filter:blur(18px) saturate(125%)!important;
 }
 
-/* Closed fields remain visually quiet; opened UI is now our custom picker. */
-select,input[type=date]{
+/* Die BEDIENELEMENTE im Dialog entsprechen wieder dem Block-Control.
+   Wichtig: native select/date appearance bleibt erhalten => normales Dropdown/Picker, KEIN Overlay-Fenster. */
+#planFilterDialog select,
+#sessionDialog select,
+#sessionDialog input[type="date"],
+#sessionDialog input[type="time"],
+#sessionDialog input[type="datetime-local"],
+.settings-card select,
+.plan-controls select{
  background:transparent!important;
+ background-color:transparent!important;
+ background-image:none!important;
  border:1px solid rgba(190,196,205,.30)!important;
- box-shadow:inset 0 1px rgba(255,255,255,.62)!important;
+ border-radius:12px!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.62)!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
 }
-
-
-/* ===== V6.16.1 CLEAR PICKER / NO BLUE FOCUS =====
-   Korrektur zu V6.16: kein milchiger Picker, keine blaue Browser-Fokusmarkierung.
-*/
-
-/* Der Dialog selbst darf keinerlei eigene weiße Fläche erzeugen. */
-#glassPickerDialog,
-.glass-picker-dialog{
- background:transparent!important;
- background-color:transparent!important;
- border:0!important;
- box-shadow:none!important;
- outline:0!important;
+#planFilterDialog select,#sessionDialog select,.settings-card select,.plan-controls select{
+ -webkit-appearance:menulist!important;appearance:auto!important;
 }
-
-/* Sehr klare Scheibe: praktisch keine weiße Füllung und bewusst kein starker Blur,
-   weil Blur vor dem weißen App-Canvas wieder milchig wirken würde. */
-.glass-picker-shell{
- background:rgba(255,255,255,.018)!important;
- background-color:rgba(255,255,255,.018)!important;
- border:1px solid rgba(190,196,205,.28)!important;
- box-shadow:0 10px 30px rgba(24,29,37,.075),inset 0 1px 0 rgba(255,255,255,.58)!important;
- backdrop-filter:blur(3px) saturate(115%)!important;
- -webkit-backdrop-filter:blur(3px) saturate(115%)!important;
-}
-
-/* Kein milchiger/abgedunkelter Bildschirm hinter geöffneten Menüs. */
-.glass-picker-dialog::backdrop,
-#planFilterDialog::backdrop,
-#sessionDialog::backdrop{
- background:transparent!important;
- backdrop-filter:none!important;
- -webkit-backdrop-filter:none!important;
-}
-
-/* Vorbelegte Auswahl: KEINE Fläche mehr. Nur Text + dezentes Häkchen. */
-.gp-option,
-.gp-option.selected,
-.gp-calendar button,
-.gp-calendar button.selected{
- background:transparent!important;
- background-color:transparent!important;
- box-shadow:none!important;
-}
-.gp-option.selected{
- font-weight:650!important;
-}
-.gp-check{
- color:rgba(28,29,32,.72)!important;
- font-size:13px!important;
-}
-
-/* Kalender: Auswahl nur über feinen Ring, nicht über Füllung. */
-.gp-calendar button.selected{
- outline:1px solid rgba(70,74,80,.30)!important;
- outline-offset:-2px!important;
-}
-
-/* Browser/iOS-Fokusringe vollständig entfernen – insbesondere der blaue Rand. */
-#glassPickerDialog *,
-#planFilterDialog *,
-#sessionDialog *,
-select,
-input[type="date"],
-input[type="time"],
-input[type="datetime-local"],
-button{
- -webkit-tap-highlight-color:transparent!important;
-}
-#glassPickerDialog *:focus,
-#glassPickerDialog *:focus-visible,
-#planFilterDialog *:focus,
-#planFilterDialog *:focus-visible,
-#sessionDialog *:focus,
-#sessionDialog *:focus-visible,
-select:focus,select:focus-visible,
-input:focus,input:focus-visible,
-button:focus,button:focus-visible{
- outline:none!important;
- -webkit-focus-ring-color:transparent!important;
-}
-
-/* Filter und Training-Fenster selbst ebenfalls klarer als in V6.16. */
-#planFilterDialog .plan-filter-modal,
-#sessionDialog .modal{
- background:rgba(255,255,255,.025)!important;
- background-color:rgba(255,255,255,.025)!important;
- border:1px solid rgba(190,196,205,.28)!important;
- box-shadow:0 12px 34px rgba(24,29,37,.085),inset 0 1px 0 rgba(255,255,255,.60)!important;
- backdrop-filter:blur(4px) saturate(120%)!important;
- -webkit-backdrop-filter:blur(4px) saturate(120%)!important;
-}
-
-/* Optionen selbst ohne "Karten"-Look. */
-.gp-options{gap:0!important}
-.gp-option{
- border:0!important;
- border-bottom:1px solid rgba(120,125,132,.10)!important;
- border-radius:0!important;
- min-height:40px!important;
-}
-.gp-option:last-child{border-bottom:0!important}
-
-
-/* ===== V6.16.2 LISTE / WOCHE FINAL CLEAN FIX =====
-   Kein äußerer Container, keine weiße Fläche, keine eckige Markierung.
-*/
-.plan-fixed .segment,
-.segment:has(#viewList),
-.segment:has(#viewWeek){
- display:flex!important;
- width:max-content!important;
- margin:4px auto!important;
- padding:0!important;
- gap:16px!important;
- background:transparent!important;
- background-color:transparent!important;
- background-image:none!important;
- border:0!important;
- border-radius:0!important;
- outline:0!important;
- box-shadow:none!important;
- backdrop-filter:none!important;
- -webkit-backdrop-filter:none!important;
-}
-.plan-fixed .segment button,
-.segment:has(#viewList) button,
-.segment:has(#viewWeek) button{
- appearance:none!important;
- -webkit-appearance:none!important;
- background:transparent!important;
- background-color:transparent!important;
- background-image:none!important;
- border:0!important;
- outline:0!important;
- box-shadow:none!important;
- border-radius:14px!important;
- padding:5px 8px!important;
- min-height:28px!important;
- color:rgba(55,57,61,.48)!important;
- font-size:12px!important;
- font-weight:600!important;
-}
-.plan-fixed .segment button.active,
-.segment:has(#viewList) button.active,
-.segment:has(#viewWeek) button.active{
- background:rgba(255,255,255,.025)!important;
- background-color:rgba(255,255,255,.025)!important;
- border:1px solid rgba(120,125,132,.13)!important;
- border-radius:14px!important;
- outline:0!important;
- box-shadow:inset 0 1px 0 rgba(255,255,255,.38)!important;
- color:rgba(25,26,29,.90)!important;
- padding:4px 7px!important;
-}
-.plan-fixed .segment button::before,
-.plan-fixed .segment button::after,
-.segment:has(#viewList) button::before,
-.segment:has(#viewList) button::after,
-.segment:has(#viewWeek) button::before,
-.segment:has(#viewWeek) button::after{
- content:none!important;
- display:none!important;
+#sessionDialog input[type="date"],#sessionDialog input[type="time"],#sessionDialog input[type="datetime-local"]{
+ -webkit-appearance:auto!important;appearance:auto!important;
 }
 
 </style>
@@ -3009,7 +2790,6 @@ button:focus,button:focus-visible{
 <button id="navSettings" onclick="go('settings')"><span>⚙︎</span>Einstellungen</button>
 </nav>
 
-<dialog id="glassPickerDialog" class="glass-picker-dialog"><div class="glass-picker-shell"><div class="glass-picker-head"><button type="button" id="gpPrev" class="gp-icon" aria-label="Zurück">‹</button><strong id="gpTitle"></strong><button type="button" id="gpNext" class="gp-icon" aria-label="Weiter">›</button></div><div id="gpBody"></div><div class="glass-picker-actions"><button type="button" class="gp-action" onclick="closeGlassPicker()">Abbrechen</button></div></div></dialog>
 <dialog id="planFilterDialog" tabindex="-1"><form class="modal glass plan-filter-modal" onsubmit="applyPlanFilter(event)"><h2>Plan filtern</h2><div class="grid"><label>Kalenderwoche<select id="pfWeek"></select></label><label>Equipment / Trainingsart<select id="pfEquipment"></select></label><label class="full">Status<select id="pfStatus"><option value="all">Alle Status</option><option value="open">Nur offen</option><option value="overdue">Nur überfällig offen</option><option value="done">Nur erledigt</option><option value="moved">Nur verschoben</option><option value="cancel">Nur ausgefallen</option><option value="topup">Nur On Top</option></select></label></div><div class="modal-actions"><button type="button" class="pill" onclick="resetPlanFilter()">Zurücksetzen</button><button type="button" class="pill" onclick="planFilterDialog.close()">Abbrechen</button><button class="pill primary">Anwenden</button></div></form></dialog>
 <dialog id="sessionDialog"><form class="modal glass" onsubmit="saveSession(event)">
 <h2 id="sessionHeading" tabindex="-1">Training</h2><p class="helper">Datum und Uhrzeit werden für neue Einheiten automatisch auf jetzt gesetzt.</p>
@@ -3089,7 +2869,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.16.2</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.17</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5342,51 +5122,6 @@ document.addEventListener("touchmove",()=>{
   adaptiveNavTimer=setTimeout(()=>setFloatingNavCompact(false),180);
 },{passive:true});
 
-
-/* V6.16 custom Liquid-Glass pickers: native opened select/date UIs are bypassed. */
-let gpTarget=null,gpMonth=null;
-function closeGlassPicker(){glassPickerDialog.close();gpTarget=null}
-function gpLabel(el){
- const lab=el.closest("label");
- if(lab){const t=[...lab.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent.trim()).filter(Boolean).join(" ");if(t)return t}
- return el.getAttribute("aria-label")||"Auswählen";
-}
-function openGlassSelect(el){
- gpTarget=el;gpPrev.style.visibility="hidden";gpNext.style.visibility="hidden";gpTitle.textContent=gpLabel(el);
- gpBody.innerHTML='<div class="gp-options">'+[...el.options].map((o,i)=>`<button type="button" class="gp-option ${o.selected?"selected":""}" data-i="${i}"><span>${esc(o.text)}</span><span class="gp-check">${o.selected?"✓":""}</span></button>`).join("")+'</div>';
- gpBody.querySelectorAll(".gp-option").forEach(b=>b.onclick=()=>{el.selectedIndex=+b.dataset.i;el.dispatchEvent(new Event("change",{bubbles:true}));closeGlassPicker()});
- glassPickerDialog.showModal();
-}
-function openGlassDate(el){
- gpTarget=el;gpPrev.style.visibility="visible";gpNext.style.visibility="visible";gpTitle.textContent=gpLabel(el);
- const base=el.value?new Date(el.value+"T12:00:00"):new Date();
- gpMonth=new Date(base.getFullYear(),base.getMonth(),1);renderGlassCalendar();
- glassPickerDialog.showModal();
-}
-function renderGlassCalendar(){
- const y=gpMonth.getFullYear(),m=gpMonth.getMonth();
- gpTitle.textContent=gpMonth.toLocaleDateString("de-DE",{month:"long",year:"numeric"});
- const first=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate();
- let h='<div class="gp-weekdays">'+["Mo","Di","Mi","Do","Fr","Sa","So"].map(x=>`<span>${x}</span>`).join("")+'</div><div class="gp-calendar">';
- for(let i=0;i<first;i++)h+='<span></span>';
- for(let d=1;d<=days;d++){const iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;h+=`<button type="button" data-date="${iso}" class="${gpTarget.value===iso?"selected":""}">${d}</button>`}
- gpBody.innerHTML=h+'</div>';
- gpBody.querySelectorAll("[data-date]").forEach(b=>b.onclick=()=>{gpTarget.value=b.dataset.date;gpTarget.dispatchEvent(new Event("input",{bubbles:true}));gpTarget.dispatchEvent(new Event("change",{bubbles:true}));closeGlassPicker()});
-}
-gpPrev.onclick=()=>{if(!gpMonth)return;gpMonth.setMonth(gpMonth.getMonth()-1);renderGlassCalendar()}
-gpNext.onclick=()=>{if(!gpMonth)return;gpMonth.setMonth(gpMonth.getMonth()+1);renderGlassCalendar()}
-document.addEventListener("pointerdown",e=>{
- const el=e.target.closest("select,input[type=date]");
- if(!el || el.closest("#glassPickerDialog"))return;
- e.preventDefault();e.stopPropagation();
- if(el.tagName==="SELECT")openGlassSelect(el);else openGlassDate(el);
-},{capture:true});
-document.addEventListener("keydown",e=>{
- const el=e.target;
- if((e.key==="Enter"||e.key===" ") && (el?.tagName==="SELECT"||el?.type==="date")){
-  e.preventDefault();el.tagName==="SELECT"?openGlassSelect(el):openGlassDate(el);
- }
-});
 </script>
 
 <dialog id="passwordDialog">
