@@ -1,4 +1,4 @@
-const CACHE="training-v6-18-3-filterboot-skisplit";
+const CACHE="training-v6-18-3-1-filterbug-skisplit";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{

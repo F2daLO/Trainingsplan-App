@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.18.3</title>
+<title>Training v6.18.3.1</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2826,7 +2826,7 @@ button.metric.analytics-link{border:inherit}
 <h2 id="sessionHeading" tabindex="-1">Training</h2><p class="helper">Datum und Uhrzeit werden für neue Einheiten automatisch auf jetzt gesetzt.</p>
 <div class="grid">
 <label>Datum & Uhrzeit<input id="sDateTime" type="datetime-local"></label>
-<label>Trainingsart<select id="sType"><option>Indoor Rad</option><option>Outdoor Rad</option><option>Kraft / BetterMe</option><option>Regeneration</option><option>Laufen</option><option>Schwimmen</option><option>Ski / Skitour</option><option>Mobilität</option><option>Sonstiges</option></select></label>
+<label>Trainingsart<select id="sType"><option>Indoor Rad</option><option>Outdoor Rad</option><option>Kraft / BetterMe</option><option>Regeneration</option><option>Laufen</option><option>Schwimmen</option><option>Ski</option><option>Skitour</option><option>Mobilität</option><option>Sonstiges</option></select></label>
 <label class="full">Titel<input id="sTitle"></label>
 <div id="assignedEquipmentHint" class="eq-small"></div><label class="full">Planbeschreibung
       <textarea id="sDesc" rows="2" readonly aria-readonly="true"></textarea>
@@ -2867,7 +2867,7 @@ const ORIGINAL_SESSION_DATES=Object.fromEntries(
   (INITIAL_DB.sessions||[]).map(s=>[String(s.id),s.date])
 );
 let db=JSON.parse(localStorage.getItem(KEY)||"null")||structuredClone(INITIAL_DB);
-let screen="overview", planView="list", planFilter={week:"all",equipment:"all",status:"all"}, editId=null, sb=null, cloudUser=null, syncing=false, lastSync=localStorage.getItem("mt_last_sync")||"";
+let screen="overview", planView="list", planFilter={week:"all",equipment:"all",status:"all",weekday:"all"}, editId=null, sb=null, cloudUser=null, syncing=false, lastSync=localStorage.getItem("mt_last_sync")||"";
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function nowLocal(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)}
@@ -2900,7 +2900,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.3</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.3.1</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -3039,10 +3039,23 @@ function renderPlan(){
  if(planView==="list")renderList();else renderWeek();
 }
 
-function activePlanFilterCount(){return ["week","equipment","status","weekday"].filter(k=>planFilter[k]!=="all").length||""}
+function normalizePlanFilter(){
+ const p=planFilter||{};
+ return {
+  week:p.week||"all",
+  equipment:p.equipment||"all",
+  status:p.status||"all",
+  weekday:p.weekday||"all"
+ };
+}
+function activePlanFilterCount(){
+ planFilter=normalizePlanFilter();
+ return ["week","equipment","status","weekday"].filter(k=>planFilter[k]!=="all").length||""
+}
 function sessionWeekKey(s){const d=new Date(s.date+"T12:00:00");return `${d.getFullYear()}-${String(isoWeek(d)).padStart(2,"0")}`}
 function sessionEquipmentKey(s){return equipmentDisplay(s)||s.type||"Sonstiges"}
 function matchesPlanFilter(s){
+ planFilter=normalizePlanFilter();
  if(planFilter.weekday!=="all"&&weekdayName(s.date)!==planFilter.weekday)return false;
  if(planFilter.week!=="all"&&sessionWeekKey(s)!==planFilter.week)return false;
  if(planFilter.equipment!=="all"&&sessionEquipmentKey(s)!==planFilter.equipment)return false;
@@ -5254,7 +5267,7 @@ render=function(){
           <option value="triathlon">🏊🚴🏃 Triathlon</option>
           <option value="running">🏃 Laufen</option>
           <option value="swimming">🏊 Schwimmen</option>
-          <option value="ski">⛷️ Ski / Skitour</option>
+          <option value="ski">⛷️ Ski</option><option value="skitour">🎿 Skitour</option>
           <option value="general">🏋️ Sonstiges</option>
         </select>
       </label>
