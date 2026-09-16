@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.14.2</title>
+<title>Training v6.15</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2594,6 +2594,114 @@ dialog#sessionDialog{
 }
 .nav.scrolling{background:rgba(255,255,255,.025)!important}
 
+
+/* ===== V6.15 ONE GLASS SYSTEM =====
+   Reference material = the visible "Block 1 · Grundlagen" select.
+   Do not add component-specific fills below this block.
+*/
+:root{
+ --oneglass-bg:transparent;
+ --oneglass-border:1px solid rgba(190,196,205,.30);
+ --oneglass-radius:12px;
+ --oneglass-shadow:inset 0 1px 0 rgba(255,255,255,.62);
+ --oneglass-filter:none;
+}
+
+/* EXACT SAME MATERIAL: block dropdown + every dropdown + calendars/date/time + filter controls */
+.plan-controls select,
+select,
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+#planFilterDialog select,
+#sessionDialog select,
+.modal select,
+.settings-card select,
+form select{
+ background:var(--oneglass-bg)!important;
+ background-color:transparent!important;
+ background-image:none!important;
+ border:var(--oneglass-border)!important;
+ border-radius:var(--oneglass-radius)!important;
+ box-shadow:var(--oneglass-shadow)!important;
+ backdrop-filter:var(--oneglass-filter)!important;
+ -webkit-backdrop-filter:var(--oneglass-filter)!important;
+ filter:none!important;
+}
+
+/* Remove milky parent-field treatments that visually changed otherwise identical selects. */
+#planFilterDialog label,
+#sessionDialog label,
+.modal label,
+.settings-card label{
+ background:transparent!important;
+ box-shadow:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}
+
+/* Filter dialog: the fields sit on a clean white canvas, same context as the Block control. */
+#planFilterDialog .plan-filter-modal{
+ background:#fff!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+ box-shadow:0 14px 42px rgba(25,30,38,.10)!important;
+ border:1px solid rgba(225,227,232,.70)!important;
+}
+
+/* Bottom handlebar: EXACT same material variables as Block dropdown. */
+.nav,.nav.scrolling{
+ background:var(--oneglass-bg)!important;
+ background-color:transparent!important;
+ border:var(--oneglass-border)!important;
+ box-shadow:var(--oneglass-shadow)!important;
+ backdrop-filter:var(--oneglass-filter)!important;
+ -webkit-backdrop-filter:var(--oneglass-filter)!important;
+}
+
+/* Plan micro controls use the exact same material too. */
+.plan-fixed .segment,
+.plan-fixed .actions-top{
+ background:var(--oneglass-bg)!important;
+ border:var(--oneglass-border)!important;
+ border-radius:var(--oneglass-radius)!important;
+ box-shadow:var(--oneglass-shadow)!important;
+ backdrop-filter:var(--oneglass-filter)!important;
+ -webkit-backdrop-filter:var(--oneglass-filter)!important;
+}
+.plan-fixed .segment button,
+.plan-fixed .segment button.active,
+.plan-fixed .actions-top .pill,
+.plan-fixed .actions-top .pill.primary,
+.plan-fixed .actions-top .pill.gold{
+ background:transparent!important;
+ box-shadow:none!important;
+ border:0!important;
+}
+
+/* Other clickable glass controls where the same visual language fits. */
+.filter-pill,
+#sessionDialog .buttons button,
+#sessionDialog label.inline:has(#sTopup){
+ background:var(--oneglass-bg)!important;
+ border:var(--oneglass-border)!important;
+ box-shadow:var(--oneglass-shadow)!important;
+ backdrop-filter:var(--oneglass-filter)!important;
+ -webkit-backdrop-filter:var(--oneglass-filter)!important;
+}
+
+/* iOS native form controls retain their native popup/picker behavior, but closed surface is identical. */
+select{
+ -webkit-appearance:menulist!important;
+ appearance:auto!important;
+}
+input[type="date"],input[type="time"],input[type="datetime-local"],input[type="month"],input[type="week"]{
+ -webkit-appearance:auto!important;
+ appearance:auto!important;
+}
+
 </style>
 </head>
 <body>
@@ -2686,7 +2794,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.14.2</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.15</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{

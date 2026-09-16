@@ -1,4 +1,4 @@
-const CACHE="training-v6-14-2-nosnap-editor";
+const CACHE="training-v6-15-one-glass-system";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
