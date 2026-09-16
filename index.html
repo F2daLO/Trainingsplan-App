@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">\n<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.13.2</title>
+<title>Training v6.13.3</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2091,6 +2092,101 @@ dialog::backdrop{background:rgba(244,246,250,.22)}
  .nav button{color:#666!important}.nav button.active{color:#111!important}
 }
 
+
+/* ===== V6.13.3 CLEAR SELECTS + TRUE EDGE-TO-EDGE FOOTER ===== */
+
+/* Selects: deliberately much clearer than generic cards. */
+select,
+#planFilterDialog select,
+.plan-fixed select,
+.settings-card select,
+.modal select{
+ background:rgba(255,255,255,.10)!important;
+ background-color:rgba(255,255,255,.10)!important;
+ border:1px solid rgba(218,221,227,.46)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 2px 8px rgba(25,30,38,.025)!important;
+ backdrop-filter:blur(12px) saturate(150%)!important;
+ -webkit-backdrop-filter:blur(12px) saturate(150%)!important;
+}
+
+/* Filter sheet itself clearer as well. */
+#planFilterDialog .plan-filter-modal{
+ background:rgba(255,255,255,.54)!important;
+ border:1px solid rgba(255,255,255,.84)!important;
+ backdrop-filter:blur(24px) saturate(175%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(175%)!important;
+}
+
+/*
+ iPhone bottom fix:
+ Earlier versions still reserved a bottom area in main/plan-screen and body.
+ That white/gray "footer" was not the nav itself. Remove ALL reserved footer/tray
+ space; only add scroll-content inset where needed so content can pass behind nav.
+*/
+html,body{
+ padding-bottom:0!important;
+ margin-bottom:0!important;
+ background:#fff!important;
+}
+.shell{
+ padding-bottom:0!important;
+ margin-bottom:0!important;
+ background:transparent!important;
+}
+main{
+ padding-bottom:0!important;
+ margin-bottom:0!important;
+ background:#fff!important;
+}
+body:not(:has(.plan-screen)) main{
+ padding-bottom:0!important;
+}
+.plan-screen{
+ padding-bottom:0!important;
+ background:#fff!important;
+}
+.plan-scroll{
+ padding-bottom:calc(82px + env(safe-area-inset-bottom))!important;
+ background:#fff!important;
+}
+.analytics-card:last-child,
+.settings-wrap:last-child,
+.overview-wrap:last-child{
+ margin-bottom:calc(82px + env(safe-area-inset-bottom))!important;
+}
+
+/* Nav is the only bottom material; make it clearer. */
+.nav{
+ background:rgba(255,255,255,.28)!important;
+ border:1px solid rgba(255,255,255,.82)!important;
+ box-shadow:0 7px 24px rgba(24,29,37,.09),inset 0 1px 0 rgba(255,255,255,.96)!important;
+ backdrop-filter:blur(18px) saturate(175%)!important;
+ -webkit-backdrop-filter:blur(18px) saturate(175%)!important;
+}
+.nav.scrolling{background:rgba(255,255,255,.22)!important}
+
+/* No footer/pseudo/container layer behind nav. */
+footer,.footer,.bottom-bar,.bottom-nav-wrap,.nav-wrap{
+ background:transparent!important;
+ box-shadow:none!important;
+ border:0!important;
+}
+footer::before,footer::after,.footer::before,.footer::after,
+.bottom-bar::before,.bottom-bar::after,.nav-wrap::before,.nav-wrap::after{
+ display:none!important;content:none!important;
+}
+
+/* The physical iPhone safe-area remains the page's plain white canvas, not a tray. */
+@media(max-width:767px){
+ body{padding-bottom:0!important}
+ main{padding-bottom:0!important}
+ .plan-screen{
+   padding-bottom:0!important;
+   padding-top:calc(env(safe-area-inset-top) + 8px)!important;
+ }
+ .plan-scroll{padding-bottom:calc(80px + env(safe-area-inset-bottom))!important}
+}
+
 </style>
 </head>
 <body>
@@ -2183,7 +2279,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.13.2</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.13.3</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{

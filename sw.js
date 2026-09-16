@@ -1,4 +1,4 @@
-const CACHE="training-v6-13-2-liquidglass-filter";
+const CACHE="training-v6-13-3-clear-footer";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
