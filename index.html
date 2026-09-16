@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.21.1</title>
+<title>Training v6.21.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2864,6 +2864,41 @@ button.metric.analytics-link{border:inherit}
  opacity:1!important;
 }
 
+
+/* V6.21.2 – REAL GPT modal classes */
+#gptExplainModal{z-index:10000!important;padding-bottom:0!important}
+#gptExplainModal .gpt-explain-sheet{
+  display:flex!important;flex-direction:column!important;
+  width:min(760px,calc(100vw - 20px))!important;
+  height:min(88dvh,820px)!important;max-height:calc(100dvh - 24px)!important;
+  margin:max(10px,env(safe-area-inset-top)) auto max(10px,env(safe-area-inset-bottom))!important;
+  padding:14px!important;overflow:hidden!important;
+}
+#gptExplainModal .gpt-explain-head{
+  flex:0 0 auto!important;display:flex!important;flex-direction:column!important;
+  align-items:stretch!important;gap:10px!important;margin:0 0 10px!important;
+  padding:0 0 10px!important;background:transparent!important;
+}
+#gptExplainModal .gpt-explain-titlewrap{min-width:0!important}
+#gptExplainModal .gpt-explain-actions{
+  display:flex!important;flex-wrap:wrap!important;gap:8px!important;
+  align-items:center!important;justify-content:flex-start!important;
+}
+#gptExplainModal .gpt-explain-actions button{
+  display:inline-flex!important;visibility:visible!important;opacity:1!important;
+  position:static!important;transform:none!important;margin:0!important;
+}
+#gptExplainModal .gpt-explain-body{
+  flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch!important;padding:2px 2px 16px!important;
+}
+#gptExplainModal .gpt-explain-foot{display:none!important}
+@media(max-width:560px){
+ #gptExplainModal .gpt-explain-sheet{height:calc(100dvh - 20px)!important}
+ #gptExplainModal .gpt-explain-actions{display:grid!important;grid-template-columns:1fr 1fr!important}
+ #gptExplainModal .gpt-workout-btn{grid-column:1/-1!important}
+}
+
 </style>
 </head>
 <body>
@@ -2956,7 +2991,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.21.1</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.21.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5195,6 +5230,20 @@ async function explainTrainingWithGPT(id,force=false){
     regen.style.display="";
   }
 }
+
+async function exportCurrentGPTWorkout(){
+  const s=db.sessions.find(x=>String(x.id)===String(currentGPTSessionId));
+  if(!s){alert("Keine Trainingseinheit für den Export ausgewählt.");return}
+  const canonical=sessionStructuredWorkout(s);
+  if(canonical)return exportStructuredSessionWorkout(s.id);
+  const explanation=s.gptExplanation||document.getElementById("gptExplainBody")?.innerText||"";
+  const parsed=parseStructuredWorkout(explanation);
+  if(!parsed.length){
+    alert("Für diese Einheit ist noch kein strukturiertes Workout vorhanden. Bei neuen Planpaketen werden Indoor-Einheiten direkt mit Workout-Blöcken geliefert. Für diese bestehende Einheit kann die GPT-Erklärung nur exportiert werden, wenn sie Dauer und Intensität eindeutig enthält.");
+    return;
+  }
+  return shareWorkout(s.title||"Workout",parsed,"GPT-Erklärung");
+}
 function regenerateGPTExplanation(){
   if(currentGPTSessionId)explainTrainingWithGPT(currentGPTSessionId,true);
 }
@@ -5232,6 +5281,7 @@ function sessionActionMenu(id){
     <button class="warn" onclick="openMoveMenu('${id}',true)">↪ Verschieben</button>
     <button class="bad" onclick="setStatus('${id}','cancel');closeQuickMenu()">✕ Ausgefallen</button>
     <button onclick="closeQuickMenu();explainTrainingWithGPT('${id}')">💬 Mit GPT erklären</button>
+    <button onclick="closeQuickMenu();exportSessionWorkout('${id}')">⇩ Workout exportieren</button>
     <button onclick="openSession('${id}');closeQuickMenu()">✏️ Bearbeiten</button>
     <button class="bad" onclick="deleteSession('${id}');closeQuickMenu()">🗑 Löschen</button>
     <button onclick="closeQuickMenu()">Abbrechen</button>`;
@@ -5409,7 +5459,7 @@ function sessionStructuredWorkout(s){
  if(!s)return null;
  let w=normalizeStructuredWorkout(s.workout);
  if(w)return w;
- const parsed=parseStructuredWorkout([s.title,s.description,s.note,s.notes].filter(Boolean).join("\n"));
+ const parsed=parseStructuredWorkout([s.title,s.desc,s.description,s.note,s.notes].filter(Boolean).join("\n"));
  if(!parsed.length)return null;
  return {version:1,sport:"bike",mode:"erg",steps:parsed.map(x=>({type:"steady",durationSec:x.sec,powerPctFtp:x.power,cadence:x.cad||undefined,label:x.label||undefined}))};
 }
@@ -5494,38 +5544,6 @@ exportSessionWorkout=function(id){
  return _oldExportSessionWorkout(id);
 };
 
-/* V6.21.1 normalize GPT controls into one visible top bar */
-function normalizeGPTControls(){
- const d=document.getElementById("gptDialog");if(!d)return;
- const modal=d.querySelector(".modal")||d;
- let actions=d.querySelector(".actions");
- if(!actions){
-  actions=document.createElement("div");actions.className="actions gpt-top-actions";
-  modal.insertBefore(actions,modal.firstChild);
- }
- /* Ensure export is always present, independent of mutation timing. */
- let exp=actions.querySelector(".gpt-export-workout");
- if(!exp){
-  exp=document.createElement("button");exp.type="button";exp.className="pill gpt-export-workout";
-  exp.textContent="⇩ Workout";exp.onclick=exportGPTWorkoutZWO;
-  actions.insertBefore(exp,actions.firstChild);
- }
- /* The bottom 'Schließen' button is now the single close control in the top action bar.
-    Remove/hide separate X controls to avoid duplicate close affordances and first-open white square. */
- const closeBtn=[...actions.querySelectorAll("button")].find(b=>/schließen/i.test(b.textContent||""));
- const xs=[...d.querySelectorAll("button")].filter(b=>
-   (b.textContent||"").trim()==="×"||(b.textContent||"").trim()==="✕"||
-   /schließen/i.test(b.getAttribute("aria-label")||"")
- );
- for(const x of xs){if(x!==closeBtn&&x.parentElement!==actions)x.style.display="none"}
-}
-const _gptControlsObserver=new MutationObserver(normalizeGPTControls);
-document.addEventListener("DOMContentLoaded",()=>{
- const d=document.getElementById("gptDialog");
- if(d)_gptControlsObserver.observe(d,{childList:true,subtree:true,attributes:true,attributeFilter:["open","class","style"]});
- normalizeGPTControls();
-});
-document.addEventListener("click",()=>requestAnimationFrame(normalizeGPTControls),true);
 </script>
 
 <dialog id="passwordDialog">
@@ -5694,17 +5712,17 @@ document.addEventListener("click",()=>requestAnimationFrame(normalizeGPTControls
 <div id="gptExplainModal" class="gpt-explain-modal" aria-hidden="true">
   <div class="gpt-explain-sheet glass">
     <div class="gpt-explain-head">
-      <div>
+      <div class="gpt-explain-titlewrap">
         <strong id="gptExplainTitle">Training erklären</strong>
         <div class="eq-small">GPT-Analyse der aktuellen Einheit</div>
       </div>
-      <button type="button" class="iconbtn" onclick="closeGPTExplanation()">✕</button>
+      <div class="gpt-explain-actions">
+        <button id="gptWorkoutBtn" type="button" class="pill gpt-workout-btn" onclick="exportCurrentGPTWorkout()">⇩ Workout</button>
+        <button id="gptRegenerateBtn" type="button" class="pill" onclick="regenerateGPTExplanation()">Neu erstellen</button>
+        <button type="button" class="pill primary" onclick="closeGPTExplanation()">Schließen</button>
+      </div>
     </div>
     <div id="gptExplainBody" class="gpt-explain-body"></div>
-    <div class="gpt-explain-foot">
-      <button id="gptRegenerateBtn" type="button" class="pill" onclick="regenerateGPTExplanation()">Neu erstellen</button>
-      <button type="button" class="pill primary" onclick="closeGPTExplanation()">Schließen</button>
-    </div>
   </div>
 </div>
 </body></html>
