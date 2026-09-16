@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.18.3.2</title>
+<title>Training v6.18.3.3</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2900,7 +2900,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.3.2</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.3.3</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5222,26 +5222,58 @@ document.addEventListener("pointerdown",e=>{
  forcePlanTodayOnEntry=true;
 },{capture:true});
 
-/* V6.18.2: status changes inside Plan must not jump to block start. */
-let planInteractionScrollTop=null;
-function rememberPlanInteractionScroll(){
+
+/* V6.18.3.3: mobile-safe Plan scroll anchor for status changes. */
+let planInteractionAnchor=null;
+
+function rememberPlanInteractionAnchor(target){
  const root=document.getElementById("planContent");
- if(screen==="plan"&&root)planInteractionScrollTop=root.scrollTop;
-}
-document.addEventListener("pointerdown",e=>{
- if(e.target.closest("#planContent .session-card,#planContent [data-session-id],#planContent .training-card"))rememberPlanInteractionScroll();
-},{capture:true});
-const _renderScrollStable=render;
-render=function(){
- const keep=(screen==="plan"&&planInteractionScrollTop!==null)?planInteractionScrollTop:null;
- _renderScrollStable();
- if(keep!==null){
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-   const root=document.getElementById("planContent");
-   if(root)root.scrollTop=keep;
-   planInteractionScrollTop=null;
-  }));
+ if(screen!=="plan"||!root)return;
+ const card=target&&target.closest ? target.closest("[data-date],.session-card,.training-card,[data-session-id]") : null;
+ let key=null;
+ if(card){
+  key=card.getAttribute("data-session-id")||card.getAttribute("data-date")||null;
  }
+ const rootRect=root.getBoundingClientRect();
+ const cardRect=card?card.getBoundingClientRect():null;
+ planInteractionAnchor={
+  scrollTop:root.scrollTop,
+  key,
+  date:card?card.getAttribute("data-date"):null,
+  offset:cardRect ? (cardRect.top-rootRect.top) : null
+ };
+}
+
+/* pointerdown is reliable on iOS before tap/double-tap handlers mutate and render. */
+document.addEventListener("pointerdown",e=>{
+ if(!e.target.closest("#planContent"))return;
+ const actionable=e.target.closest("[data-date],.session-card,.training-card,[data-session-id]");
+ if(actionable)rememberPlanInteractionAnchor(actionable);
+},{capture:true});
+
+const _renderMobileAnchor=render;
+render=function(){
+ const anchor=(screen==="plan"&&planInteractionAnchor)?{...planInteractionAnchor}:null;
+ _renderMobileAnchor();
+ if(!anchor)return;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  const root=document.getElementById("planContent");
+  if(!root){planInteractionAnchor=null;return}
+  let card=null;
+  if(anchor.key){
+   try{card=root.querySelector(`[data-session-id="${CSS.escape(anchor.key)}"]`)}catch(_){}
+  }
+  if(!card&&anchor.date){
+   try{card=root.querySelector(`[data-date="${CSS.escape(anchor.date)}"]`)}catch(_){}
+  }
+  if(card&&anchor.offset!==null){
+   const delta=(card.getBoundingClientRect().top-root.getBoundingClientRect().top)-anchor.offset;
+   root.scrollTop+=delta;
+  }else{
+   root.scrollTop=anchor.scrollTop;
+  }
+  planInteractionAnchor=null;
+ }));
 };
 </script>
 
