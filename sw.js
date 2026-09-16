@@ -1,4 +1,4 @@
-const CACHE="training-v6-15-one-glass-system";
+const CACHE="training-v6-16-custom-glass-pickers";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
