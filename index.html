@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.21.2</title>
+<title>Training v6.24</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2899,6 +2899,16 @@ button.metric.analytics-link{border:inherit}
  #gptExplainModal .gpt-workout-btn{grid-column:1/-1!important}
 }
 
+
+/* V6.23 Mein Training Coach */
+#meinTrainingCoach{margin-top:14px;padding:14px}
+#meinTrainingCoach h3{margin:0 0 4px}
+#meinTrainingCoach .coach-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+#meinTrainingCoach .coach-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(120,120,128,.15)}
+#meinTrainingCoach .coach-row:last-child{border-bottom:0}
+#meinTrainingCoach .stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+@media(max-width:640px){#meinTrainingCoach .coach-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -2991,7 +3001,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.21.2</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.24</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5544,6 +5554,219 @@ exportSessionWorkout=function(id){
  return _oldExportSessionWorkout(id);
 };
 
+
+
+/* V6.23 – Mein Training Coach, Supabase-backed */
+const COACH_SCHEMA="mein-training.plan-package.v1";
+let coachState={profile:null,requests:[],packages:[],loaded:false};
+
+async function coachUser(){
+  const {data:{user}}=await supabase.auth.getUser();
+  return user||null;
+}
+async function loadCoachState(){
+  const user=await coachUser(); if(!user)return;
+  const [p,r,k]=await Promise.all([
+    supabase.from("coach_profiles").select("*").eq("user_id",user.id).maybeSingle(),
+    supabase.from("coach_requests").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20),
+    supabase.from("coach_plan_packages").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20)
+  ]);
+  coachState.profile=p.data||null; coachState.requests=r.data||[]; coachState.packages=k.data||[]; coachState.loaded=true;
+  renderCoachPanel();
+}
+async function upsertCoachProfile(patch){
+  const user=await coachUser(); if(!user)return;
+  const base={user_id:user.id,updated_at:new Date().toISOString(),...(coachState.profile||{}),...patch};
+  const {data,error}=await supabase.from("coach_profiles").upsert(base,{onConflict:"user_id"}).select().single();
+  if(error){alert("Coach-Profil konnte nicht gespeichert werden:\n"+error.message);return}
+  coachState.profile=data; renderCoachPanel();
+}
+function coachCurrentPlan(){
+  return db.plans?.find(p=>p.id===db.activePlan)||db.plans?.[0]||null;
+}
+function coachCurrentBlock(){
+  return db.blocks?.find(b=>b.id===db.activeBlock)||null;
+}
+function coachSnapshot(extra={}){
+  const plan=coachCurrentPlan(),block=coachCurrentBlock();
+  const sessions=(db.sessions||[]).filter(s=>!plan||s.planId===plan.id||s.plan_id===plan.id);
+  const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
+  const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
+  return {
+    appVersion:"6.23",
+    plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
+    block:{id:block?.id||null,title:block?.title||""},
+    ftp:coachState.profile?.ftp_watts||null,
+    ftpDate:coachState.profile?.ftp_date||null,
+    ftpSource:coachState.profile?.ftp_source||null,
+    equipment:(db.equipment||db.equipmentProfiles||[]).map(e=>({name:e.name,type:e.type,isDefault:e.isDefault??e.is_default})),
+    summary:{sessions:sessions.length,completed,cancelled},
+    ...extra
+  };
+}
+async function createCoachRequest(type,requirements=""){
+  const user=await coachUser(); if(!user){alert("Bitte zuerst anmelden.");return null}
+  const plan=coachCurrentPlan(),block=coachCurrentBlock();
+  const row={
+    user_id:user.id,
+    plan_id:plan?.id||null,
+    request_type:type,
+    source_block_ref:block?.id||block?.title||null,
+    requirements:requirements||null,
+    input_snapshot:coachSnapshot({requirements}),
+    status:"pending",
+    updated_at:new Date().toISOString()
+  };
+  const {data,error}=await supabase.from("coach_requests").insert(row).select().single();
+  if(error){alert("Coach-Anfrage konnte nicht erstellt werden:\n"+error.message);return null}
+  coachState.requests.unshift(data); renderCoachPanel();
+  if(type==="continue_plan"){
+    try{
+      const {data:fn,error:fe}=await supabase.functions.invoke("training-coach",{body:{requestId:data.id}});
+      if(fe)throw fe;
+      await loadCoachState();
+    }catch(e){
+      console.error("TRAINING_COACH_INVOKE",e);
+      await supabase.from("coach_requests").update({status:"failed",updated_at:new Date().toISOString()}).eq("id",data.id);
+      await loadCoachState();
+      alert("Die Coach-Anfrage wurde gespeichert, die automatische Erstellung ist aber fehlgeschlagen.\n"+(e?.message||e));
+    }
+  }
+  return data;
+}
+async function requestPlanContinuation(){
+  const plan=coachCurrentPlan(),block=coachCurrentBlock();
+  const req=prompt(
+    `Fortsetzung für ${block?.title||"aktuellen Block"}\n\nZusätzliche Voraussetzungen/Wünsche:`,
+    ""
+  );
+  if(req===null)return;
+  const row=await createCoachRequest("continue_plan",req.trim());
+  if(row){
+    const fresh=coachState.requests.find(x=>x.id===row.id);
+    if(fresh?.status==="ready") alert("Der neue Trainingsblock wurde automatisch erstellt und steht unter „Bereit zur Übernahme“.");
+    else if(fresh?.status!=="failed") alert("Coach-Anfrage wurde erstellt. Der neue Trainingsblock wird automatisch erzeugt.");
+  }
+}
+function ftpTestWorkout(){
+ return {version:1,sport:"bike",mode:"erg",steps:[
+  {type:"warmup",durationSec:600,powerPctFtp:.50,cadence:85,label:"Einrollen"},
+  {type:"steady",durationSec:300,powerPctFtp:.65,cadence:90,label:"Aktivieren"},
+  {type:"recovery",durationSec:300,powerPctFtp:.50,cadence:85,label:"Locker"},
+  {type:"steady",durationSec:300,powerPctFtp:1.10,cadence:95,label:"5 min hart"},
+  {type:"recovery",durationSec:600,powerPctFtp:.50,cadence:85,label:"Erholung"},
+  {type:"steady",durationSec:1200,powerPctFtp:1.00,cadence:90,label:"20-min FTP-Test – maximal gleichmäßig"},
+  {type:"cooldown",durationSec:600,powerPctFtp:.45,cadence:80,label:"Ausrollen"}
+ ]};
+}
+async function createFTPTestRecord(){
+  const user=await coachUser(); if(!user){alert("Bitte zuerst anmelden.");return null}
+  const row={user_id:user.id,protocol:"20min",source:"Mein Training Coach",workout:ftpTestWorkout(),metrics:{}};
+  const {data,error}=await supabase.from("ftp_tests").insert(row).select().single();
+  if(error){alert("FTP-Test konnte nicht gespeichert werden:\n"+error.message);return null}
+  return data;
+}
+async function exportFTPTest(){
+  await createFTPTestRecord();
+  const w=ftpTestWorkout();
+  const blob=new Blob([zwoFromStructured("FTP Test 20 min",w)],{type:"application/xml"});
+  const file=new File([blob],"FTP_Test_20min.zwo",{type:"application/xml"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:"FTP Test 20 min"});return}catch(e){if(e.name==="AbortError")return}}
+  const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+}
+async function saveFTPResult(){
+  const val=prompt("Ermittelten FTP-Wert in Watt eingeben:","");
+  if(val===null)return;
+  const ftp=Math.round(Number(String(val).replace(",",".")));
+  if(!Number.isFinite(ftp)||ftp<50||ftp>600){alert("Bitte einen plausiblen FTP-Wert in Watt eingeben.");return}
+  const src=prompt("Quelle, z. B. MyWhoosh, QZ, Zwift Ride oder MERACH:","MyWhoosh")||"manuell";
+  const user=await coachUser(); if(!user)return;
+  const today=localTodayISO();
+  const {error}=await supabase.from("ftp_tests").insert({
+    user_id:user.id,test_date:today,protocol:"20min",result_ftp_watts:ftp,source:src,metrics:{}
+  });
+  if(error){alert("FTP-Ergebnis konnte nicht gespeichert werden:\n"+error.message);return}
+  await upsertCoachProfile({ftp_watts:ftp,ftp_date:today,ftp_source:src});
+  alert(`FTP gespeichert: ${ftp} W.`);
+}
+async function applyCoachPackage(id){
+  const pkg=coachState.packages.find(x=>x.id===id); if(!pkg)return;
+  try{
+    if(!pkg.package||pkg.package.schema!==COACH_SCHEMA)throw new Error("Ungültiges Planpaket.");
+    importPlanPackageObject(pkg.package);
+    const now=new Date().toISOString();
+    await supabase.from("coach_plan_packages").update({applied_at:now}).eq("id",id);
+    if(pkg.coach_request_id)await supabase.from("coach_requests").update({status:"applied",updated_at:now}).eq("id",pkg.coach_request_id);
+    await loadCoachState();
+  }catch(e){alert("Planpaket konnte nicht übernommen werden:\n"+e.message)}
+}
+function coachStatusText(r){
+  return ({pending:"Angefragt",processing:"Wird erstellt",ready:"Bereit",applied:"Übernommen",failed:"Fehler"})[r.status]||r.status;
+}
+
+async function copyTredictCoachRequest(){
+ const plan=coachCurrentPlan(),block=coachCurrentBlock();
+ const txt=`Analysiere meine aktuellen Radsport-Aktivitäten in Tredict und verwende sie zusammen mit meinem Trainingsstand als Grundlage für die Fortsetzung von „${block?.title||"meinem aktuellen Block"}“ im Plan „${plan?.title||"Mein Training"}“. Berücksichtige besonders Leistung/Watt, Herzfrequenz, Kadenz, Belastungsverteilung, absolvierte Einheiten und den aktuellen FTP.`;
+ try{await navigator.clipboard.writeText(txt);alert("Tredict-Analyseauftrag wurde kopiert. Füge ihn in ChatGPT ein – dort kann auf die verbundene Tredict-Integration zugegriffen werden.")}catch(_){prompt("Diesen Auftrag in ChatGPT verwenden:",txt)}
+}
+function renderCoachPanel(){
+  const box=document.getElementById("meinTrainingCoach");
+  if(!box)return;
+  const profile=coachState.profile;
+  const ready=coachState.packages.filter(x=>!x.applied_at);
+  const reqs=coachState.requests.slice(0,5);
+  box.innerHTML=`
+    <h3>Mein Training Coach</h3>
+    <div class="eq-small">Supabase Coach-Engine · Tredict kann zusätzlich für Aktivitätsanalyse durch ChatGPT verwendet werden</div>
+    <div class="coach-grid">
+      <div class="card glass">
+        <strong>Leistungsbasis</strong>
+        <div>${profile?.ftp_watts?`${profile.ftp_watts} W FTP`:"Noch kein FTP gespeichert"}</div>
+        <div class="eq-small">${profile?.ftp_date||""} ${profile?.ftp_source?`· ${profile.ftp_source}`:""}</div>
+        <div class="stack">
+          <button class="pill" onclick="exportFTPTest()">⚡ FTP-Test exportieren</button>
+          <button class="pill" onclick="saveFTPResult()">✓ FTP-Ergebnis speichern</button>
+        </div>
+      </div>
+      <div class="card glass">
+        <strong>Trainingsplan</strong>
+        <div>${coachCurrentBlock()?.title||"Kein Block ausgewählt"}</div>
+        <div class="stack">
+          <button class="pill primary" onclick="requestPlanContinuation()">＋ Fortsetzung anfordern</button>
+          <button class="pill" onclick="loadCoachState()">↻ Coach aktualisieren</button>
+          <button class="pill" onclick="copyTredictCoachRequest()">↗ Mit Tredict analysieren</button>
+        </div>
+      </div>
+    </div>
+    ${ready.length?`<div class="card glass"><strong>Bereit zur Übernahme</strong>${ready.map(x=>`
+      <div class="coach-row"><span>${x.package?.blocks?.[0]?.title||"Neuer Trainingsblock"}</span>
+      <button class="pill primary" onclick="applyCoachPackage('${x.id}')">Übernehmen</button></div>`).join("")}</div>`:""}
+    ${reqs.length?`<div class="card glass"><strong>Letzte Coach-Anfragen</strong>${reqs.map(r=>`
+      <div class="coach-row"><span>${r.request_type==="continue_plan"?"Plan fortsetzen":r.request_type} · ${coachStatusText(r)}</span>
+      <span class="eq-small">${new Date(r.created_at).toLocaleDateString("de-AT")}</span></div>`).join("")}</div>`:""}
+  `;
+}
+function installMeinTrainingCoach(){
+  if(document.getElementById("meinTrainingCoach"))return;
+  const candidates=[...document.querySelectorAll("main,section,div")];
+  const settings=candidates.find(el=>/Einstellungen/i.test(el.textContent||"") && el.offsetParent!==null) ||
+                 document.querySelector('#settings,.settings-screen,[data-screen="settings"]');
+  if(!settings)return;
+  const box=document.createElement("section");
+  box.id="meinTrainingCoach"; box.className="card glass";
+  settings.appendChild(box); renderCoachPanel(); loadCoachState();
+}
+new MutationObserver(()=>{installMeinTrainingCoach()}).observe(document.documentElement,{childList:true,subtree:true});
+document.addEventListener("DOMContentLoaded",()=>{installMeinTrainingCoach();loadCoachState()});
+
+/* Realtime: coach requests and packages update across iPhone/iPad/browser */
+try{
+ supabase.channel("mein-training-coach")
+  .on("postgres_changes",{event:"*",schema:"public",table:"coach_requests"},()=>loadCoachState())
+  .on("postgres_changes",{event:"*",schema:"public",table:"coach_plan_packages"},()=>loadCoachState())
+  .on("postgres_changes",{event:"*",schema:"public",table:"coach_profiles"},()=>loadCoachState())
+  .subscribe();
+}catch(_){}
 </script>
 
 <dialog id="passwordDialog">

@@ -1,4 +1,4 @@
-const CACHE="training-v6-21-2-real-gpt-modal";
+const CACHE="training-v6-24-auto-coach";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
