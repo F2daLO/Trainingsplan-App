@@ -1,4 +1,4 @@
-const CACHE="training-v6-18-3-3-mobile-scroll-anchor";
+const CACHE="training-v6-18-3-4-plan-scroll-render-fix";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{

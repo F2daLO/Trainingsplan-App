@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.18.3.3</title>
+<title>Training v6.18.3.4</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2808,6 +2808,11 @@ button.metric.analytics-link{border:inherit}
  box-shadow:none!important;
 }
 
+
+/* V6.18.3.4: Safari must not choose a new scroll anchor while session cards are replaced. */
+#planContent{overflow-anchor:none!important}
+#planContent .session,#planContent [data-date]{overflow-anchor:none!important}
+
 </style>
 </head>
 <body>
@@ -2900,7 +2905,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.3.3</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.3.4</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5223,57 +5228,34 @@ document.addEventListener("pointerdown",e=>{
 },{capture:true});
 
 
-/* V6.18.3.3: mobile-safe Plan scroll anchor for status changes. */
-let planInteractionAnchor=null;
 
-function rememberPlanInteractionAnchor(target){
- const root=document.getElementById("planContent");
- if(screen!=="plan"||!root)return;
- const card=target&&target.closest ? target.closest("[data-date],.session-card,.training-card,[data-session-id]") : null;
- let key=null;
- if(card){
-  key=card.getAttribute("data-session-id")||card.getAttribute("data-date")||null;
- }
- const rootRect=root.getBoundingClientRect();
- const cardRect=card?card.getBoundingClientRect():null;
- planInteractionAnchor={
-  scrollTop:root.scrollTop,
-  key,
-  date:card?card.getAttribute("data-date"):null,
-  offset:cardRect ? (cardRect.top-rootRect.top) : null
- };
-}
-
-/* pointerdown is reliable on iOS before tap/double-tap handlers mutate and render. */
-document.addEventListener("pointerdown",e=>{
- if(!e.target.closest("#planContent"))return;
- const actionable=e.target.closest("[data-date],.session-card,.training-card,[data-session-id]");
- if(actionable)rememberPlanInteractionAnchor(actionable);
-},{capture:true});
-
-const _renderMobileAnchor=render;
+/* V6.18.3.4: preserve Plan scroll across ANY ordinary re-render.
+   This fixes both the immediate status render and the delayed cloud-sync render on iPhone. */
+const _renderPlanScrollStable=render;
 render=function(){
- const anchor=(screen==="plan"&&planInteractionAnchor)?{...planInteractionAnchor}:null;
- _renderMobileAnchor();
- if(!anchor)return;
- requestAnimationFrame(()=>requestAnimationFrame(()=>{
-  const root=document.getElementById("planContent");
-  if(!root){planInteractionAnchor=null;return}
-  let card=null;
-  if(anchor.key){
-   try{card=root.querySelector(`[data-session-id="${CSS.escape(anchor.key)}"]`)}catch(_){}
-  }
-  if(!card&&anchor.date){
-   try{card=root.querySelector(`[data-date="${CSS.escape(anchor.date)}"]`)}catch(_){}
-  }
-  if(card&&anchor.offset!==null){
-   const delta=(card.getBoundingClientRect().top-root.getBoundingClientRect().top)-anchor.offset;
-   root.scrollTop+=delta;
-  }else{
-   root.scrollTop=anchor.scrollTop;
-  }
-  planInteractionAnchor=null;
- }));
+ const oldRoot=document.getElementById("planContent");
+ const preserve=
+   screen==="plan" &&
+   oldRoot &&
+   planInitialScrollKey!==null &&
+   !forcePlanTodayOnEntry;
+ const savedTop=preserve ? oldRoot.scrollTop : null;
+
+ _renderPlanScrollStable();
+
+ if(preserve && savedTop!==null){
+   const restore=()=>{
+     const root=document.getElementById("planContent");
+     if(root)root.scrollTop=savedTop;
+   };
+   /* Restore immediately and again after WebKit layout/paint settles. */
+   restore();
+   requestAnimationFrame(()=>{
+     restore();
+     requestAnimationFrame(restore);
+   });
+   setTimeout(restore,80);
+ }
 };
 </script>
 
