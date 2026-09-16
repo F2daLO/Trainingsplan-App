@@ -1,4 +1,4 @@
-const CACHE="training-v6-18-3-5-status-scroll-root";
+const CACHE="training-v6-21-plan-package";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
