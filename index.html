@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.18.3.4</title>
+<title>Training v6.18.3.5</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2905,7 +2905,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.3.4</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.3.5</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -3243,6 +3243,7 @@ function localTodayISO(){
  return `${y}-${m}-${day}`;
 }
 function scrollPlanToToday(){
+ if(statusPlanScrollGuard)return;
  const forced=forcePlanTodayOnEntry;
  if(forced){planInitialScrollKey=null;forcePlanTodayOnEntry=false;}
  const root=document.getElementById("planContent");if(!root)return;
@@ -3310,7 +3311,7 @@ function saveSession(e){
  sessionDialog.close();
  persist();
 }
-function setStatus(id,status){const s=db.sessions.find(x=>x.id===id);if(!s)return;s.status=status;s.updatedAt=new Date().toISOString();persist()}
+function setStatus(id,status){const s=db.sessions.find(x=>x.id===id);if(!s)return;startStatusPlanScrollGuard();s.status=status;s.updatedAt=new Date().toISOString();persist()}
 function moveTomorrow(id){
   const s=db.sessions.find(x=>x.id===id);if(!s)return;
   if(!s.originalDate)s.originalDate=s.date;
@@ -5229,34 +5230,26 @@ document.addEventListener("pointerdown",e=>{
 
 
 
-/* V6.18.3.4: preserve Plan scroll across ANY ordinary re-render.
-   This fixes both the immediate status render and the delayed cloud-sync render on iPhone. */
-const _renderPlanScrollStable=render;
-render=function(){
- const oldRoot=document.getElementById("planContent");
- const preserve=
-   screen==="plan" &&
-   oldRoot &&
-   planInitialScrollKey!==null &&
-   !forcePlanTodayOnEntry;
- const savedTop=preserve ? oldRoot.scrollTop : null;
 
- _renderPlanScrollStable();
-
- if(preserve && savedTop!==null){
-   const restore=()=>{
-     const root=document.getElementById("planContent");
-     if(root)root.scrollTop=savedTop;
-   };
-   /* Restore immediately and again after WebKit layout/paint settles. */
-   restore();
-   requestAnimationFrame(()=>{
-     restore();
-     requestAnimationFrame(restore);
-   });
-   setTimeout(restore,80);
- }
-};
+/* V6.18.3.5: iPhone status-scroll guard.
+   Uses the actual scrolling element (#planContent) and survives delayed cloud renders. */
+let statusPlanScrollGuard=null;
+function beginStatusPlanScrollGuard(){
+ const r=document.getElementById("planContent");
+ if(!r||screen!=="plan")return;
+ statusPlanScrollGuard={top:r.scrollTop,expires:Date.now()+2600};
+}
+function enforceStatusPlanScrollGuard(){
+ if(!statusPlanScrollGuard)return;
+ if(Date.now()>statusPlanScrollGuard.expires){statusPlanScrollGuard=null;return}
+ const r=document.getElementById("planContent");
+ if(r)r.scrollTop=statusPlanScrollGuard.top;
+ requestAnimationFrame(enforceStatusPlanScrollGuard);
+}
+function startStatusPlanScrollGuard(){
+ beginStatusPlanScrollGuard();
+ requestAnimationFrame(enforceStatusPlanScrollGuard);
+}
 </script>
 
 <dialog id="passwordDialog">
