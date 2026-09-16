@@ -1,4 +1,4 @@
-const CACHE="training-v6-13-3-clear-footer";
+const CACHE="training-v6-14-clean-glass-controls";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{

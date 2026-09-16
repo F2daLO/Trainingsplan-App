@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.13.3</title>
+<title>Training v6.14</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2187,6 +2187,140 @@ footer::before,footer::after,.footer::before,.footer::after,
  .plan-scroll{padding-bottom:calc(80px + env(safe-area-inset-bottom))!important}
 }
 
+
+/* ===== V6.14 CLEAN GLASS CONTROLS ===== */
+:root{
+ --clear-glass:rgba(255,255,255,.055);
+ --clear-line:rgba(214,218,225,.34);
+}
+
+/* Glass capsule and selects: almost optically clear, matching native Block control. */
+.nav{
+ background:rgba(255,255,255,.075)!important;
+ border:1px solid rgba(218,221,227,.42)!important;
+ box-shadow:0 6px 22px rgba(24,29,37,.065),inset 0 1px 0 rgba(255,255,255,.88)!important;
+ backdrop-filter:blur(11px) saturate(145%)!important;
+ -webkit-backdrop-filter:blur(11px) saturate(145%)!important;
+}
+.nav.scrolling{background:rgba(255,255,255,.045)!important}
+select,#planFilterDialog select,.plan-fixed select,.settings-card select,.modal select{
+ background:rgba(255,255,255,.035)!important;
+ background-color:rgba(255,255,255,.035)!important;
+ border:1px solid rgba(215,219,226,.34)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.78),0 1px 5px rgba(25,30,38,.018)!important;
+ backdrop-filter:blur(7px) saturate(135%)!important;
+ -webkit-backdrop-filter:blur(7px) saturate(135%)!important;
+}
+
+/* No pointless scrolling: JS adds can-scroll only when actual overflow exists. */
+main,.overview-wrap,.settings-wrap,.modal,.plan-scroll{
+ overflow-y:hidden!important;
+ overscroll-behavior-y:none!important;
+}
+main.can-scroll,.overview-wrap.can-scroll,.settings-wrap.can-scroll,.modal.can-scroll,.plan-scroll.can-scroll{
+ overflow-y:auto!important;
+ overscroll-behavior-y:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+}
+
+/* Plan control language: small centered floating icon capsules, labels appear on interaction. */
+.plan-fixed .segment{
+ width:max-content!important;
+ margin:4px auto!important;
+ display:flex!important;
+ justify-content:center!important;
+ gap:2px!important;
+ padding:3px!important;
+ background:rgba(255,255,255,.035)!important;
+ border:1px solid rgba(215,219,226,.32)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.78),0 2px 8px rgba(25,30,38,.025)!important;
+ backdrop-filter:blur(8px) saturate(140%)!important;
+ -webkit-backdrop-filter:blur(8px) saturate(140%)!important;
+}
+.plan-fixed .segment button{
+ min-width:64px!important;
+ min-height:28px!important;
+ padding:4px 10px!important;
+ border-radius:14px!important;
+ background:transparent!important;
+ color:#555!important;
+ font-size:11px!important;
+}
+.plan-fixed .segment button.active{
+ background:rgba(255,255,255,.18)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.72)!important;
+ color:#111!important;
+ font-weight:700!important;
+}
+
+/* Action row becomes a centered, minimal floating control strip. */
+.plan-fixed .actions-top{
+ width:max-content!important;
+ max-width:100%!important;
+ margin:5px auto 4px!important;
+ padding:3px!important;
+ display:flex!important;
+ justify-content:center!important;
+ align-items:center!important;
+ gap:3px!important;
+ overflow:visible!important;
+ background:rgba(255,255,255,.035)!important;
+ border:1px solid rgba(215,219,226,.32)!important;
+ border-radius:18px!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.78),0 2px 9px rgba(25,30,38,.025)!important;
+ backdrop-filter:blur(8px) saturate(140%)!important;
+ -webkit-backdrop-filter:blur(8px) saturate(140%)!important;
+}
+.plan-fixed .actions-top .pill{
+ width:32px!important;
+ min-width:32px!important;
+ height:30px!important;
+ min-height:30px!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:15px!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+ color:#25272b!important;
+ font-size:0!important;
+ display:flex!important;
+ justify-content:center!important;
+ align-items:center!important;
+ overflow:hidden!important;
+ white-space:nowrap!important;
+ transition:width .18s ease,padding .18s ease,background .18s ease!important;
+}
+.plan-fixed .actions-top .pill::first-letter{font-size:16px!important}
+.plan-fixed .actions-top .pill:hover,
+.plan-fixed .actions-top .pill:focus-visible{
+ width:auto!important;
+ min-width:32px!important;
+ padding:0 10px!important;
+ font-size:10px!important;
+ background:rgba(255,255,255,.16)!important;
+}
+.plan-fixed .actions-top .pill.primary,
+.plan-fixed .actions-top .pill.gold{
+ background:transparent!important;color:#25272b!important;border:0!important;
+}
+.plan-fixed .actions-top .filter-pill{font-size:0!important}
+.plan-fixed .actions-top .filter-pill:hover,
+.plan-fixed .actions-top .filter-pill:focus-visible{font-size:10px!important}
+
+/* On touch screens there is no hover: keep elegant icon-only controls. */
+@media(hover:none) and (pointer:coarse){
+ .plan-fixed .actions-top .pill{font-size:0!important}
+ .plan-fixed .actions-top .pill:active{
+   transform:scale(.94)!important;
+   background:rgba(255,255,255,.16)!important;
+ }
+}
+
+/* Keep overview fixed when content fits. */
+body:not(:has(.plan-screen)) main:not(.can-scroll){height:100dvh!important;overflow:hidden!important}
+
 </style>
 </head>
 <body>
@@ -2279,7 +2413,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.13.3</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.14</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -4525,6 +4659,16 @@ document.addEventListener("touchmove",()=>{
   clearTimeout(adaptiveNavTimer);
   adaptiveNavTimer=setTimeout(()=>setFloatingNavCompact(false),180);
 },{passive:true});
+
+function updateScrollableState(){
+ document.querySelectorAll("main,.plan-scroll,.modal,.settings-wrap,.overview-wrap").forEach(el=>{
+   const can=el.scrollHeight>el.clientHeight+2;
+   el.classList.toggle("can-scroll",can);
+ });
+}
+const _renderForOverflow=render;
+render=function(){_renderForOverflow.apply(this,arguments);requestAnimationFrame(()=>requestAnimationFrame(updateScrollableState));}
+window.addEventListener("resize",()=>requestAnimationFrame(updateScrollableState));
 </script>
 
 <dialog id="passwordDialog">
