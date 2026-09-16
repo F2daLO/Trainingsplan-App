@@ -1,4 +1,4 @@
-const CACHE="training-v6-14-1-corrective";
+const CACHE="training-v6-14-2-nosnap-editor";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
