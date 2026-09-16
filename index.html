@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111214">
+<meta name="theme-color" content="#ffffff">\n<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.13</title>
+<title>Training v6.13.2</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -1838,7 +1838,260 @@ select,input,textarea,.segment,.pill{
  .meta,.a-muted,.cloud,.block-stat span,.event-sub{color:#76767d!important}
 }
 
-/* V6.13 */ .plan-scroll{mask:none!important;-webkit-mask:none!important;mask-image:none!important;-webkit-mask-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}.plan-scroll:before,.plan-scroll:after,.plan-fixed:before,.plan-fixed:after{display:none!important;content:none!important}.plan-fixed,.plan-fixed .plan-head,.week-title{background:#fff!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;box-shadow:none!important}.nav,.nav.scrolling{background:rgba(255,255,255,.58)!important}.nav button,.nav button.active{background:transparent!important;box-shadow:none!important}.nav button.active{font-weight:700!important;color:#111!important}.filter-pill{display:flex!important;gap:4px!important;align-items:center!important}#filterCount:empty{display:none}#filterCount:not(:empty){display:inline-flex;width:17px;height:17px;border-radius:50%;align-items:center;justify-content:center;background:#111;color:#fff;font-size:9px}.plan-filter-modal{background:rgba(255,255,255,.94)!important}@media(max-width:767px){.plan-fixed .actions-top{flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none}.plan-fixed .actions-top::-webkit-scrollbar{display:none}.plan-fixed .actions-top .pill{white-space:nowrap!important;flex:0 0 auto!important}}</style>
+/* V6.13 */ .plan-scroll{mask:none!important;-webkit-mask:none!important;mask-image:none!important;-webkit-mask-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}.plan-scroll:before,.plan-scroll:after,.plan-fixed:before,.plan-fixed:after{display:none!important;content:none!important}.plan-fixed,.plan-fixed .plan-head,.week-title{background:#fff!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;box-shadow:none!important}.nav,.nav.scrolling{background:rgba(255,255,255,.58)!important}.nav button,.nav button.active{background:transparent!important;box-shadow:none!important}.nav button.active{font-weight:700!important;color:#111!important}.filter-pill{display:flex!important;gap:4px!important;align-items:center!important}#filterCount:empty{display:none}#filterCount:not(:empty){display:inline-flex;width:17px;height:17px;border-radius:50%;align-items:center;justify-content:center;background:#111;color:#fff;font-size:9px}.plan-filter-modal{background:rgba(255,255,255,.94)!important}@media(max-width:767px){.plan-fixed .actions-top{flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none}.plan-fixed .actions-top::-webkit-scrollbar{display:none}.plan-fixed .actions-top .pill{white-space:nowrap!important;flex:0 0 auto!important}}
+/* ===== V6.13.1 iPhone structural fix ===== */
+
+/* PWA canvas and safe areas are truly white. */
+html,body{background:#fff!important;background-color:#fff!important}
+html{min-height:100%;overscroll-behavior:none!important}
+body{min-height:100dvh!important;margin:0!important}
+
+/* Plan is a fixed viewport: header never participates in scrolling. */
+.plan-screen{
+ position:fixed!important;
+ inset:0!important;
+ width:100%!important;
+ height:100dvh!important;
+ max-height:100dvh!important;
+ overflow:hidden!important;
+ display:flex!important;
+ flex-direction:column!important;
+ box-sizing:border-box!important;
+ background:#fff!important;
+ padding:
+   calc(env(safe-area-inset-top) + 8px)
+   8px
+   calc(env(safe-area-inset-bottom) + 74px)
+   8px!important;
+}
+.plan-fixed{
+ position:relative!important;
+ top:auto!important;
+ left:auto!important;
+ right:auto!important;
+ flex:0 0 auto!important;
+ z-index:20!important;
+ overflow:visible!important;
+ background:#fff!important;
+ padding:0!important;
+ margin:0!important;
+ transform:none!important;
+}
+.plan-scroll{
+ position:relative!important;
+ flex:1 1 0!important;
+ min-height:0!important;
+ height:auto!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ -webkit-overflow-scrolling:touch!important;
+ overscroll-behavior-y:contain!important;
+ touch-action:pan-y!important;
+ padding:3px 0 18px!important;
+ margin:0!important;
+ background:#fff!important;
+ mask:none!important;-webkit-mask:none!important;
+ filter:none!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+
+/* Absolutely no top fade/blur overlay. */
+.plan-screen::before,.plan-screen::after,
+.plan-fixed::before,.plan-fixed::after,
+.plan-scroll::before,.plan-scroll::after,
+.week-title::before,.week-title::after{
+ display:none!important;content:none!important;
+}
+.week-title{
+ position:relative!important;
+ top:auto!important;
+ z-index:1!important;
+ background:#fff!important;
+ filter:none!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+
+/* Floating navigation: no app-colored tray behind it. */
+.nav{
+ bottom:calc(env(safe-area-inset-bottom) + 8px)!important;
+ background:rgba(255,255,255,.62)!important;
+ border:1px solid rgba(210,212,218,.48)!important;
+ box-shadow:0 6px 22px rgba(0,0,0,.11)!important;
+}
+.nav::before,.nav::after{display:none!important;content:none!important}
+
+/* Filter sheet: centered and iPhone-safe. */
+#planFilterDialog{
+ width:100vw!important;
+ max-width:none!important;
+ height:100dvh!important;
+ max-height:none!important;
+ margin:0!important;
+ padding:
+   calc(env(safe-area-inset-top) + 12px)
+   12px
+   calc(env(safe-area-inset-bottom) + 12px)!important;
+ box-sizing:border-box!important;
+ background:transparent!important;
+ overflow:hidden!important;
+}
+#planFilterDialog[open]{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+}
+#planFilterDialog .plan-filter-modal{
+ width:min(100%,520px)!important;
+ max-width:520px!important;
+ max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px)!important;
+ margin:0 auto!important;
+ padding:18px!important;
+ box-sizing:border-box!important;
+ overflow-y:auto!important;
+ border-radius:24px!important;
+ background:rgba(255,255,255,.94)!important;
+}
+#planFilterDialog .grid{grid-template-columns:1fr!important;gap:11px!important}
+#planFilterDialog .full{grid-column:1!important}
+#planFilterDialog select{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+#planFilterDialog .modal-actions{
+ display:grid!important;
+ grid-template-columns:1fr 1fr!important;
+ gap:8px!important;
+}
+#planFilterDialog .modal-actions .primary{grid-column:1/-1!important;order:-1!important}
+#planFilterDialog .modal-actions button{width:100%!important;margin:0!important}
+
+/* On iPhone the plan header starts below the physical status/notch area. */
+@media(max-width:767px){
+ body:has(.plan-screen){overflow:hidden!important;height:100dvh!important}
+ main:has(.plan-screen){
+   padding:0!important;
+   margin:0!important;
+   height:100dvh!important;
+   overflow:hidden!important;
+ }
+ .plan-fixed .page-head{display:none!important}
+ .plan-fixed .plan-head{
+   margin:0 0 4px!important;
+   padding:6px 8px!important;
+   background:#fff!important;
+   border:1px solid #ededf0!important;
+   border-radius:15px!important;
+ }
+ .plan-fixed .actions-top{margin:3px 0 4px!important}
+}
+
+/* iOS rubber-band area stays white even outside Plan. */
+@supports(padding:max(0px)){
+ body{padding-bottom:env(safe-area-inset-bottom)}
+}
+
+
+/* ===== V6.13.2 UNIFIED LIQUID GLASS ===== */
+:root{
+ --lg-bg:rgba(255,255,255,.34);
+ --lg-bg-strong:rgba(255,255,255,.50);
+ --lg-line:rgba(255,255,255,.82);
+ --lg-shadow:0 8px 26px rgba(32,38,48,.075);
+ --lg-inset:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(255,255,255,.26);
+}
+html,body,.shell,main{background:#fff!important}
+
+/* One material language for virtually every interactive/card surface. */
+.glass,.event-card,.session,.analytics-card,.analytics-hero,.metric,
+.plan-head,.block-stat,.card,.settings-card,.equipment-card,
+.modal,.quick-menu,.gpt-explain-sheet,
+.pill,.segment,select,input,textarea{
+ background:linear-gradient(145deg,rgba(255,255,255,.48),rgba(246,248,252,.24))!important;
+ border:1px solid var(--lg-line)!important;
+ box-shadow:var(--lg-shadow),var(--lg-inset)!important;
+ backdrop-filter:blur(24px) saturate(180%) brightness(1.055)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(180%) brightness(1.055)!important;
+}
+select{
+ appearance:auto!important;-webkit-appearance:auto!important;
+ background-color:rgba(255,255,255,.36)!important;
+}
+.segment{padding:2px!important}
+.segment button{background:transparent!important;box-shadow:none!important;border:0!important}
+.segment button.active{
+ background:rgba(255,255,255,.52)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.98),0 2px 8px rgba(32,38,48,.055)!important;
+}
+.pill.primary{
+ background:rgba(36,39,45,.76)!important;color:#fff!important;
+ border-color:rgba(255,255,255,.48)!important;
+}
+.pill.gold{background:rgba(255,223,105,.28)!important}
+
+/* Plan fixed area remains structurally fixed but the control panel itself is glass. */
+.plan-screen{background:#fff!important}
+.plan-fixed{background:#fff!important}
+.plan-fixed .plan-head{
+ background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(245,247,251,.30))!important;
+ border:1px solid rgba(225,228,234,.72)!important;
+ box-shadow:0 5px 18px rgba(30,36,44,.045),inset 0 1px rgba(255,255,255,.98)!important;
+ backdrop-filter:blur(22px) saturate(175%)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(175%)!important;
+}
+.plan-scroll,.week-title{background:#fff!important}
+
+/* Floating bar: only the glass capsule exists; no tray/background layer. */
+.nav{
+ background:linear-gradient(145deg,rgba(255,255,255,.46),rgba(246,248,252,.20))!important;
+ border:1px solid rgba(255,255,255,.88)!important;
+ box-shadow:0 8px 28px rgba(25,31,40,.12),inset 0 1px rgba(255,255,255,1),inset 0 -1px rgba(255,255,255,.24)!important;
+ backdrop-filter:blur(26px) saturate(190%) brightness(1.06)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(190%) brightness(1.06)!important;
+}
+.nav button,.nav button.active{background:transparent!important;border:0!important;box-shadow:none!important}
+.nav button.active{color:#111!important;font-weight:750!important}
+.nav.scrolling{
+ background:linear-gradient(145deg,rgba(255,255,255,.40),rgba(246,248,252,.17))!important;
+}
+
+/* Filter is a bottom/center glass sheet, but never focuses a select automatically. */
+#planFilterDialog{outline:none!important}
+#planFilterDialog::backdrop{
+ background:rgba(245,247,250,.20)!important;
+ backdrop-filter:blur(7px)!important;
+ -webkit-backdrop-filter:blur(7px)!important;
+}
+#planFilterDialog .plan-filter-modal{
+ background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(244,247,252,.48))!important;
+ border:1px solid rgba(255,255,255,.92)!important;
+ box-shadow:0 20px 60px rgba(28,34,44,.16),inset 0 1px rgba(255,255,255,1)!important;
+ backdrop-filter:blur(30px) saturate(190%)!important;
+ -webkit-backdrop-filter:blur(30px) saturate(190%)!important;
+}
+#planFilterDialog label{font-weight:650!important}
+#planFilterDialog select{
+ min-height:44px!important;
+ background:rgba(255,255,255,.42)!important;
+ border:1px solid rgba(255,255,255,.88)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.96),0 3px 12px rgba(30,36,44,.045)!important;
+}
+
+/* GPT and dialogs use same glass family. */
+.gpt-explain-head,.gpt-explain-foot{
+ background:rgba(255,255,255,.48)!important;
+ border-color:rgba(255,255,255,.80)!important;
+}
+dialog::backdrop{background:rgba(244,246,250,.22)}
+
+/* Do not allow previous dark-mode CSS to repaint the requested white app. */
+@media(prefers-color-scheme:dark){
+ html,body,.shell,main,.plan-screen,.plan-fixed,.plan-scroll,.week-title{background:#fff!important;color:#1c1c1e!important}
+ .glass,.event-card,.session,.analytics-card,.analytics-hero,.metric,.plan-head,.block-stat,.card,.settings-card,.equipment-card,.modal,.quick-menu,.gpt-explain-sheet{
+  background:linear-gradient(145deg,rgba(255,255,255,.48),rgba(246,248,252,.24))!important;
+  border-color:rgba(255,255,255,.82)!important;color:#1c1c1e!important
+ }
+ .nav{background:linear-gradient(145deg,rgba(255,255,255,.46),rgba(246,248,252,.20))!important;border-color:rgba(255,255,255,.88)!important}
+ .nav button{color:#666!important}.nav button.active{color:#111!important}
+}
+
+</style>
 </head>
 <body>
 <div class="shell"><main id="main"></main></div>
@@ -1851,7 +2104,7 @@ select,input,textarea,.segment,.pill{
 <button id="navSettings" onclick="go('settings')"><span>⚙︎</span>Einstellungen</button>
 </nav>
 
-<dialog id="planFilterDialog"><form class="modal glass plan-filter-modal" onsubmit="applyPlanFilter(event)"><h2>Plan filtern</h2><div class="grid"><label>Kalenderwoche<select id="pfWeek"></select></label><label>Equipment / Trainingsart<select id="pfEquipment"></select></label><label class="full">Status<select id="pfStatus"><option value="all">Alle Status</option><option value="open">Nur offen</option><option value="overdue">Nur überfällig offen</option><option value="done">Nur erledigt</option><option value="moved">Nur verschoben</option><option value="cancel">Nur ausgefallen</option><option value="topup">Nur On Top</option></select></label></div><div class="modal-actions"><button type="button" class="pill" onclick="resetPlanFilter()">Zurücksetzen</button><button type="button" class="pill" onclick="planFilterDialog.close()">Abbrechen</button><button class="pill primary">Anwenden</button></div></form></dialog>
+<dialog id="planFilterDialog" tabindex="-1"><form class="modal glass plan-filter-modal" onsubmit="applyPlanFilter(event)"><h2>Plan filtern</h2><div class="grid"><label>Kalenderwoche<select id="pfWeek"></select></label><label>Equipment / Trainingsart<select id="pfEquipment"></select></label><label class="full">Status<select id="pfStatus"><option value="all">Alle Status</option><option value="open">Nur offen</option><option value="overdue">Nur überfällig offen</option><option value="done">Nur erledigt</option><option value="moved">Nur verschoben</option><option value="cancel">Nur ausgefallen</option><option value="topup">Nur On Top</option></select></label></div><div class="modal-actions"><button type="button" class="pill" onclick="resetPlanFilter()">Zurücksetzen</button><button type="button" class="pill" onclick="planFilterDialog.close()">Abbrechen</button><button class="pill primary">Anwenden</button></div></form></dialog>
 <dialog id="sessionDialog"><form class="modal glass" onsubmit="saveSession(event)">
 <h2 id="sessionHeading" tabindex="-1">Training</h2><p class="helper">Datum und Uhrzeit werden für neue Einheiten automatisch auf jetzt gesetzt.</p>
 <div class="grid">
@@ -1930,7 +2183,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.13</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.13.2</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -2090,7 +2343,10 @@ function openPlanFilter(){
  const all=db.sessions.filter(s=>s.planId===db.activePlan),weeks=[...new Set(all.map(sessionWeekKey))].sort(),eq=[...new Set(all.map(sessionEquipmentKey))].sort();
  pfWeek.innerHTML='<option value="all">Alle Kalenderwochen</option>'+weeks.map(k=>{const [y,w]=k.split("-");return `<option value="${k}">KW ${Number(w)} · ${y}</option>`}).join("");
  pfEquipment.innerHTML='<option value="all">Alle Geräte / Arten</option>'+eq.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
- pfWeek.value=planFilter.week;pfEquipment.value=planFilter.equipment;pfStatus.value=planFilter.status;planFilterDialog.showModal();
+ pfWeek.value=planFilter.week;pfEquipment.value=planFilter.equipment;pfStatus.value=planFilter.status;
+ if(document.activeElement)document.activeElement.blur();
+ planFilterDialog.showModal();
+ requestAnimationFrame(()=>{planFilterDialog.focus({preventScroll:true});});
 }
 function applyPlanFilter(e){e.preventDefault();planFilter={week:pfWeek.value,equipment:pfEquipment.value,status:pfStatus.value};planInitialScrollKey=null;planFilterDialog.close();render()}
 function resetPlanFilter(){planFilter={week:"all",equipment:"all",status:"all"};planInitialScrollKey=null;planFilterDialog.close();render()}
@@ -2202,13 +2458,22 @@ function renderAnalytics(){
  <section class="analytics-card glass"><h3>Verschiebungen im Detail</h3><p class="a-muted">${moved.length} verschoben · ${movedDone} erledigt · ${movedOpen} offen.</p>${moveRows||'<div class="empty-small">Keine Verschiebungen.</div>'}</section>`;
 }
 let planInitialScrollKey=null;
+function localTodayISO(){
+ const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
+ return `${y}-${m}-${day}`;
+}
 function scrollPlanToToday(){
  const root=document.getElementById("planContent");if(!root)return;
  const key=`${db.activePlan||""}:${planView}:${planFilter.week}:${planFilter.equipment}:${planFilter.status}`;
- if(planInitialScrollKey===key)return; planInitialScrollKey=key;
- const today=new Date().toISOString().slice(0,10),dated=[...root.querySelectorAll("[data-date]")];
- const target=dated.find(el=>el.dataset.date===today)||dated.find(el=>el.dataset.date>today);if(!target)return;
- requestAnimationFrame(()=>{const rr=root.getBoundingClientRect(),tr=target.getBoundingClientRect();root.scrollTop+=tr.top-rr.top-4});
+ if(planInitialScrollKey===key)return;
+ const today=localTodayISO(),dated=[...root.querySelectorAll("[data-date]")];
+ const target=dated.find(el=>el.dataset.date===today)||dated.find(el=>el.dataset.date>today);
+ if(!target)return;
+ planInitialScrollKey=key;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+   const rr=root.getBoundingClientRect(),tr=target.getBoundingClientRect();
+   root.scrollTop=Math.max(0,root.scrollTop+(tr.top-rr.top)-6);
+ }));
 }
 function openSession(id=null,topup=false){
  editId=id;const s=id?db.sessions.find(x=>x.id===id):null;
