@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.17</title>
+<title>Training v6.18.1</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2777,6 +2777,37 @@ body:has(#navAnalytics.active) main{
  -webkit-appearance:auto!important;appearance:auto!important;
 }
 
+
+/* ===== V6.18 ANALYTICS LINKS + NATIVE SELECT CONSISTENCY ===== */
+
+/* All native selects share exactly the same closed-control CSS.
+   Opened native popup remains OS/WebKit-rendered; no custom overlay is introduced. */
+.plan-controls select,#planFilterDialog select,#sessionDialog select,.settings-card select{
+ -webkit-appearance:menulist!important;appearance:auto!important;
+ background:transparent!important;background-color:transparent!important;background-image:none!important;
+ border:1px solid rgba(190,196,205,.30)!important;border-radius:12px!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.62)!important;
+ color:#1d1e20!important;
+}
+
+/* Analytics drill-down affordance without turning cards into blue/default buttons. */
+.analytics-link{
+ width:100%;font:inherit;text-align:inherit;color:inherit;cursor:pointer;
+ -webkit-appearance:none;appearance:none;outline:0;
+}
+button.metric.analytics-link{border:inherit}
+.a-bar-row.analytics-link{
+ display:block;border:0;background:transparent;padding:0;margin:0 0 10px;
+}
+.analytics-link:focus,.analytics-link:focus-visible{outline:0!important}
+.analytics-link:active{transform:scale(.992)}
+.clear-plan-filter{
+ width:30px!important;min-width:30px!important;height:30px!important;padding:0!important;
+ border-radius:15px!important;font-size:19px!important;line-height:1!important;
+ background:transparent!important;border:1px solid rgba(160,165,173,.22)!important;
+ box-shadow:none!important;
+}
+
 </style>
 </head>
 <body>
@@ -2790,7 +2821,7 @@ body:has(#navAnalytics.active) main{
 <button id="navSettings" onclick="go('settings')"><span>⚙︎</span>Einstellungen</button>
 </nav>
 
-<dialog id="planFilterDialog" tabindex="-1"><form class="modal glass plan-filter-modal" onsubmit="applyPlanFilter(event)"><h2>Plan filtern</h2><div class="grid"><label>Kalenderwoche<select id="pfWeek"></select></label><label>Equipment / Trainingsart<select id="pfEquipment"></select></label><label class="full">Status<select id="pfStatus"><option value="all">Alle Status</option><option value="open">Nur offen</option><option value="overdue">Nur überfällig offen</option><option value="done">Nur erledigt</option><option value="moved">Nur verschoben</option><option value="cancel">Nur ausgefallen</option><option value="topup">Nur On Top</option></select></label></div><div class="modal-actions"><button type="button" class="pill" onclick="resetPlanFilter()">Zurücksetzen</button><button type="button" class="pill" onclick="planFilterDialog.close()">Abbrechen</button><button class="pill primary">Anwenden</button></div></form></dialog>
+<dialog id="planFilterDialog" tabindex="-1"><form class="modal glass plan-filter-modal" onsubmit="applyPlanFilter(event)"><h2>Plan filtern</h2><div class="grid"><label>Kalenderwoche<select id="pfWeek"></select></label><label>Equipment / Trainingsart<select id="pfEquipment"></select></label><label>Wochentag<select id="pfWeekday"><option value="all">Alle Wochentage</option><option>Montag</option><option>Dienstag</option><option>Mittwoch</option><option>Donnerstag</option><option>Freitag</option><option>Samstag</option><option>Sonntag</option></select></label><label>Status<select id="pfStatus"><option value="all">Alle Status</option><option value="open">Nur offen</option><option value="overdue">Nur überfällig offen</option><option value="done">Nur erledigt</option><option value="moved">Nur verschoben</option><option value="cancel">Nur ausgefallen</option><option value="topup">Nur On Top</option></select></label></div><div class="modal-actions"><button type="button" class="pill" onclick="resetPlanFilter()">Zurücksetzen</button><button type="button" class="pill" onclick="planFilterDialog.close()">Abbrechen</button><button class="pill primary">Anwenden</button></div></form></dialog>
 <dialog id="sessionDialog"><form class="modal glass" onsubmit="saveSession(event)">
 <h2 id="sessionHeading" tabindex="-1">Training</h2><p class="helper">Datum und Uhrzeit werden für neue Einheiten automatisch auf jetzt gesetzt.</p>
 <div class="grid">
@@ -2869,7 +2900,7 @@ function render(){
  else renderSettings();
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.17</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.18.1</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -3001,17 +3032,18 @@ function renderPlan(){
    <div class="actions-top">
      <button class="pill primary" onclick="openSession()" aria-label="Training hinzufügen"><span class="action-icon">＋</span><span class="action-label">Training</span></button>
      <button class="pill gold" onclick="openSession(null,true)" aria-label="On Top hinzufügen"><span class="action-icon">☆</span><span class="action-label">On Top</span></button>
-     <button class="pill filter-pill" onclick="openPlanFilter()" aria-label="Plan filtern"><span class="action-icon">⌁</span><span class="action-label">Filter</span><span id="filterCount">${activePlanFilterCount()}</span></button>
+     <button class="pill filter-pill" onclick="openPlanFilter()" aria-label="Plan filtern"><span class="action-icon">⌁</span><span class="action-label">Filter</span><span id="filterCount">${activePlanFilterCount()}</span></button>${activePlanFilterCount()?`<button class="pill clear-plan-filter" onclick="resetPlanFilterFromPlan()" aria-label="Filter zurücksetzen">×</button>`:""}
    </div>
  </div>`;
  main.innerHTML=fixed+`<div id="planContent" class="plan-scroll"></div>`;
  if(planView==="list")renderList();else renderWeek();
 }
 
-function activePlanFilterCount(){return ["week","equipment","status"].filter(k=>planFilter[k]!=="all").length||""}
+function activePlanFilterCount(){return ["week","equipment","status","weekday"].filter(k=>planFilter[k]!=="all").length||""}
 function sessionWeekKey(s){const d=new Date(s.date+"T12:00:00");return `${d.getFullYear()}-${String(isoWeek(d)).padStart(2,"0")}`}
 function sessionEquipmentKey(s){return equipmentDisplay(s)||s.type||"Sonstiges"}
 function matchesPlanFilter(s){
+ if(planFilter.weekday!=="all"&&weekdayName(s.date)!==planFilter.weekday)return false;
  if(planFilter.week!=="all"&&sessionWeekKey(s)!==planFilter.week)return false;
  if(planFilter.equipment!=="all"&&sessionEquipmentKey(s)!==planFilter.equipment)return false;
  if(planFilter.status!=="all"){
@@ -3029,13 +3061,14 @@ function openPlanFilter(){
  const all=db.sessions.filter(s=>s.planId===db.activePlan),weeks=[...new Set(all.map(sessionWeekKey))].sort(),eq=[...new Set(all.map(sessionEquipmentKey))].sort();
  pfWeek.innerHTML='<option value="all">Alle Kalenderwochen</option>'+weeks.map(k=>{const [y,w]=k.split("-");return `<option value="${k}">KW ${Number(w)} · ${y}</option>`}).join("");
  pfEquipment.innerHTML='<option value="all">Alle Geräte / Arten</option>'+eq.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
- pfWeek.value=planFilter.week;pfEquipment.value=planFilter.equipment;pfStatus.value=planFilter.status;
+ pfWeek.value=planFilter.week;pfEquipment.value=planFilter.equipment;pfStatus.value=planFilter.status;pfWeekday.value=planFilter.weekday||"all";
  if(document.activeElement)document.activeElement.blur();
  planFilterDialog.showModal();
  requestAnimationFrame(()=>{planFilterDialog.focus({preventScroll:true});});
 }
-function applyPlanFilter(e){e.preventDefault();planFilter={week:pfWeek.value,equipment:pfEquipment.value,status:pfStatus.value};planInitialScrollKey=null;planFilterDialog.close();render()}
-function resetPlanFilter(){planFilter={week:"all",equipment:"all",status:"all"};planInitialScrollKey=null;planFilterDialog.close();render()}
+function applyPlanFilter(e){e.preventDefault();planFilter={week:pfWeek.value,equipment:pfEquipment.value,status:pfStatus.value,weekday:pfWeekday.value};planInitialScrollKey=null;planFilterDialog.close();render()}
+function resetPlanFilterFromPlan(){planFilter={week:"all",equipment:"all",status:"all",weekday:"all"};planInitialScrollKey=null;render()}
+function resetPlanFilter(){planFilter={week:"all",equipment:"all",status:"all",weekday:"all"};planInitialScrollKey=null;planFilterDialog.close();render()}
 function renderList(){
  const arr=currentSessions(), root=document.getElementById("planContent");if(!arr.length){root.innerHTML='<div class="empty">Noch keine Einheiten in diesem Block.</div>';return}
  const groups={};
@@ -3102,6 +3135,40 @@ function analyticsBar(label,value,max,sub=""){
   const w=max?Math.max(3,Math.round(value/max*100)):0;
   return `<div class="a-bar-row"><div class="a-bar-label"><span>${esc(label)}</span><strong>${value}${sub}</strong></div><div class="a-bar-track"><span style="width:${w}%"></span></div></div>`;
 }
+
+function analyticsToPlan(kind,value=""){
+ const {sessions}=analyticsScope();
+ const today=localTodayISO();
+ let rows=sessions.slice();
+ if(kind==="done")rows=rows.filter(s=>s.status==="done");
+ else if(kind==="moved")rows=rows.filter(isSessionMoved);
+ else if(kind==="movedOpen")rows=rows.filter(s=>isSessionMoved(s)&&s.status!=="done"&&s.status!=="cancel");
+ else if(kind==="overdue")rows=rows.filter(s=>s.date<today&&s.status!=="done"&&s.status!=="cancel");
+ else if(kind==="future")rows=rows.filter(s=>s.date>=today&&s.status!=="done"&&s.status!=="cancel");
+ else if(kind==="cancel")rows=rows.filter(s=>s.status==="cancel");
+ else if(kind==="topup")rows=rows.filter(s=>s.topup);
+ else if(kind==="weekday")rows=rows.filter(s=>s.status==="done"&&weekdayName(s.date)===value);
+ else if(kind==="equipment")rows=rows.filter(s=>sessionEquipmentKey(s)===value);
+ if(!rows.length)return;
+ const counts={};rows.forEach(s=>counts[s.planId]=(counts[s.planId]||0)+1);
+ db.activePlan=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+ planFilter={week:"all",equipment:"all",status:"all",weekday:"all"};
+ if(kind==="done")planFilter.status="done";
+ else if(kind==="moved")planFilter.status="moved";
+ else if(kind==="movedOpen")planFilter.status="moved";
+ else if(kind==="overdue")planFilter.status="overdue";
+ else if(kind==="future")planFilter.status="open";
+ else if(kind==="cancel")planFilter.status="cancel";
+ else if(kind==="topup")planFilter.status="topup";
+ else if(kind==="weekday"){planFilter.status="done";planFilter.weekday=value}
+ else if(kind==="equipment")planFilter.equipment=value;
+ planView="list";planInitialScrollKey=null;screen="plan";render();
+}
+function analyticsBarLink(label,value,max,kind,arg=""){
+ const w=max?Math.max(3,Math.round(value/max*100)):0;
+ const call=`analyticsToPlan('${kind}','${String(arg).replace(/\\/g,"\\\\").replace(/'/g,"\\'")}')`;
+ return `<button type="button" class="a-bar-row analytics-link" onclick="${call}"><div class="a-bar-label"><span>${esc(label)}</span><strong>${value}</strong></div><div class="a-bar-track"><span style="width:${w}%"></span></div></button>`;
+}
 function renderAnalytics(){
  const {event,sessions,plans}=analyticsScope(),today=new Date().toISOString().slice(0,10),total=sessions.length;
  const done=sessions.filter(s=>s.status==="done").length,cancelled=sessions.filter(s=>s.status==="cancel").length;
@@ -3123,16 +3190,16 @@ function renderAnalytics(){
  main.innerHTML=head("Auswertung")+`
  <section class="analytics-hero glass"><div><div class="a-eyebrow">Gesamtauswertung</div><h2>${esc(event?.name||"Alle Trainings")}</h2><p>Nur tatsächliche Trainingseinheiten; Ruhetage, Regeneration und Urlaub sind ausgeschlossen.</p></div><div class="a-big"><strong>${pct(done,total)}%</strong><span>erledigt</span></div></section>
  <div class="metric-grid">
-  <div class="metric glass"><span>Gesamt</span><strong>${total}</strong></div><div class="metric glass done"><span>Erledigt</span><strong>${done}</strong></div>
-  <div class="metric glass move"><span>Verschoben</span><strong>${moved.length}</strong><small>${movedDone} erledigt</small></div>
-  <div class="metric glass move"><span>Verschoben offen</span><strong>${movedOpen}</strong></div>
-  <div class="metric glass overdue"><span>Überfällig offen</span><strong>${overdue}</strong><small>Termin vor heute</small></div>
-  <div class="metric glass"><span>Zukünftig offen</span><strong>${future}</strong><small>heute oder später</small></div>
-  <div class="metric glass cancel"><span>Ausgefallen</span><strong>${cancelled}</strong></div><div class="metric glass topup"><span>On Top</span><strong>${topup}</strong></div>
+  <div class="metric glass"><span>Gesamt</span><strong>${total}</strong></div><button class="metric glass done analytics-link" onclick="analyticsToPlan('done')"><span>Erledigt</span><strong>${done}</strong></button>
+  <button class="metric glass move analytics-link" onclick="analyticsToPlan('moved')"><span>Verschoben</span><strong>${moved.length}</strong><small>${movedDone} erledigt</small></button>
+  <button class="metric glass move analytics-link" onclick="analyticsToPlan('movedOpen')"><span>Verschoben offen</span><strong>${movedOpen}</strong></button>
+  <button class="metric glass overdue analytics-link" onclick="analyticsToPlan('overdue')"><span>Überfällig offen</span><strong>${overdue}</strong><small>Termin vor heute</small></button>
+  <button class="metric glass analytics-link" onclick="analyticsToPlan('future')"><span>Zukünftig offen</span><strong>${future}</strong><small>heute oder später</small></button>
+  <button class="metric glass cancel analytics-link" onclick="analyticsToPlan('cancel')"><span>Ausgefallen</span><strong>${cancelled}</strong></button><button class="metric glass topup analytics-link" onclick="analyticsToPlan('topup')"><span>On Top</span><strong>${topup}</strong></button>
  </div>
  <div class="analytics-grid">
-  <section class="analytics-card glass"><h3>Training nach Wochentag</h3><p class="a-muted">Erledigte Trainings nach tatsächlichem Trainingstag.</p>${wd.map(d=>analyticsBar(d,wdCounts[d],wdMax)).join("")}</section>
-  <section class="analytics-card glass"><h3>Equipment gesamt</h3><p class="a-muted">Tatsächliche Anzahl der Einheiten je Equipment.</p>${equipRows.map(([k,v])=>analyticsBar(k,v,equipMax)).join("")}</section>
+  <section class="analytics-card glass"><h3>Training nach Wochentag</h3><p class="a-muted">Erledigte Trainings nach tatsächlichem Trainingstag.</p>${wd.map(d=>analyticsBarLink(d,wdCounts[d],wdMax,"weekday",d)).join("")}</section>
+  <section class="analytics-card glass"><h3>Equipment gesamt</h3><p class="a-muted">Tatsächliche Anzahl der Einheiten je Equipment.</p>${equipRows.map(([k,v])=>analyticsBarLink(k,v,equipMax,"equipment",k)).join("")}</section>
  </div>
  <section class="analytics-card glass"><h3>Trainingsart × Equipment</h3><p class="a-muted">Welche Trainingsarten wie oft mit welchem Equipment geplant bzw. durchgeführt werden.</p>
  ${Object.entries(typeEquipment).sort().map(([t,eqs])=>`<div class="cross-row"><strong>${esc(t)}</strong><div>${Object.entries(eqs).sort((a,b)=>b[1]-a[1]).map(([eq,n])=>`<span class="data-chip">${esc(eq)} <b>${n}</b></span>`).join("")}</div></div>`).join("")}</section>
@@ -3150,7 +3217,7 @@ function localTodayISO(){
 }
 function scrollPlanToToday(){
  const root=document.getElementById("planContent");if(!root)return;
- const key=`${db.activePlan||""}:${planView}:${planFilter.week}:${planFilter.equipment}:${planFilter.status}`;
+ const key=`${db.activePlan||""}:${planView}:${planFilter.week}:${planFilter.equipment}:${planFilter.status}:${planFilter.weekday||"all"}`;
  if(planInitialScrollKey===key)return;
  const today=localTodayISO(),dated=[...root.querySelectorAll("[data-date]")];
  const target=dated.find(el=>el.dataset.date===today)||dated.find(el=>el.dataset.date>today);
@@ -5122,6 +5189,13 @@ document.addEventListener("touchmove",()=>{
   adaptiveNavTimer=setTimeout(()=>setFloatingNavCompact(false),180);
 },{passive:true});
 
+
+/* V6.18.1: Every deliberate tap/click on the Plan navigation means "Plan → today". */
+document.addEventListener("pointerdown",e=>{
+ const b=e.target.closest("#navPlan");
+ if(!b)return;
+ planInitialScrollKey=null;
+},{capture:true});
 </script>
 
 <dialog id="passwordDialog">

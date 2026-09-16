@@ -1,4 +1,4 @@
-const CACHE="training-v6-17-native-dropdown-restore";
+const CACHE="training-v6-18-1-plan-today-reset";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
