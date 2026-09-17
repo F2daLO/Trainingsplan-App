@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.31</title>
+<title>Training v6.32</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3000,6 +3000,10 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
   }
 }
 
+
+/* ===== V6.32 onboarding / multi-user Intervals ===== */
+.tutorial-steps{display:grid;gap:10px;margin-top:12px}.tutorial-step{padding:13px;border-radius:16px;background:rgba(255,255,255,.14)}.tutorial-step-head{display:flex;gap:10px;align-items:flex-start}.tutorial-no{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;background:rgba(80,82,88,.13);font-weight:800;flex:0 0 auto}.tutorial-step strong{display:block;margin:3px 0 4px}.tutorial-step p{margin:4px 0;font-size:12px;line-height:1.45;color:var(--muted)}.tutorial-links{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.intervals-connect-box{padding:13px;border-radius:16px;margin-top:12px;background:rgba(255,255,255,.12)}.intervals-connect-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:8px;margin-top:9px}.intervals-status{font-size:12px;color:var(--muted);margin:6px 0}.tutorial-note{font-size:11px;line-height:1.45;color:var(--muted);margin-top:8px}.tutorial-example{margin-top:8px;padding:10px;border-radius:12px;background:rgba(80,82,88,.08);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10px;white-space:pre-wrap;overflow-wrap:anywhere}.tutorial-check{font-size:12px;margin-top:8px}.tutorial-check.ok{color:#248a3d}.tutorial-check.warn{color:#a45c00}@media(max-width:650px){.intervals-connect-grid{grid-template-columns:1fr}}@media(prefers-color-scheme:dark){.tutorial-step,.intervals-connect-box{background:rgba(255,255,255,.055)}}
+
 </style>
 </head>
 <body>
@@ -3095,7 +3099,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.31</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.32</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -3628,6 +3632,30 @@ function renderSettings(){
     <div style="margin-top:12px">
       <button class="pill primary" onclick="createBackup('manual',true)">Jetzt sichern</button>
       <button class="pill" onclick="showBackups()">Backups verwalten (${backups.length})</button>
+    </div>
+   </div>
+  </section>
+
+  <section class="settings-section glass" data-settings-section="tutorial">
+   <button class="settings-section-head" type="button" onclick="toggleSettingsSection('tutorial'); setTimeout(loadIntervalsConnectionStatus,0)">
+    <div class="settings-section-title">
+      <span class="emoji">🧭</span>
+      <div><strong>Erste Einrichtung & Tutorial</strong><div class="settings-section-sub">App, Intervals.icu, Datenquellen & erster Start</div></div>
+    </div>
+    <div class="settings-section-right"><span class="settings-chevron">›</span></div>
+   </button>
+   <div class="settings-section-body">
+    <div class="tutorial-steps">
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">1</span><div><strong>App-Konto</strong><p>In My Training mit E-Mail und Passwort anmelden. Jeder Benutzer hat seinen eigenen Plan, Equipment, Auswertungen und Coach-Daten.</p><div class="tutorial-links"><a class="pill" href="https://f2dalo.github.io/Trainingsplan-App/" target="_blank" rel="noopener">App im Browser öffnen</a></div></div></div></div>
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">2</span><div><strong>Intervals.icu kostenlos registrieren</strong><p>Intervals.icu ist die Trainingsdaten-Drehscheibe. Kostenloses Konto erstellen und anmelden. Danach unter Einstellungen ganz unten im Bereich „Developer Settings“ die persönliche Athlete ID und einen API Key erzeugen.</p><div class="tutorial-links"><a class="pill" href="https://www.intervals.icu/" target="_blank" rel="noopener">Intervals.icu öffnen</a><a class="pill" href="https://intervals.icu/settings" target="_blank" rel="noopener">Intervals Einstellungen</a></div></div></div></div>
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">3</span><div><strong>Intervals.icu einmalig mit dieser App verbinden</strong><p>Athlete ID und API Key unten eintragen. Der Schlüssel wird direkt an die geschützte Serverfunktion übertragen und nicht im Browser oder in localStorage gespeichert. Danach verwendet jeder App-Benutzer ausschließlich sein eigenes Intervals.icu-Konto.</p></div></div>
+       <div class="intervals-connect-box"><div id="intervalsConnectionStatus" class="intervals-status">Verbindungsstatus wird geprüft …</div><div class="intervals-connect-grid"><label>Athlete ID<input id="intervalsAthleteInput" autocomplete="off" placeholder="z. B. i123456"></label><label>Persönlicher API Key<input id="intervalsApiKeyInput" type="password" autocomplete="new-password" placeholder="nur einmal zum Verbinden"></label></div><div class="tutorial-links"><button class="pill primary" onclick="connectOwnIntervals()">Intervals.icu verbinden</button><button class="pill" onclick="disconnectOwnIntervals()">Verbindung trennen</button></div><div class="tutorial-note">Der API Key gehört immer dem gerade angemeldeten Benutzer. Niemals den Schlüssel einer anderen Person verwenden.</div></div>
+      </div>
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">4</span><div><strong>Trainingsquelle mit Intervals.icu verbinden</strong><p>Die Plattform, die die Fahrt aufzeichnet, muss die Aktivität zu Intervals.icu liefern. MyWhoosh, Zwift und viele weitere Dienste können direkt oder über eine Sync-Lösung angebunden werden. Danach holt My Training die Aktivität automatisch aus dem eigenen Intervals.icu-Konto.</p><div class="tutorial-links"><a class="pill" href="https://www.intervals.icu/features/app-integrations/" target="_blank" rel="noopener">Unterstützte Integrationen</a><a class="pill" href="https://mywhoosh.com/docs/partner-connections/" target="_blank" rel="noopener">MyWhoosh Verbindungen</a></div></div></div></div>
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">5</span><div><strong>Equipment anlegen</strong><p>Unter „Gerätesetup & Equipment“ Outdoor-Rad, Indoor-Trainer oder andere Geräte mit Gültig-ab-Datum anlegen. So bleiben spätere Gerätewechsel historisch korrekt.</p></div></div></div>
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">6</span><div><strong>Trainingsplan anlegen oder importieren</strong><p>Event und Trainingsblöcke selbst anlegen oder über „Trainingsstruktur → Import“ importieren. Die beiden Beispiele aus dem Release-Paket zeigen CSV- und Planpaket-Format.</p><div class="tutorial-example">CSV: Event; Block; Datum; Trainingsart; Titel; Beschreibung …&#10;JSON: mein-training.plan-package.v1 mit Event, Plan, Blöcken und Einheiten</div></div></div></div>
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">7</span><div><strong>Auswertung & My Trainings Coach</strong><p>„Einzelne Einheiten“ zeigt die echten importierten Aktivitäten. „Entwicklung“ vergleicht Zeiträume. My Trainings Coach verwendet Plan + tatsächlich importierte Ist-Daten für die weitere Planung.</p></div></div></div>
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">8</span><div><strong>Mitteilungen</strong><p>Auf jedem gewünschten Gerät separat unter „Erinnerungen“ aktivieren und mit einer Test-Mitteilung prüfen.</p></div></div></div>
     </div>
    </div>
   </section>
@@ -5983,6 +6011,28 @@ renderSettings=function(){
   setTimeout(refreshSettingsScrolling,100);
   setTimeout(refreshSettingsScrolling,400);
 };
+
+/* ===== V6.32 per-user Intervals.icu connection ===== */
+async function loadIntervalsConnectionStatus(){
+ const el=document.getElementById("intervalsConnectionStatus");if(!el)return;
+ if(!cloudUser||!sb){el.innerHTML='<span class="tutorial-check warn">Zuerst bei der App-Cloud anmelden.</span>';return}
+ try{const {data,error}=await sb.functions.invoke("intervals-connect",{body:{action:"status"}});if(error)throw error;
+  if(data?.connected){const c=data.connection||{};el.innerHTML=`<span class="tutorial-check ok">✓ Verbunden${c.athlete_name?` mit ${esc(c.athlete_name)}`:""}${c.athlete_id?` · ${esc(c.athlete_id)}`:""}</span>${c.last_sync_at?`<div class="tutorial-note">Letzte Synchronisierung: ${new Date(c.last_sync_at).toLocaleString("de-AT")}</div>`:""}`}
+  else el.innerHTML='<span class="tutorial-check warn">Noch nicht mit einem persönlichen Intervals.icu-Konto verbunden.</span>';
+ }catch(e){console.error(e);el.textContent="Verbindungsstatus konnte nicht geladen werden."}
+}
+async function connectOwnIntervals(){
+ if(!cloudUser||!sb){alert("Bitte zuerst bei der App anmelden.");return}
+ const athleteId=document.getElementById("intervalsAthleteInput")?.value?.trim();const apiKey=document.getElementById("intervalsApiKeyInput")?.value?.trim();
+ if(!athleteId||!apiKey){alert("Bitte Athlete ID und persönlichen API Key eintragen.");return}
+ try{const {data,error}=await sb.functions.invoke("intervals-connect",{body:{action:"connect",athleteId,apiKey}});if(error)throw error;if(data?.error)throw new Error(data.error);
+  const key=document.getElementById("intervalsApiKeyInput");if(key)key.value="";await loadIntervalsConnectionStatus();await syncIntervalsActivities(false);alert("Intervals.icu ist mit diesem Benutzer verbunden.");
+ }catch(e){console.error(e);alert("Verbindung fehlgeschlagen. Athlete ID und API Key bitte prüfen.")}
+}
+async function disconnectOwnIntervals(){
+ if(!cloudUser||!sb)return;if(!confirm("Intervals.icu für diesen Benutzer wirklich trennen? Bereits importierte Aktivitäten bleiben erhalten."))return;
+ try{const {error}=await sb.functions.invoke("intervals-connect",{body:{action:"disconnect"}});if(error)throw error;await loadIntervalsConnectionStatus()}catch(e){alert("Verbindung konnte nicht getrennt werden.")}
+}
 
 </script>
 
