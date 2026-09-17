@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.35</title>
+<title>Training v6.36</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3116,7 +3116,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.35</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.36</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5985,37 +5985,35 @@ function trendSportClass(a){
  const name=String(a.name||'').toLowerCase();
  const device=String(a.source_device||'').toLowerCase();
  const raw=a.raw_summary||{};
- const blob=(type+' '+name+' '+device+' '+JSON.stringify(raw)).toLowerCase();
+ const identity=(type+' '+name+' '+device).toLowerCase();
 
- // Cycling: use strong source/context signals first. "VirtualRide" alone is NOT
- // enough to call an Apple Health import indoor, because Health imports may use
- // that generic type even when the original ride was outdoors.
- if(/ride|cycl|bike|rad|virtualride/.test(blob)){
-   const indoorStrong=/zwift|mywhoosh|wahoo kickr|kickr core|smart trainer|trainerroad|rouvy|kinomap|qdomyos|\bqz\b|erg mode|indoor cycling|indoor ride/.test(blob);
-   const outdoorStrong=/igpsport|bsc500|bsc 500|garmin edge|wahoo elemnt|hammerhead|gps|latitude|longitude|start_lat|start_lon|map|polyline|route/.test(blob);
-   if(indoorStrong&&!outdoorStrong)return'bike_indoor';
-   if(outdoorStrong&&!indoorStrong)return'bike_outdoor';
-   // A plain Ride/Cycling record without an indoor marker is normally outdoor.
-   // But VirtualRide from Apple Watch/Health without route or trainer evidence is ambiguous.
-   if(/virtualride/.test(type)&&/watch|apple|health/.test(blob))return'bike_unknown';
-   if(/virtualride/.test(type))return'bike_indoor';
+ // IMPORTANT: sport identity is derived only from activity type/name/device.
+ // Do not scan JSON key names: fields such as "average_stride" contain "ride"
+ // and previously caused running/strength/swim activities to be misclassified as cycling.
+ if(/(^|\s)(virtualride|ride|cycling|cycle|bike|rad)(\s|$)/.test(identity)){
+   const indoorByFlag=raw?.trainer===true;
+   const indoorBySource=/zwift|mywhoosh|kickr|smart trainer|trainerroad|rouvy|kinomap|qdomyos|\bqz\b|erg/.test(identity+' '+String(raw?.oauth_client_name||'').toLowerCase());
+   const hasRoute=Boolean(raw?.route_id||raw?.map||raw?.polyline||raw?.start_latlng||raw?.start_lat||raw?.start_lon);
+   const outdoorByDevice=/igpsport|bsc500|bsc 500|garmin edge|wahoo elemnt|hammerhead/.test(identity);
+   if(indoorByFlag||indoorBySource)return'bike_indoor';
+   if(hasRoute||outdoorByDevice)return'bike_outdoor';
+   if(type==='virtualride')return'bike_unknown';
    return'bike_outdoor';
  }
- if(/run|running|lauf|jog|virtualrun/.test(blob)){
-   const indoorStrong=/treadmill|laufband|indoor run/.test(blob);
-   const outdoorStrong=/gps|latitude|longitude|start_lat|start_lon|map|polyline|route/.test(blob);
-   if(indoorStrong&&!outdoorStrong)return'run_indoor';
-   if(outdoorStrong&&!indoorStrong)return'run_outdoor';
-   if(/virtualrun/.test(type)&&/watch|apple|health/.test(blob))return'run_unknown';
-   if(/virtualrun/.test(type))return'run_indoor';
+ if(/(^|\s)(virtualrun|run|running|lauf|jog)(\s|$)/.test(identity)){
+   const indoorBySource=/treadmill|laufband|indoor/.test(identity)||raw?.trainer===true;
+   const hasRoute=Boolean(raw?.route_id||raw?.map||raw?.polyline||raw?.start_latlng||raw?.start_lat||raw?.start_lon);
+   if(indoorBySource)return'run_indoor';
+   if(hasRoute)return'run_outdoor';
+   if(type==='virtualrun')return'run_unknown';
    return'run_outdoor';
  }
- if(/walk|walking|gehen|spazier|hike|hiking|wandern/.test(blob))return'walk_hike';
- if(/swim|swimming|schwimm/.test(blob))return'swim';
- if(/strength|weight|kraft|calisthen|functional|workout/.test(blob))return'strength';
- if(/ski|skiing|skitour|alpine|nordic|cross.?country/.test(blob))return'ski';
- if(/row|rowing|rudern/.test(blob))return'rowing';
- if(/elliptical|crosstrainer/.test(blob))return'elliptical';
+ if(/swim|swimming|schwimm/.test(identity))return'swim';
+ if(/strength|weight|kraft|core training|calisthen|functional|betterme|workout/.test(identity))return'strength';
+ if(/walk|walking|gehen|spazier|hike|hiking|wandern/.test(identity))return'walk_hike';
+ if(/ski|skiing|skitour|alpine|nordic|cross.?country/.test(identity))return'ski';
+ if(/row|rowing|rudern/.test(identity))return'rowing';
+ if(/elliptical|crosstrainer/.test(identity))return'elliptical';
  return'other';
 }
 function trendSportLabel(k){
@@ -6063,6 +6061,7 @@ function renderDevelopmentAnalytics(){
  const prevKey=`${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;
  const prev=all.filter(a=>trendSportMatch(a,sport)&&monthKey(a.activity_date)===prevKey);
  const ordered=filtered.slice().sort((a,b)=>new Date(a.activity_date)-new Date(b.activity_date));
+ const sportCount=all.filter(a=>trendSportMatch(a,sport)&&monthKey(a.activity_date)===selectedMonth).length;
 
  const nums=(arr,getter)=>arr.map(getter).map(Number).filter(Number.isFinite);
  const avgVals=(arr,getter)=>{const v=nums(arr,getter).filter(x=>x>0);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
@@ -6136,6 +6135,7 @@ function renderDevelopmentAnalytics(){
  </div>
  <div class="trend-hero glass">
   <div class="trend-hero-head"><div><h3>${trendSportLabel(sport)} · ${new Date(selectedMonth+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</h3><div class="activity-source">Vergleich mit ${new Date(prevKey+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</div></div><span class="activity-demo" style="display:${all.length?'none':'inline-block'}">WARTET AUF DATEN</span></div>
+  ${!sportCount?`<div class="activity-empty" style="margin:12px 0">Für <strong>${trendSportLabel(sport)}</strong> gibt es in diesem Monat keine importierten Aktivitäten. Es werden bewusst keine Daten einer anderen Sportart angezeigt.</div>`:''}
   ${focus==='all'
    ? `<div class="trend-overview-head"><div><strong>Gesamtübersicht</strong><div class="activity-source">${available.length} verfügbare Kennzahlen</div></div></div><div class="trend-overview-grid">${overview}</div><div class="trend-overview-head"><div><strong>Entwicklung aller verfügbaren Kennzahlen</strong><div class="activity-source">Verlauf von Einheit zu Einheit</div></div></div><div class="trend-all-series">${allSeries||'<div class="activity-empty">Noch keine verwertbaren Messwerte.</div>'}</div>`
    : `<div class="trend-chart"><div class="trend-chart-head"><span>${selected.label} je Einheit</span><span>${selectedSeries.length} Datenpunkte</span></div>${selectedSeries.length?lineSvg(selectedSeries):'<div class="activity-empty">Keine Datenpunkte für diese Kennzahl.</div>'}<div class="trend-point-list"><span>${selectedSeries.length?valText(selectedSeries[0],selected):''}</span><span>${selectedSeries.length?valText(selectedSeries.at(-1),selected):''}</span></div><div class="trend-focus-note">Zeitraumwert: <strong>${valText(selectedCur,selected)}</strong>${prev.length&&selectedPrev!=null?` · Vorperiode: ${valText(selectedPrev,selected)} · ${delta(selectedCur,selectedPrev)}`:''}</div></div>`}
