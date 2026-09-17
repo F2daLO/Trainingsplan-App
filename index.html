@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.32</title>
+<title>Training v6.33</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3004,6 +3004,23 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 /* ===== V6.32 onboarding / multi-user Intervals ===== */
 .tutorial-steps{display:grid;gap:10px;margin-top:12px}.tutorial-step{padding:13px;border-radius:16px;background:rgba(255,255,255,.14)}.tutorial-step-head{display:flex;gap:10px;align-items:flex-start}.tutorial-no{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;background:rgba(80,82,88,.13);font-weight:800;flex:0 0 auto}.tutorial-step strong{display:block;margin:3px 0 4px}.tutorial-step p{margin:4px 0;font-size:12px;line-height:1.45;color:var(--muted)}.tutorial-links{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.intervals-connect-box{padding:13px;border-radius:16px;margin-top:12px;background:rgba(255,255,255,.12)}.intervals-connect-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:8px;margin-top:9px}.intervals-status{font-size:12px;color:var(--muted);margin:6px 0}.tutorial-note{font-size:11px;line-height:1.45;color:var(--muted);margin-top:8px}.tutorial-example{margin-top:8px;padding:10px;border-radius:12px;background:rgba(80,82,88,.08);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10px;white-space:pre-wrap;overflow-wrap:anywhere}.tutorial-check{font-size:12px;margin-top:8px}.tutorial-check.ok{color:#248a3d}.tutorial-check.warn{color:#a45c00}@media(max-width:650px){.intervals-connect-grid{grid-template-columns:1fr}}@media(prefers-color-scheme:dark){.tutorial-step,.intervals-connect-box{background:rgba(255,255,255,.055)}}
 
+
+/* ===== V6.33 development: Gesamtübersicht aller Messwerte ===== */
+.trend-overview-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:14px 0 8px}
+.trend-overview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.trend-overview-card{padding:11px;border-radius:15px;background:rgba(255,255,255,.15);min-width:0}
+.trend-overview-card span{display:block;font-size:9px;color:var(--muted)}
+.trend-overview-card strong{display:block;font-size:15px;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trend-overview-card small{display:block;font-size:9px;min-height:12px}
+.trend-all-series{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}
+.trend-mini{padding:11px;border-radius:16px;background:rgba(255,255,255,.11)}
+.trend-mini-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:10px;color:var(--muted)}
+.trend-mini-head strong{font-size:12px;color:var(--text)}
+.trend-mini .trend-line{height:54px;margin-top:7px}
+.trend-focus-note{font-size:11px;color:var(--muted);line-height:1.45;margin-top:8px}
+@media(max-width:760px){.trend-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.trend-all-series{grid-template-columns:1fr}}
+@media(prefers-color-scheme:dark){.trend-overview-card,.trend-mini{background:rgba(255,255,255,.055)}}
+
 </style>
 </head>
 <body>
@@ -3099,7 +3116,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.32</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.33</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5969,13 +5986,97 @@ function pctChange(cur,prev){if(!prev)return null;return (cur-prev)/prev*100}
 function deltaText(label,cur,prev,unit='',digits=0){if(prev==null||cur==null)return'';const d=pctChange(cur,prev);if(d==null)return'';const cls=Math.abs(d)<1?'trend-neutral':d>0?'trend-positive':'trend-negative';return `<span class="${cls}">${label}: ${d>=0?'+':''}${d.toFixed(1)} %</span>`}
 function lineSvg(vals){if(!vals.length)return'';const w=600,h=100,p=8,min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;const pts=vals.map((v,i)=>`${p+(w-2*p)*(i/(Math.max(1,vals.length-1)))},${h-p-(h-2*p)*((v-min)/range)}`).join(' ');return `<svg class="trend-line" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="${pts.split(' ').at(-1).split(',')[0]}" cy="${pts.split(' ').at(-1).split(',')[1]}" r="5" fill="currentColor"/></svg>`}
 function renderDevelopmentAnalytics(){
- const root=document.getElementById('analyticsDevelopment');if(!root)return;const all=importedActivities.length?importedActivities:[];const months=[...new Set(all.map(a=>monthKey(a.activity_date)).filter(Boolean))].sort().reverse();const currentMonth=months[0]||'2026-10';const selectedMonth=document.getElementById('trendMonth')?.value||currentMonth;const sport=document.getElementById('trendSport')?.value||'all';const metric=document.getElementById('trendMetric')?.value||'average_watts';
- const filtered=all.filter(a=>(sport==='all'||trendSportClass(a)===sport)&&monthKey(a.activity_date)===selectedMonth);const prevDate=new Date(selectedMonth+'-01T12:00:00');prevDate.setMonth(prevDate.getMonth()-1);const prevKey=`${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;const prev=all.filter(a=>(sport==='all'||trendSportClass(a)===sport)&&monthKey(a.activity_date)===prevKey);
- const sum=(arr,k)=>arr.reduce((s,a)=>s+(Number(a[k])||0),0), avg=(arr,k)=>{const v=arr.map(a=>Number(a[k])).filter(Number.isFinite).filter(x=>x>0);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
- const km=sum(filtered,'distance_m')/1000, pkm=sum(prev,'distance_m')/1000, hm=sum(filtered,'elevation_gain_m'), phm=sum(prev,'elevation_gain_m'), watts=avg(filtered,'average_watts'), pWatts=avg(prev,'average_watts'), speed=avg(filtered,'average_speed_mps');
- const metricMap={average_watts:['Ø Leistung','average_watts',1,' W'],normalized_watts:['Gewichtete Leistung','normalized_watts',1,' W'],average_hr:['Ø Herzfrequenz','average_hr',0,' bpm'],average_cadence:['Ø Kadenz','average_cadence',0,' rpm'],training_load:['Belastung','training_load',0,'']};const [ml,mk,md,mu]=metricMap[metric]||metricMap.average_watts;const points=filtered.slice().sort((a,b)=>new Date(a.activity_date)-new Date(b.activity_date)).map(a=>Number(a[mk])).filter(Number.isFinite).filter(v=>v>0);
- const first=points[0],last=points.at(-1);const insight=filtered.length?`Im gewählten Zeitraum: ${filtered.length} Einheit${filtered.length===1?'':'en'}, ${km.toLocaleString('de-AT',{maximumFractionDigits:1})} km und ${Math.round(hm)} hm. ${prev.length?`Gegenüber ${prevKey}: ${km>=pkm?'mehr':'weniger'} Distanz (${Math.abs(km-pkm).toLocaleString('de-AT',{maximumFractionDigits:1})} km) und ${hm>=phm?'mehr':'weniger'} Höhenmeter (${Math.abs(Math.round(hm-phm))} hm).`:''} ${first&&last&&points.length>1?`${ml} hat sich über die verfügbaren Fahrten von ${first.toFixed(md)}${mu} auf ${last.toFixed(md)}${mu} verändert.`:''}`:'Noch keine echten Aktivitäten für diese Entwicklungsauswertung vorhanden.';
- root.innerHTML=`<div class="activity-toolbar"><div><strong>Entwicklung</strong><div class="activity-source">Zeitraum, Trainingsart und Kennzahl frei vergleichen</div></div></div><div class="trend-controls"><select id="trendSport" onchange="renderDevelopmentAnalytics()"><option value="all" ${sport==='all'?'selected':''}>Alle Radfahrten</option><option value="outdoor" ${sport==='outdoor'?'selected':''}>Outdoor Rad</option><option value="indoor" ${sport==='indoor'?'selected':''}>Indoor Rad</option></select><select id="trendMonth" onchange="renderDevelopmentAnalytics()">${(months.length?months:['2026-10']).map(m=>`<option value="${m}" ${m===selectedMonth?'selected':''}>${new Date(m+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</option>`).join('')}</select><select id="trendMetric" onchange="renderDevelopmentAnalytics()">${Object.entries(metricMap).map(([k,v])=>`<option value="${k}" ${k===metric?'selected':''}>${v[0]}</option>`).join('')}</select></div><div class="trend-hero glass"><div class="trend-hero-head"><div><h3>${sport==='indoor'?'🚲 Indoor':sport==='outdoor'?'🚴 Outdoor':'🚴 Alle Radfahrten'}</h3><div class="activity-source">${selectedMonth}</div></div><span class="activity-demo" style="display:${all.length?'none':'inline-block'}">WARTET AUF DATEN</span></div><div class="trend-kpis"><div class="trend-kpi"><span>Distanz</span><strong>${all.length?km.toLocaleString('de-AT',{maximumFractionDigits:1})+' km':'–'}</strong><small>${prev.length?deltaText('',km,pkm).replace(':',''):''}</small></div><div class="trend-kpi"><span>Höhenmeter</span><strong>${all.length?Math.round(hm)+' hm':'–'}</strong><small>${prev.length?deltaText('',hm,phm).replace(':',''):''}</small></div><div class="trend-kpi"><span>Ø Leistung</span><strong>${watts?Math.round(watts)+' W':'–'}</strong><small>${prev.length&&pWatts?deltaText('',watts,pWatts).replace(':',''):''}</small></div><div class="trend-kpi"><span>Ø Geschwindigkeit</span><strong>${speed?(speed*3.6).toFixed(1)+' km/h':'–'}</strong></div></div><div class="trend-chart"><div class="trend-chart-head"><span>${ml} je Einheit</span><span>${points.length} Datenpunkte</span></div>${points.length?lineSvg(points):'<div class="activity-empty">Noch keine echten Datenpunkte.</div>'}<div class="trend-point-list"><span>${first?first.toFixed(md)+mu:''}</span><span>${last?last.toFixed(md)+mu:''}</span></div></div><div class="trend-comparison">${insight}</div></div>`;
+ const root=document.getElementById('analyticsDevelopment');if(!root)return;
+ const all=importedActivities.length?importedActivities:[];
+ const months=[...new Set(all.map(a=>monthKey(a.activity_date)).filter(Boolean))].sort().reverse();
+ const currentMonth=months[0]||'2026-10';
+ const selectedMonth=document.getElementById('trendMonth')?.value||currentMonth;
+ const sport=document.getElementById('trendSport')?.value||'all';
+ const focus=document.getElementById('trendMetric')?.value||'all';
+
+ const filtered=all.filter(a=>(sport==='all'||trendSportClass(a)===sport)&&monthKey(a.activity_date)===selectedMonth);
+ const prevDate=new Date(selectedMonth+'-01T12:00:00');prevDate.setMonth(prevDate.getMonth()-1);
+ const prevKey=`${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;
+ const prev=all.filter(a=>(sport==='all'||trendSportClass(a)===sport)&&monthKey(a.activity_date)===prevKey);
+ const ordered=filtered.slice().sort((a,b)=>new Date(a.activity_date)-new Date(b.activity_date));
+
+ const nums=(arr,getter)=>arr.map(getter).map(Number).filter(Number.isFinite);
+ const avgVals=(arr,getter)=>{const v=nums(arr,getter).filter(x=>x>0);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
+ const sumVals=(arr,getter)=>nums(arr,getter).reduce((s,x)=>s+x,0);
+ const raw=(a,...keys)=>rawActivityValue(a,...keys);
+
+ const metrics=[
+  {k:'sessions',label:'Einheiten',unit:'',digits:0,agg:'count',get:a=>1},
+  {k:'duration',label:'Trainingszeit',unit:' h',digits:1,agg:'sum',get:a=>(Number(a.moving_time_seconds||a.elapsed_time_seconds)||0)/3600},
+  {k:'distance',label:'Distanz',unit:' km',digits:1,agg:'sum',get:a=>(Number(a.distance_m)||0)/1000},
+  {k:'elevation',label:'Höhenmeter',unit:' hm',digits:0,agg:'sum',get:a=>Number(a.elevation_gain_m)||0},
+  {k:'avg_speed',label:'Ø Geschwindigkeit',unit:' km/h',digits:1,agg:'avg',get:a=>a.average_speed_mps==null?NaN:Number(a.average_speed_mps)*3.6},
+  {k:'max_speed',label:'Max. Geschwindigkeit',unit:' km/h',digits:1,agg:'maxavg',get:a=>a.max_speed_mps==null?NaN:Number(a.max_speed_mps)*3.6},
+  {k:'avg_watts',label:'Ø Leistung',unit:' W',digits:0,agg:'avg',get:a=>a.average_watts},
+  {k:'normalized_watts',label:'Gewichtete Leistung',unit:' W',digits:0,agg:'avg',get:a=>a.normalized_watts},
+  {k:'max_watts',label:'Max. Leistung',unit:' W',digits:0,agg:'maxavg',get:a=>raw(a,'max_watts','max_power','icu_max_watts','max_watts_1m')},
+  {k:'avg_hr',label:'Ø Herzfrequenz',unit:' bpm',digits:0,agg:'avg',get:a=>a.average_hr},
+  {k:'max_hr',label:'Max. Herzfrequenz',unit:' bpm',digits:0,agg:'maxavg',get:a=>a.max_hr},
+  {k:'avg_cadence',label:'Ø Kadenz',unit:' rpm',digits:0,agg:'avg',get:a=>a.average_cadence},
+  {k:'max_cadence',label:'Max. Kadenz',unit:' rpm',digits:0,agg:'maxavg',get:a=>raw(a,'max_cadence','icu_max_cadence')},
+  {k:'intensity',label:'Intensitätsfaktor',unit:'',digits:2,agg:'avg',get:a=>a.intensity_factor},
+  {k:'load',label:'Trainingsbelastung',unit:'',digits:0,agg:'sum',get:a=>a.training_load},
+  {k:'calories',label:'Kalorien',unit:' kcal',digits:0,agg:'sum',get:a=>a.calories}
+ ];
+ function aggregate(arr,m){
+  if(m.agg==='count')return arr.length;
+  const v=nums(arr,m.get).filter(x=>x>0);
+  if(!v.length)return null;
+  if(m.agg==='sum')return v.reduce((s,x)=>s+x,0);
+  if(m.agg==='maxavg')return Math.max(...v);
+  return v.reduce((s,x)=>s+x,0)/v.length;
+ }
+ function valText(v,m){return v==null?'–':`${Number(v).toLocaleString('de-AT',{minimumFractionDigits:m.digits?Math.min(m.digits,1):0,maximumFractionDigits:m.digits})}${m.unit}`}
+ function series(m){return ordered.map(a=>Number(m.get(a))).filter(Number.isFinite).filter(v=>v>0)}
+ function delta(cur,prv){
+  if(cur==null||prv==null||prv===0)return '';
+  const d=(cur-prv)/prv*100,cls=Math.abs(d)<1?'trend-neutral':d>0?'trend-positive':'trend-negative';
+  return `<span class="${cls}">${d>=0?'+':''}${d.toFixed(1)} % zur Vorperiode</span>`;
+ }
+ const available=metrics.filter(m=>m.agg==='count'||nums(filtered,m.get).some(v=>v>0));
+ const selected=metrics.find(m=>m.k===focus)||metrics.find(m=>m.k==='avg_watts');
+ const selectedSeries=focus==='all'?[]:series(selected);
+ const selectedPrev=focus==='all'?null:aggregate(prev,selected);
+ const selectedCur=focus==='all'?null:aggregate(filtered,selected);
+
+ const overview=available.map(m=>{
+  const cur=aggregate(filtered,m),pr=aggregate(prev,m);
+  return `<div class="trend-overview-card"><span>${m.label}</span><strong>${valText(cur,m)}</strong><small>${prev.length?delta(cur,pr):''}</small></div>`;
+ }).join('');
+
+ const allSeries=available.filter(m=>!['sessions'].includes(m.k)).map(m=>{
+  const pts=series(m),cur=aggregate(filtered,m),pr=aggregate(prev,m);
+  return `<div class="trend-mini"><div class="trend-mini-head"><strong>${m.label}</strong><span>${valText(cur,m)}</span></div>${pts.length>1?lineSvg(pts):'<div class="activity-empty" style="padding:16px 4px">Zu wenig Datenpunkte</div>'}<div class="trend-point-list"><span>${pts.length?valText(pts[0],m):''}</span><span>${pts.length?valText(pts.at(-1),m):''}</span></div>${prev.length?`<div style="font-size:9px;margin-top:4px">${delta(cur,pr)}</div>`:''}</div>`;
+ }).join('');
+
+ const dist=aggregate(filtered,metrics.find(m=>m.k==='distance'));
+ const elev=aggregate(filtered,metrics.find(m=>m.k==='elevation'));
+ const avgW=aggregate(filtered,metrics.find(m=>m.k==='avg_watts'));
+ const prevDist=aggregate(prev,metrics.find(m=>m.k==='distance'));
+ const prevElev=aggregate(prev,metrics.find(m=>m.k==='elevation'));
+ const prevW=aggregate(prev,metrics.find(m=>m.k==='avg_watts'));
+ const insight=filtered.length
+  ? `Im gewählten Zeitraum wurden ${filtered.length} Einheit${filtered.length===1?'':'en'} ausgewertet${dist!=null?`, ${valText(dist,metrics.find(m=>m.k==='distance'))}`:''}${elev!=null?` und ${valText(elev,metrics.find(m=>m.k==='elevation'))}`:''}. ${prev.length&&dist!=null&&prevDist!=null?`Die Distanz liegt ${dist>=prevDist?'über':'unter'} der Vorperiode (${Math.abs((dist-prevDist)).toLocaleString('de-AT',{maximumFractionDigits:1})} km ${dist>=prevDist?'mehr':'weniger'}). `:''}${prev.length&&avgW!=null&&prevW!=null?`Die durchschnittliche Leistung liegt bei ${Math.round(avgW)} W gegenüber ${Math.round(prevW)} W in der Vorperiode. `:''}${prev.length&&elev!=null&&prevElev!=null?`Höhenmeter: ${Math.round(elev)} hm gegenüber ${Math.round(prevElev)} hm.`:''}`
+  : 'Noch keine echten Aktivitäten für diese Auswahl vorhanden.';
+
+ root.innerHTML=`<div class="activity-toolbar"><div><strong>Entwicklung</strong><div class="activity-source">Standardmäßig alle verfügbaren Daten im gewählten Zeitraum · einzelne Kennzahl nur bei Bedarf fokussieren</div></div></div>
+ <div class="trend-controls">
+  <select id="trendSport" onchange="renderDevelopmentAnalytics()"><option value="all" ${sport==='all'?'selected':''}>Alle Radfahrten</option><option value="outdoor" ${sport==='outdoor'?'selected':''}>Outdoor Rad</option><option value="indoor" ${sport==='indoor'?'selected':''}>Indoor Rad</option></select>
+  <select id="trendMonth" onchange="renderDevelopmentAnalytics()">${(months.length?months:['2026-10']).map(m=>`<option value="${m}" ${m===selectedMonth?'selected':''}>${new Date(m+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</option>`).join('')}</select>
+  <select id="trendMetric" onchange="renderDevelopmentAnalytics()"><option value="all" ${focus==='all'?'selected':''}>Gesamtübersicht – alle Daten</option>${metrics.filter(m=>m.k!=='sessions').map(m=>`<option value="${m.k}" ${m.k===focus?'selected':''}>Nur ${m.label}</option>`).join('')}</select>
+ </div>
+ <div class="trend-hero glass">
+  <div class="trend-hero-head"><div><h3>${sport==='indoor'?'🚲 Indoor':sport==='outdoor'?'🚴 Outdoor':'🚴 Alle Radfahrten'} · ${new Date(selectedMonth+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</h3><div class="activity-source">Vergleich mit ${new Date(prevKey+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</div></div><span class="activity-demo" style="display:${all.length?'none':'inline-block'}">WARTET AUF DATEN</span></div>
+  ${focus==='all'
+   ? `<div class="trend-overview-head"><div><strong>Gesamtübersicht</strong><div class="activity-source">${available.length} verfügbare Kennzahlen</div></div></div><div class="trend-overview-grid">${overview}</div><div class="trend-overview-head"><div><strong>Entwicklung aller verfügbaren Kennzahlen</strong><div class="activity-source">Verlauf von Einheit zu Einheit</div></div></div><div class="trend-all-series">${allSeries||'<div class="activity-empty">Noch keine verwertbaren Messwerte.</div>'}</div>`
+   : `<div class="trend-chart"><div class="trend-chart-head"><span>${selected.label} je Einheit</span><span>${selectedSeries.length} Datenpunkte</span></div>${selectedSeries.length?lineSvg(selectedSeries):'<div class="activity-empty">Keine Datenpunkte für diese Kennzahl.</div>'}<div class="trend-point-list"><span>${selectedSeries.length?valText(selectedSeries[0],selected):''}</span><span>${selectedSeries.length?valText(selectedSeries.at(-1),selected):''}</span></div><div class="trend-focus-note">Zeitraumwert: <strong>${valText(selectedCur,selected)}</strong>${prev.length&&selectedPrev!=null?` · Vorperiode: ${valText(selectedPrev,selected)} · ${delta(selectedCur,selectedPrev)}`:''}</div></div>`}
+  <div class="trend-comparison">${insight}</div>
+ </div>`;
 }
 
 // Automatic, throttled activity sync while the app is in use.
