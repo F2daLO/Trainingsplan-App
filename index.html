@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.27</title>
+<title>Training v6.28</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2900,7 +2900,7 @@ button.metric.analytics-link{border:inherit}
 }
 
 
-/* V6.23 Mein Training Coach */
+/* V6.23 My Trainings Coach */
 #meinTrainingCoach{margin-top:14px;padding:14px}
 #meinTrainingCoach h3{margin:0 0 4px}
 #meinTrainingCoach .coach-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
@@ -2932,6 +2932,28 @@ button.metric.analytics-link{border:inherit}
 #coachSettingsContent .coach-row:last-child{border-bottom:0}
 #coachSettingsContent .coach-section{margin-top:10px}
 @media(max-width:700px){.coach-settings-grid{grid-template-columns:1fr}}
+
+
+/* ===== V6.28 Activity analytics / Intervals.icu ===== */
+.analytics-switch{display:flex;gap:3px;padding:4px;margin:0 0 14px;border-radius:16px;width:max-content;max-width:100%;background:rgba(118,118,128,.10)}
+.analytics-switch button{border:0;background:transparent;color:var(--muted);padding:9px 13px;border-radius:12px;font-weight:650}
+.analytics-switch button.active{background:rgba(255,255,255,.48);color:var(--text);box-shadow:0 3px 10px rgba(0,0,0,.06)}
+.activity-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.activity-source{font-size:12px;color:var(--muted)}
+.activity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.activity-card{border-radius:22px;padding:16px;cursor:pointer;text-align:left;border:1px solid var(--border);color:var(--text);background:var(--glass);box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,.45);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px)}
+.activity-card:active{transform:scale(.992)}
+.activity-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.activity-card h3{margin:3px 0 2px;font-size:17px}.activity-date{font-size:11px;color:var(--muted)}
+.activity-demo{font-size:9px;font-weight:800;letter-spacing:.45px;padding:4px 7px;border-radius:999px;background:rgba(255,159,10,.14);color:#a45c00;white-space:nowrap}
+.activity-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:13px}.activity-kpi{padding:8px;border-radius:12px;background:rgba(255,255,255,.18);min-width:0}.activity-kpi strong{display:block;font-size:14px;white-space:nowrap}.activity-kpi span{display:block;font-size:9px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+.activity-match{margin-top:10px;font-size:11px;color:var(--muted)}
+.activity-detail{margin-top:14px;padding-top:13px;border-top:1px solid rgba(127,127,127,.12)}
+.activity-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.activity-detail-metric{padding:10px;border-radius:13px;background:rgba(255,255,255,.14)}.activity-detail-metric span{font-size:10px;color:var(--muted);display:block}.activity-detail-metric strong{font-size:15px;display:block;margin-top:2px}
+.activity-chart{margin-top:12px;padding:11px;border-radius:15px;background:rgba(255,255,255,.12)}.activity-chart-title{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:8px}.activity-bars{height:64px;display:flex;align-items:flex-end;gap:3px}.activity-bars i{display:block;flex:1;min-width:2px;border-radius:3px 3px 1px 1px;background:rgba(80,82,88,.38)}
+.activity-empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.activity-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:12px}.activity-summary .metric{min-height:80px}
+@media(max-width:760px){.activity-grid{grid-template-columns:1fr}.activity-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-switch{width:100%}.analytics-switch button{flex:1}}
+@media(prefers-color-scheme:dark){.analytics-switch button.active{background:rgba(255,255,255,.10)}.activity-kpi,.activity-detail-metric,.activity-chart{background:rgba(255,255,255,.06)}}
 
 </style>
 </head>
@@ -3028,7 +3050,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.27</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.28</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -3492,7 +3514,7 @@ function renderSettings(){
    <button class="settings-section-head" type="button" onclick="toggleSettingsSection('coach'); setTimeout(renderCoachSettingsPanel,0)">
     <div class="settings-section-title">
       <span class="emoji">✦</span>
-      <div><strong>Mein Training Coach</strong><div class="settings-section-sub">FTP, Planfortsetzung & Trainingsanalyse</div></div>
+      <div><strong>My Trainings Coach</strong><div class="settings-section-sub">FTP, Planfortsetzung & Intervals.icu-Trainingsdaten</div></div>
     </div>
     <div class="settings-section-right"><span class="settings-chevron">›</span></div>
    </button>
@@ -5597,7 +5619,7 @@ exportSessionWorkout=function(id){
 
 
 
-/* V6.23 – Mein Training Coach, Supabase-backed */
+/* V6.28 – My Trainings Coach, Supabase-backed */
 const COACH_SCHEMA="mein-training.plan-package.v1";
 let coachState={profile:null,requests:[],packages:[],loaded:false};
 
@@ -5702,7 +5724,7 @@ function ftpTestWorkout(){
 }
 async function createFTPTestRecord(){
   const user=await coachUser(); if(!user){alert("Bitte zuerst anmelden.");return null}
-  const row={user_id:user.id,protocol:"20min",source:"Mein Training Coach",workout:ftpTestWorkout(),metrics:{}};
+  const row={user_id:user.id,protocol:"20min",source:"My Trainings Coach",workout:ftpTestWorkout(),metrics:{}};
   const {data,error}=await supabase.from("ftp_tests").insert(row).select().single();
   if(error){alert("FTP-Test konnte nicht gespeichert werden:\n"+error.message);return null}
   return data;
@@ -5745,14 +5767,9 @@ function coachStatusText(r){
   return ({pending:"Angefragt",processing:"Wird erstellt",ready:"Bereit",applied:"Übernommen",failed:"Fehler"})[r.status]||r.status;
 }
 
-async function copyTredictCoachRequest(){
- const plan=coachCurrentPlan(),block=coachCurrentBlock();
- const txt=`Analysiere meine aktuellen Radsport-Aktivitäten in Tredict und verwende sie zusammen mit meinem Trainingsstand als Grundlage für die Fortsetzung von „${block?.title||"meinem aktuellen Block"}“ im Plan „${plan?.title||"Mein Training"}“. Berücksichtige besonders Leistung/Watt, Herzfrequenz, Kadenz, Belastungsverteilung, absolvierte Einheiten und den aktuellen FTP.`;
- try{await navigator.clipboard.writeText(txt);alert("Tredict-Analyseauftrag wurde kopiert. Füge ihn in ChatGPT ein – dort kann auf die verbundene Tredict-Integration zugegriffen werden.")}catch(_){prompt("Diesen Auftrag in ChatGPT verwenden:",txt)}
-}
 
 function renderCoach(){
- main.innerHTML=head("Mein Training Coach")+`
+ main.innerHTML=head("My Trainings Coach")+`
  <div class="coach-screen">
   <section class="coach-hero glass">
    <div><strong>Trainingsplanung</strong><div class="eq-small">Planfortsetzung, FTP und Leistungsbasis</div></div>
@@ -5780,7 +5797,7 @@ function renderCoachSettingsPanel(){
    <div class="coach-settings-card">
     <strong>Trainingsplanung</strong>
     <div class="coach-value">${coachCurrentBlock()?.title||"Kein Block ausgewählt"}</div>
-    <div class="stack"><button class="pill primary" onclick="requestPlanContinuation()">＋ Fortsetzung anfordern</button><button class="pill" onclick="copyTredictCoachRequest()">↗ Mit Tredict analysieren</button><button class="pill" onclick="loadCoachState()">↻ Aktualisieren</button></div>
+    <div class="stack"><button class="pill primary" onclick="requestPlanContinuation()">＋ Fortsetzung anfordern</button><button class="pill" onclick="syncIntervalsActivities(true)">↻ Trainingsdaten synchronisieren</button><button class="pill" onclick="loadCoachState()">↻ Aktualisieren</button></div>
    </div>
   </div>
   ${ready.length?`<div class="coach-settings-card coach-section"><strong>Bereit zur Übernahme</strong>${ready.map(x=>`<div class="coach-row"><span>${x.package?.blocks?.[0]?.title||"Neuer Trainingsblock"}</span><button class="pill primary" onclick="applyCoachPackage('${x.id}')">Übernehmen</button></div>`).join("")}</div>`:""}
@@ -5795,6 +5812,78 @@ try{
   .on("postgres_changes",{event:"*",schema:"public",table:"coach_profiles"},()=>loadCoachState())
   .subscribe();
 }catch(_){}
+
+
+/* ===== V6.28 imported activity UI ===== */
+let importedActivities=[];
+let activitiesLoaded=false;
+let activityAnalyticsTab=localStorage.getItem("mt_analytics_tab")||"plan";
+let openActivityId=null;
+const DEMO_ACTIVITY={
+ id:"demo-activity",provider:"demo",external_id:"demo",activity_date:new Date().toISOString(),activity_type:"Ride",name:"Sweet Spot – Demo-Aktivität",moving_time_seconds:3900,elapsed_time_seconds:3972,distance_m:28600,elevation_gain_m:214,average_speed_mps:7.33,max_speed_mps:12.7,average_hr:146,max_hr:171,average_cadence:89,average_watts:158,normalized_watts:171,intensity_factor:.81,training_load:72,calories:612,source_device:"MyWhoosh / KICKR CORE",training_session_id:null,match_method:"demo",match_confidence:.92,_demo:true,
+ demoPower:[38,45,48,52,68,72,70,74,43,46,69,73,76,72,44,47,70,75,73,68,42,45,50,38],
+ demoHr:[42,46,50,54,58,62,66,70,68,64,69,73,76,78,72,69,74,79,82,78,72,67,61,54],
+ demoCad:[62,68,72,70,76,78,74,80,66,70,77,81,78,75,68,72,79,80,76,74,70,68,65,61]
+};
+function activityListForUi(){return importedActivities.length?importedActivities:[DEMO_ACTIVITY]}
+function fmtDuration(sec){sec=Math.max(0,Number(sec)||0);const h=Math.floor(sec/3600),m=Math.round((sec%3600)/60);return h?`${h}:${String(m).padStart(2,"0")} h`:`${m} min`}
+function fmtKm(m){return m==null?"–":`${(Number(m)/1000).toLocaleString("de-AT",{minimumFractionDigits:1,maximumFractionDigits:1})} km`}
+function fmtNum(v,suffix="",digits=0){return v==null||v===""?"–":`${Number(v).toLocaleString("de-AT",{maximumFractionDigits:digits})}${suffix}`}
+function activitySportEmoji(a){const t=String(a.activity_type||a.name||"").toLowerCase();if(/ride|cycl|bike|rad/.test(t))return"🚴";if(/run|lauf/.test(t))return"🏃";if(/swim|schwimm/.test(t))return"🏊";return"🏋️"}
+function activityDateLabel(a){const d=new Date(a.activity_date);return isNaN(d)?"":d.toLocaleString("de-AT",{weekday:"short",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}
+function activityBars(values){return `<div class="activity-bars">${values.map(v=>`<i style="height:${Math.max(5,Math.min(100,v))}%"></i>`).join("")}</div>`}
+function syntheticSeries(base,spread=18){return Array.from({length:24},(_,i)=>Math.max(10,Math.min(96,48+Math.sin(i*.8)*spread+((i*13)%17))))}
+function activityCard(a){
+ const open=String(openActivityId)===String(a.id);const power=a.demoPower||syntheticSeries(a.average_watts||140,20);const hr=a.demoHr||syntheticSeries(a.average_hr||135,14);const cad=a.demoCad||syntheticSeries(a.average_cadence||85,10);
+ const planned=a.training_session_id?"✓ Mit geplanter Einheit verknüpft":a._demo?"Demo: automatische Soll-/Ist-Zuordnung":"Noch keiner Planeinheit zugeordnet";
+ return `<button type="button" class="activity-card" onclick="toggleActivityDetail('${esc(String(a.id))}')">
+  <div class="activity-card-head"><div><div class="activity-date">${activityDateLabel(a)}</div><h3>${activitySportEmoji(a)} ${esc(a.name||"Training")}</h3><div class="activity-source">${esc(a.source_device||a.provider||"Intervals.icu")}</div></div>${a._demo?'<span class="activity-demo">DEMO</span>':""}</div>
+  <div class="activity-kpis"><div class="activity-kpi"><strong>${fmtDuration(a.moving_time_seconds||a.elapsed_time_seconds)}</strong><span>Dauer</span></div><div class="activity-kpi"><strong>${fmtKm(a.distance_m)}</strong><span>Distanz</span></div><div class="activity-kpi"><strong>${fmtNum(a.average_watts," W")}</strong><span>Ø Leistung</span></div><div class="activity-kpi"><strong>${fmtNum(a.training_load,"",0)}</strong><span>Belastung</span></div></div>
+  <div class="activity-match">${planned}${a.match_confidence&&!a._demo?` · ${Math.round(Number(a.match_confidence)*100)} %` : ""}</div>
+  ${open?`<div class="activity-detail">
+   <div class="activity-detail-grid"><div class="activity-detail-metric"><span>Gewichtete Leistung</span><strong>${fmtNum(a.normalized_watts," W")}</strong></div><div class="activity-detail-metric"><span>Ø Herzfrequenz</span><strong>${fmtNum(a.average_hr," bpm")}</strong></div><div class="activity-detail-metric"><span>Max. Herzfrequenz</span><strong>${fmtNum(a.max_hr," bpm")}</strong></div><div class="activity-detail-metric"><span>Ø Kadenz</span><strong>${fmtNum(a.average_cadence," rpm")}</strong></div><div class="activity-detail-metric"><span>Höhenmeter</span><strong>${fmtNum(a.elevation_gain_m," hm")}</strong></div><div class="activity-detail-metric"><span>Intensitätsfaktor</span><strong>${fmtNum(a.intensity_factor,"",2)}</strong></div></div>
+   <div class="activity-chart"><div class="activity-chart-title"><span>Leistung</span><span>${fmtNum(a.average_watts," W Ø")}</span></div>${activityBars(power)}</div>
+   <div class="activity-chart"><div class="activity-chart-title"><span>Herzfrequenz</span><span>${fmtNum(a.average_hr," bpm Ø")}</span></div>${activityBars(hr)}</div>
+   <div class="activity-chart"><div class="activity-chart-title"><span>Kadenz</span><span>${fmtNum(a.average_cadence," rpm Ø")}</span></div>${activityBars(cad)}</div>
+  </div>`:""}
+ </button>`;
+}
+function toggleActivityDetail(id){openActivityId=String(openActivityId)===String(id)?null:id;renderActivityAnalyticsPanel()}
+function setActivityAnalyticsTab(tab){activityAnalyticsTab=tab;localStorage.setItem("mt_analytics_tab",tab);document.getElementById("analyticsExisting")?.toggleAttribute("hidden",tab!=="plan");document.getElementById("analyticsActivities")?.toggleAttribute("hidden",tab!=="activities");document.querySelectorAll(".analytics-switch button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));if(tab==="activities"&&!activitiesLoaded)loadImportedActivities(false)}
+async function loadImportedActivities(showError=false){
+ if(!sb||!cloudUser){activitiesLoaded=true;renderActivityAnalyticsPanel();return}
+ try{const {data,error}=await sb.from("activity_imports").select("*").eq("user_id",cloudUser.id).order("activity_date",{ascending:false}).limit(100);if(error)throw error;importedActivities=data||[];activitiesLoaded=true;renderActivityAnalyticsPanel();renderCoachSettingsPanel()}catch(e){console.error(e);if(showError)alert("Trainingsdaten konnten nicht geladen werden: "+(e.message||e));}
+}
+async function syncIntervalsActivities(show=true){
+ if(!sb||!cloudUser){if(show)alert("Bitte zuerst bei der Cloud anmelden.");return}
+ try{if(show){const b=document.getElementById("activitySyncStatus");if(b)b.textContent="Synchronisierung läuft …"}const {data,error}=await sb.functions.invoke("intervals-sync",{body:{days:90}});if(error)throw error;await loadImportedActivities(false);if(show){const n=data?.count??data?.imported??data?.upserted??importedActivities.length;alert(`Trainingsdaten synchronisiert. ${n} Aktivität${n===1?"":"en"} verarbeitet.`)}}catch(e){console.error(e);if(show)alert("Intervals.icu-Synchronisierung fehlgeschlagen: "+(e.message||e))}
+}
+function renderActivityAnalyticsPanel(){
+ const root=document.getElementById("analyticsActivities");if(!root)return;const list=activityListForUi();const real=importedActivities;const totalKm=real.reduce((s,a)=>s+(Number(a.distance_m)||0),0)/1000;const totalMin=real.reduce((s,a)=>s+(Number(a.moving_time_seconds)||Number(a.elapsed_time_seconds)||0),0)/60;const totalLoad=real.reduce((s,a)=>s+(Number(a.training_load)||0),0);
+ root.innerHTML=`<div class="activity-toolbar"><div><strong>Einzelne Trainingseinheiten</strong><div id="activitySyncStatus" class="activity-source">${real.length?`${real.length} Aktivität${real.length===1?"":"en"} aus Intervals.icu`:'Noch keine echte Aktivität – Demo wird angezeigt'}</div></div><button class="pill primary" onclick="syncIntervalsActivities(true)">↻ Synchronisieren</button></div>
+ <div class="activity-summary"><div class="metric glass"><span>Aktivitäten</span><strong>${real.length}</strong></div><div class="metric glass"><span>Zeit</span><strong>${real.length?`${Math.round(totalMin)} min`:"–"}</strong></div><div class="metric glass"><span>Distanz</span><strong>${real.length?`${totalKm.toLocaleString("de-AT",{maximumFractionDigits:1})} km`:"–"}</strong></div><div class="metric glass"><span>Belastung</span><strong>${real.length?Math.round(totalLoad):"–"}</strong></div></div>
+ <div class="activity-grid">${list.map(activityCard).join("")}</div>${!real.length?'<div class="activity-empty">Die Demo-Aktivität ist nur ein optischer Referenzpunkt und wird nicht in Supabase gespeichert oder vom Coach als echtes Training gewertet.</div>':""}`;
+}
+const _renderAnalyticsV627=renderAnalytics;
+renderAnalytics=function(){
+ _renderAnalyticsV627();
+ const headEl=main.querySelector(".page-head");const nodes=[...main.children].filter(n=>n!==headEl);const existing=document.createElement("div");existing.id="analyticsExisting";nodes.forEach(n=>existing.appendChild(n));
+ const sw=document.createElement("div");sw.className="analytics-switch";sw.innerHTML=`<button data-tab="plan" onclick="setActivityAnalyticsTab('plan')">Plan & Fortschritt</button><button data-tab="activities" onclick="setActivityAnalyticsTab('activities')">Einzelne Einheiten</button>`;
+ const activities=document.createElement("div");activities.id="analyticsActivities";main.insertBefore(sw,headEl?.nextSibling||main.firstChild);main.appendChild(existing);main.appendChild(activities);renderActivityAnalyticsPanel();setActivityAnalyticsTab(activityAnalyticsTab);
+};
+
+const _renderCoachSettingsPanelV627=renderCoachSettingsPanel;
+renderCoachSettingsPanel=function(){
+ _renderCoachSettingsPanelV627();const box=document.getElementById("coachSettingsContent");if(!box)return;
+ const real=importedActivities.length;const info=document.createElement("div");info.className="coach-settings-card coach-section";info.innerHTML=`<strong>Trainingsdaten</strong><div class="coach-value">${real?`${real} Aktivität${real===1?"":"en"} verfügbar`:"Noch keine Aktivität importiert"}</div><div class="eq-small">Datenquelle: Intervals.icu → Supabase → My Trainings Coach</div><div class="stack"><button class="pill primary" onclick="syncIntervalsActivities(true)">↻ Jetzt synchronisieren</button><button class="pill" onclick="go('analytics');setTimeout(()=>setActivityAnalyticsTab('activities'),0)">◫ Einzelne Einheiten</button></div>`;box.appendChild(info);
+};
+
+// Automatic, throttled activity sync while the app is in use.
+let lastIntervalsAutoSync=0;
+async function maybeSyncIntervalsActivities(){if(!cloudUser||!sb||!navigator.onLine)return;const now=Date.now();if(now-lastIntervalsAutoSync<15*60*1000)return;lastIntervalsAutoSync=now;await syncIntervalsActivities(false)}
+window.addEventListener("online",maybeSyncIntervalsActivities);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")maybeSyncIntervalsActivities()});
+setTimeout(()=>{if(cloudUser){loadImportedActivities(false);maybeSyncIntervalsActivities()}},1800);
 
 </script>
 
