@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.29</title>
+<title>Training v6.30</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3063,7 +3063,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.29</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.30</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5899,7 +5899,7 @@ renderAnalytics=function(){
 const _renderCoachSettingsPanelV627=renderCoachSettingsPanel;
 renderCoachSettingsPanel=function(){
  _renderCoachSettingsPanelV627();const box=document.getElementById("coachSettingsContent");if(!box)return;
- const real=importedActivities.length;const info=document.createElement("div");info.className="coach-settings-card coach-section";info.innerHTML=`<strong>Trainingsdaten</strong><div class="coach-value">${real?`${real} Aktivität${real===1?"":"en"} verfügbar`:"Noch keine Aktivität importiert"}</div><div class="eq-small">Datenquelle: Intervals.icu → Supabase → My Trainings Coach</div><div class="stack"><button class="pill primary" onclick="syncIntervalsActivities(true)">↻ Jetzt synchronisieren</button><button class="pill" onclick="go('analytics');setTimeout(()=>setActivityAnalyticsTab('activities'),0)">◫ Einzelne Einheiten</button></div>`;box.appendChild(info);
+ const real=importedActivities.length;const info=document.createElement("div");info.className="coach-settings-card coach-section";info.innerHTML=`<strong>Trainingsdaten</strong><div class="coach-value">${real?`${real} Aktivität${real===1?"":"en"} verfügbar`:"Noch keine Aktivität importiert"}</div><div class="eq-small">Datenquelle: Intervals.icu → Supabase → My Trainings Coach · echte Aktivitäten werden bei der Plananpassung als Ist-Daten berücksichtigt</div><div class="stack"><button class="pill primary" onclick="syncIntervalsActivities(true)">↻ Jetzt synchronisieren</button><button class="pill" onclick="go('analytics');setTimeout(()=>setActivityAnalyticsTab('activities'),0)">◫ Einzelne Einheiten</button></div>`;box.appendChild(info);
 };
 
 
