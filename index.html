@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.30</title>
+<title>Training v6.31</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2968,6 +2968,38 @@ main:not(.plan-screen){height:100dvh!important;overflow-y:auto!important;overflo
 @media(max-width:760px){.trend-controls{grid-template-columns:1fr}.trend-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-extra-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-color-scheme:dark){.trend-kpi,.trend-chart{background:rgba(255,255,255,.06)}}
 
+
+/* ===== V6.31 Settings scroll fix =====
+   main must remain the flex child of .shell. A forced 100dvh height made
+   expanded settings content extend below the visible shell. */
+body:has(#navSettings.active) main{
+  flex:1 1 0!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-y!important;
+  padding-bottom:calc(92px + env(safe-area-inset-bottom))!important;
+}
+body:has(#navSettings.active) .settings-accordion{
+  overflow:visible!important;
+  min-height:min-content!important;
+}
+body:has(#navSettings.active) .settings-section.open{
+  overflow:visible!important;
+}
+body:has(#navSettings.active) .settings-section.open .settings-section-body{
+  overflow:visible!important;
+}
+@media(min-width:1200px){
+  body:has(#navSettings.active) main{
+    padding-bottom:40px!important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -3063,7 +3095,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.30</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.31</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5924,6 +5956,33 @@ async function maybeSyncIntervalsActivities(){if(!cloudUser||!sb||!navigator.onL
 window.addEventListener("online",maybeSyncIntervalsActivities);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")maybeSyncIntervalsActivities()});
 setTimeout(()=>{if(cloudUser){loadImportedActivities(false);maybeSyncIntervalsActivities()}},1800);
+
+/* ===== V6.31 adaptive settings scrolling ===== */
+function refreshSettingsScrolling(){
+  if(screen!=="settings") return;
+  requestAnimationFrame(()=>{
+    if(screen!=="settings") return;
+    // Keep main as the sole scroll container. "auto" only scrolls if content
+    // is actually taller than the available viewport.
+    main.style.setProperty("overflow-y","auto","important");
+    main.style.setProperty("height","auto","important");
+    main.style.setProperty("min-height","0","important");
+  });
+}
+const __v631ToggleSettingsSection=toggleSettingsSection;
+toggleSettingsSection=function(name){
+  __v631ToggleSettingsSection(name);
+  refreshSettingsScrolling();
+  setTimeout(refreshSettingsScrolling,60);
+  setTimeout(refreshSettingsScrolling,250);
+};
+const __v631RenderSettings=renderSettings;
+renderSettings=function(){
+  __v631RenderSettings();
+  refreshSettingsScrolling();
+  setTimeout(refreshSettingsScrolling,100);
+  setTimeout(refreshSettingsScrolling,400);
+};
 
 </script>
 
