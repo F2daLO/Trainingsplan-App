@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.28</title>
+<title>Training v6.29</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2955,6 +2955,19 @@ button.metric.analytics-link{border:inherit}
 @media(max-width:760px){.activity-grid{grid-template-columns:1fr}.activity-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-switch{width:100%}.analytics-switch button{flex:1}}
 @media(prefers-color-scheme:dark){.analytics-switch button.active{background:rgba(255,255,255,.10)}.activity-kpi,.activity-detail-metric,.activity-chart{background:rgba(255,255,255,.06)}}
 
+
+/* ===== V6.29 adaptive scrolling + activity development ===== */
+main:not(.plan-screen){height:100dvh!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain!important;padding-bottom:calc(112px + env(safe-area-inset-bottom))!important}
+@media(min-width:1200px){main:not(.plan-screen){padding-bottom:48px!important}}
+.activity-toolbar .auto-sync-note{font-size:10px;color:var(--muted);margin-top:3px}.activity-refresh{min-width:42px;padding:9px 11px!important}
+.trend-controls{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px;margin:12px 0}.trend-controls select{width:100%}
+.trend-hero{border-radius:22px;padding:16px;margin:12px 0}.trend-hero-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.trend-hero h3{margin:0 0 3px}.trend-comparison{font-size:12px;line-height:1.5;color:var(--muted);margin-top:12px}.trend-positive{color:#248a3d}.trend-negative{color:#c9342e}.trend-neutral{color:var(--muted)}
+.trend-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.trend-kpi{padding:10px;border-radius:14px;background:rgba(255,255,255,.16)}.trend-kpi span{display:block;font-size:9px;color:var(--muted)}.trend-kpi strong{display:block;font-size:15px;margin-top:2px}.trend-kpi small{font-size:9px}
+.trend-chart{padding:12px;border-radius:17px;background:rgba(255,255,255,.12);margin-top:10px}.trend-chart-head{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--muted);margin-bottom:8px}.trend-line{height:100px;width:100%;display:block}.trend-point-list{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:4px}
+.activity-extra-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}.activity-extra-grid .activity-detail-metric{min-width:0}.activity-unavailable{font-size:10px;color:var(--muted);margin-top:9px;line-height:1.4}
+@media(max-width:760px){.trend-controls{grid-template-columns:1fr}.trend-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-extra-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-color-scheme:dark){.trend-kpi,.trend-chart{background:rgba(255,255,255,.06)}}
+
 </style>
 </head>
 <body>
@@ -3050,7 +3063,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.28</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.29</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5833,6 +5846,17 @@ function activitySportEmoji(a){const t=String(a.activity_type||a.name||"").toLow
 function activityDateLabel(a){const d=new Date(a.activity_date);return isNaN(d)?"":d.toLocaleString("de-AT",{weekday:"short",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}
 function activityBars(values){return `<div class="activity-bars">${values.map(v=>`<i style="height:${Math.max(5,Math.min(100,v))}%"></i>`).join("")}</div>`}
 function syntheticSeries(base,spread=18){return Array.from({length:24},(_,i)=>Math.max(10,Math.min(96,48+Math.sin(i*.8)*spread+((i*13)%17))))}
+function rawActivityValue(a,...keys){const r=a.raw_summary||{};for(const k of keys){const v=r?.[k];if(v!==undefined&&v!==null&&v!==""&&Number.isFinite(Number(v)))return Number(v)}return null}
+function maxPower(a){return rawActivityValue(a,"max_watts","max_power","icu_max_watts","max_watts_1m")}
+function maxCadence(a){return rawActivityValue(a,"max_cadence","icu_max_cadence")}
+function maxSpeedKmh(a){const v=a.max_speed_mps??rawActivityValue(a,"max_speed");return v==null?null:Number(v)*3.6}
+function leftRightBalance(a){return rawActivityValue(a,"left_right_balance","average_left_power_phase","left_power_balance")}
+function extraActivityMetrics(a){
+ const mp=a._demo?462:maxPower(a), mc=a._demo?118:maxCadence(a), ms=a._demo?45.7:maxSpeedKmh(a), lr=a._demo?null:leftRightBalance(a);
+ const vals=[['Max. Leistung',mp==null?'–':fmtNum(mp,' W')],['Max. Kadenz',mc==null?'–':fmtNum(mc,' rpm')],['Max. Geschwindigkeit',ms==null?'–':fmtNum(ms,' km/h',1)],['Kalorien',a.calories==null?'–':fmtNum(a.calories,' kcal')]];
+ if(lr!=null)vals.push(['Links/Rechts',`${fmtNum(lr,' %',1)} / ${fmtNum(100-lr,' %',1)}`]);
+ return `<div class="activity-extra-grid">${vals.map(([l,v])=>`<div class="activity-detail-metric"><span>${l}</span><strong>${v}</strong></div>`).join('')}</div><div class="activity-unavailable">Zusätzliche Sensordaten werden automatisch eingeblendet, sobald Intervals.icu sie für die jeweilige Aktivität liefert.</div>`;
+}
 function activityCard(a){
  const open=String(openActivityId)===String(a.id);const power=a.demoPower||syntheticSeries(a.average_watts||140,20);const hr=a.demoHr||syntheticSeries(a.average_hr||135,14);const cad=a.demoCad||syntheticSeries(a.average_cadence||85,10);
  const planned=a.training_session_id?"✓ Mit geplanter Einheit verknüpft":a._demo?"Demo: automatische Soll-/Ist-Zuordnung":"Noch keiner Planeinheit zugeordnet";
@@ -5841,7 +5865,7 @@ function activityCard(a){
   <div class="activity-kpis"><div class="activity-kpi"><strong>${fmtDuration(a.moving_time_seconds||a.elapsed_time_seconds)}</strong><span>Dauer</span></div><div class="activity-kpi"><strong>${fmtKm(a.distance_m)}</strong><span>Distanz</span></div><div class="activity-kpi"><strong>${fmtNum(a.average_watts," W")}</strong><span>Ø Leistung</span></div><div class="activity-kpi"><strong>${fmtNum(a.training_load,"",0)}</strong><span>Belastung</span></div></div>
   <div class="activity-match">${planned}${a.match_confidence&&!a._demo?` · ${Math.round(Number(a.match_confidence)*100)} %` : ""}</div>
   ${open?`<div class="activity-detail">
-   <div class="activity-detail-grid"><div class="activity-detail-metric"><span>Gewichtete Leistung</span><strong>${fmtNum(a.normalized_watts," W")}</strong></div><div class="activity-detail-metric"><span>Ø Herzfrequenz</span><strong>${fmtNum(a.average_hr," bpm")}</strong></div><div class="activity-detail-metric"><span>Max. Herzfrequenz</span><strong>${fmtNum(a.max_hr," bpm")}</strong></div><div class="activity-detail-metric"><span>Ø Kadenz</span><strong>${fmtNum(a.average_cadence," rpm")}</strong></div><div class="activity-detail-metric"><span>Höhenmeter</span><strong>${fmtNum(a.elevation_gain_m," hm")}</strong></div><div class="activity-detail-metric"><span>Intensitätsfaktor</span><strong>${fmtNum(a.intensity_factor,"",2)}</strong></div></div>
+   <div class="activity-detail-grid"><div class="activity-detail-metric"><span>Gewichtete Leistung</span><strong>${fmtNum(a.normalized_watts," W")}</strong></div><div class="activity-detail-metric"><span>Ø Herzfrequenz</span><strong>${fmtNum(a.average_hr," bpm")}</strong></div><div class="activity-detail-metric"><span>Max. Herzfrequenz</span><strong>${fmtNum(a.max_hr," bpm")}</strong></div><div class="activity-detail-metric"><span>Ø Kadenz</span><strong>${fmtNum(a.average_cadence," rpm")}</strong></div><div class="activity-detail-metric"><span>Höhenmeter</span><strong>${fmtNum(a.elevation_gain_m," hm")}</strong></div><div class="activity-detail-metric"><span>Intensitätsfaktor</span><strong>${fmtNum(a.intensity_factor,"",2)}</strong></div></div>${extraActivityMetrics(a)}
    <div class="activity-chart"><div class="activity-chart-title"><span>Leistung</span><span>${fmtNum(a.average_watts," W Ø")}</span></div>${activityBars(power)}</div>
    <div class="activity-chart"><div class="activity-chart-title"><span>Herzfrequenz</span><span>${fmtNum(a.average_hr," bpm Ø")}</span></div>${activityBars(hr)}</div>
    <div class="activity-chart"><div class="activity-chart-title"><span>Kadenz</span><span>${fmtNum(a.average_cadence," rpm Ø")}</span></div>${activityBars(cad)}</div>
@@ -5849,10 +5873,10 @@ function activityCard(a){
  </button>`;
 }
 function toggleActivityDetail(id){openActivityId=String(openActivityId)===String(id)?null:id;renderActivityAnalyticsPanel()}
-function setActivityAnalyticsTab(tab){activityAnalyticsTab=tab;localStorage.setItem("mt_analytics_tab",tab);document.getElementById("analyticsExisting")?.toggleAttribute("hidden",tab!=="plan");document.getElementById("analyticsActivities")?.toggleAttribute("hidden",tab!=="activities");document.querySelectorAll(".analytics-switch button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));if(tab==="activities"&&!activitiesLoaded)loadImportedActivities(false)}
+function setActivityAnalyticsTab(tab){activityAnalyticsTab=tab;localStorage.setItem("mt_analytics_tab",tab);document.getElementById("analyticsExisting")?.toggleAttribute("hidden",tab!=="plan");document.getElementById("analyticsActivities")?.toggleAttribute("hidden",tab!=="activities");document.getElementById("analyticsDevelopment")?.toggleAttribute("hidden",tab!=="development");document.querySelectorAll(".analytics-switch button").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));if((tab==="activities"||tab==="development")&&!activitiesLoaded)loadImportedActivities(false);if(tab==="development")renderDevelopmentAnalytics()}
 async function loadImportedActivities(showError=false){
  if(!sb||!cloudUser){activitiesLoaded=true;renderActivityAnalyticsPanel();return}
- try{const {data,error}=await sb.from("activity_imports").select("*").eq("user_id",cloudUser.id).order("activity_date",{ascending:false}).limit(100);if(error)throw error;importedActivities=data||[];activitiesLoaded=true;renderActivityAnalyticsPanel();renderCoachSettingsPanel()}catch(e){console.error(e);if(showError)alert("Trainingsdaten konnten nicht geladen werden: "+(e.message||e));}
+ try{const {data,error}=await sb.from("activity_imports").select("*").eq("user_id",cloudUser.id).order("activity_date",{ascending:false}).limit(100);if(error)throw error;importedActivities=data||[];activitiesLoaded=true;renderActivityAnalyticsPanel();renderDevelopmentAnalytics();renderCoachSettingsPanel()}catch(e){console.error(e);if(showError)alert("Trainingsdaten konnten nicht geladen werden: "+(e.message||e));}
 }
 async function syncIntervalsActivities(show=true){
  if(!sb||!cloudUser){if(show)alert("Bitte zuerst bei der Cloud anmelden.");return}
@@ -5860,7 +5884,7 @@ async function syncIntervalsActivities(show=true){
 }
 function renderActivityAnalyticsPanel(){
  const root=document.getElementById("analyticsActivities");if(!root)return;const list=activityListForUi();const real=importedActivities;const totalKm=real.reduce((s,a)=>s+(Number(a.distance_m)||0),0)/1000;const totalMin=real.reduce((s,a)=>s+(Number(a.moving_time_seconds)||Number(a.elapsed_time_seconds)||0),0)/60;const totalLoad=real.reduce((s,a)=>s+(Number(a.training_load)||0),0);
- root.innerHTML=`<div class="activity-toolbar"><div><strong>Einzelne Trainingseinheiten</strong><div id="activitySyncStatus" class="activity-source">${real.length?`${real.length} Aktivität${real.length===1?"":"en"} aus Intervals.icu`:'Noch keine echte Aktivität – Demo wird angezeigt'}</div></div><button class="pill primary" onclick="syncIntervalsActivities(true)">↻ Synchronisieren</button></div>
+ root.innerHTML=`<div class="activity-toolbar"><div><strong>Einzelne Trainingseinheiten</strong><div id="activitySyncStatus" class="activity-source">${real.length?`${real.length} Aktivität${real.length===1?"":"en"} aus Intervals.icu`:'Noch keine echte Aktivität – Demo wird angezeigt'}<div class="auto-sync-note">Automatische Synchronisierung aktiv · „Jetzt“ ist nur für sofortiges manuelles Aktualisieren.</div></div></div><button class="pill activity-refresh" title="Normalerweise automatisch. Damit kannst du neue Daten sofort abrufen." onclick="syncIntervalsActivities(true)">↻ Jetzt</button></div>
  <div class="activity-summary"><div class="metric glass"><span>Aktivitäten</span><strong>${real.length}</strong></div><div class="metric glass"><span>Zeit</span><strong>${real.length?`${Math.round(totalMin)} min`:"–"}</strong></div><div class="metric glass"><span>Distanz</span><strong>${real.length?`${totalKm.toLocaleString("de-AT",{maximumFractionDigits:1})} km`:"–"}</strong></div><div class="metric glass"><span>Belastung</span><strong>${real.length?Math.round(totalLoad):"–"}</strong></div></div>
  <div class="activity-grid">${list.map(activityCard).join("")}</div>${!real.length?'<div class="activity-empty">Die Demo-Aktivität ist nur ein optischer Referenzpunkt und wird nicht in Supabase gespeichert oder vom Coach als echtes Training gewertet.</div>':""}`;
 }
@@ -5868,8 +5892,8 @@ const _renderAnalyticsV627=renderAnalytics;
 renderAnalytics=function(){
  _renderAnalyticsV627();
  const headEl=main.querySelector(".page-head");const nodes=[...main.children].filter(n=>n!==headEl);const existing=document.createElement("div");existing.id="analyticsExisting";nodes.forEach(n=>existing.appendChild(n));
- const sw=document.createElement("div");sw.className="analytics-switch";sw.innerHTML=`<button data-tab="plan" onclick="setActivityAnalyticsTab('plan')">Plan & Fortschritt</button><button data-tab="activities" onclick="setActivityAnalyticsTab('activities')">Einzelne Einheiten</button>`;
- const activities=document.createElement("div");activities.id="analyticsActivities";main.insertBefore(sw,headEl?.nextSibling||main.firstChild);main.appendChild(existing);main.appendChild(activities);renderActivityAnalyticsPanel();setActivityAnalyticsTab(activityAnalyticsTab);
+ const sw=document.createElement("div");sw.className="analytics-switch";sw.innerHTML=`<button data-tab="plan" onclick="setActivityAnalyticsTab('plan')">Plan & Fortschritt</button><button data-tab="activities" onclick="setActivityAnalyticsTab('activities')">Einzelne Einheiten</button><button data-tab="development" onclick="setActivityAnalyticsTab('development')">Entwicklung</button>`;
+ const activities=document.createElement("div");activities.id="analyticsActivities";const development=document.createElement("div");development.id="analyticsDevelopment";main.insertBefore(sw,headEl?.nextSibling||main.firstChild);main.appendChild(existing);main.appendChild(activities);main.appendChild(development);renderActivityAnalyticsPanel();renderDevelopmentAnalytics();setActivityAnalyticsTab(activityAnalyticsTab);
 };
 
 const _renderCoachSettingsPanelV627=renderCoachSettingsPanel;
@@ -5878,9 +5902,25 @@ renderCoachSettingsPanel=function(){
  const real=importedActivities.length;const info=document.createElement("div");info.className="coach-settings-card coach-section";info.innerHTML=`<strong>Trainingsdaten</strong><div class="coach-value">${real?`${real} Aktivität${real===1?"":"en"} verfügbar`:"Noch keine Aktivität importiert"}</div><div class="eq-small">Datenquelle: Intervals.icu → Supabase → My Trainings Coach</div><div class="stack"><button class="pill primary" onclick="syncIntervalsActivities(true)">↻ Jetzt synchronisieren</button><button class="pill" onclick="go('analytics');setTimeout(()=>setActivityAnalyticsTab('activities'),0)">◫ Einzelne Einheiten</button></div>`;box.appendChild(info);
 };
 
+
+function trendSportClass(a){const t=String(a.activity_type||a.name||'').toLowerCase();const n=String(a.name||'').toLowerCase();if(!/ride|cycl|bike|rad/.test(t))return'other';if(/virtual|indoor|zwift|mywhoosh|trainer/.test(t+' '+n+' '+String(a.source_device||'').toLowerCase()))return'indoor';return'outdoor'}
+function monthKey(d){const x=new Date(d);return isNaN(x)?'':`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`}
+function pctChange(cur,prev){if(!prev)return null;return (cur-prev)/prev*100}
+function deltaText(label,cur,prev,unit='',digits=0){if(prev==null||cur==null)return'';const d=pctChange(cur,prev);if(d==null)return'';const cls=Math.abs(d)<1?'trend-neutral':d>0?'trend-positive':'trend-negative';return `<span class="${cls}">${label}: ${d>=0?'+':''}${d.toFixed(1)} %</span>`}
+function lineSvg(vals){if(!vals.length)return'';const w=600,h=100,p=8,min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;const pts=vals.map((v,i)=>`${p+(w-2*p)*(i/(Math.max(1,vals.length-1)))},${h-p-(h-2*p)*((v-min)/range)}`).join(' ');return `<svg class="trend-line" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="${pts.split(' ').at(-1).split(',')[0]}" cy="${pts.split(' ').at(-1).split(',')[1]}" r="5" fill="currentColor"/></svg>`}
+function renderDevelopmentAnalytics(){
+ const root=document.getElementById('analyticsDevelopment');if(!root)return;const all=importedActivities.length?importedActivities:[];const months=[...new Set(all.map(a=>monthKey(a.activity_date)).filter(Boolean))].sort().reverse();const currentMonth=months[0]||'2026-10';const selectedMonth=document.getElementById('trendMonth')?.value||currentMonth;const sport=document.getElementById('trendSport')?.value||'all';const metric=document.getElementById('trendMetric')?.value||'average_watts';
+ const filtered=all.filter(a=>(sport==='all'||trendSportClass(a)===sport)&&monthKey(a.activity_date)===selectedMonth);const prevDate=new Date(selectedMonth+'-01T12:00:00');prevDate.setMonth(prevDate.getMonth()-1);const prevKey=`${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;const prev=all.filter(a=>(sport==='all'||trendSportClass(a)===sport)&&monthKey(a.activity_date)===prevKey);
+ const sum=(arr,k)=>arr.reduce((s,a)=>s+(Number(a[k])||0),0), avg=(arr,k)=>{const v=arr.map(a=>Number(a[k])).filter(Number.isFinite).filter(x=>x>0);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
+ const km=sum(filtered,'distance_m')/1000, pkm=sum(prev,'distance_m')/1000, hm=sum(filtered,'elevation_gain_m'), phm=sum(prev,'elevation_gain_m'), watts=avg(filtered,'average_watts'), pWatts=avg(prev,'average_watts'), speed=avg(filtered,'average_speed_mps');
+ const metricMap={average_watts:['Ø Leistung','average_watts',1,' W'],normalized_watts:['Gewichtete Leistung','normalized_watts',1,' W'],average_hr:['Ø Herzfrequenz','average_hr',0,' bpm'],average_cadence:['Ø Kadenz','average_cadence',0,' rpm'],training_load:['Belastung','training_load',0,'']};const [ml,mk,md,mu]=metricMap[metric]||metricMap.average_watts;const points=filtered.slice().sort((a,b)=>new Date(a.activity_date)-new Date(b.activity_date)).map(a=>Number(a[mk])).filter(Number.isFinite).filter(v=>v>0);
+ const first=points[0],last=points.at(-1);const insight=filtered.length?`Im gewählten Zeitraum: ${filtered.length} Einheit${filtered.length===1?'':'en'}, ${km.toLocaleString('de-AT',{maximumFractionDigits:1})} km und ${Math.round(hm)} hm. ${prev.length?`Gegenüber ${prevKey}: ${km>=pkm?'mehr':'weniger'} Distanz (${Math.abs(km-pkm).toLocaleString('de-AT',{maximumFractionDigits:1})} km) und ${hm>=phm?'mehr':'weniger'} Höhenmeter (${Math.abs(Math.round(hm-phm))} hm).`:''} ${first&&last&&points.length>1?`${ml} hat sich über die verfügbaren Fahrten von ${first.toFixed(md)}${mu} auf ${last.toFixed(md)}${mu} verändert.`:''}`:'Noch keine echten Aktivitäten für diese Entwicklungsauswertung vorhanden.';
+ root.innerHTML=`<div class="activity-toolbar"><div><strong>Entwicklung</strong><div class="activity-source">Zeitraum, Trainingsart und Kennzahl frei vergleichen</div></div></div><div class="trend-controls"><select id="trendSport" onchange="renderDevelopmentAnalytics()"><option value="all" ${sport==='all'?'selected':''}>Alle Radfahrten</option><option value="outdoor" ${sport==='outdoor'?'selected':''}>Outdoor Rad</option><option value="indoor" ${sport==='indoor'?'selected':''}>Indoor Rad</option></select><select id="trendMonth" onchange="renderDevelopmentAnalytics()">${(months.length?months:['2026-10']).map(m=>`<option value="${m}" ${m===selectedMonth?'selected':''}>${new Date(m+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</option>`).join('')}</select><select id="trendMetric" onchange="renderDevelopmentAnalytics()">${Object.entries(metricMap).map(([k,v])=>`<option value="${k}" ${k===metric?'selected':''}>${v[0]}</option>`).join('')}</select></div><div class="trend-hero glass"><div class="trend-hero-head"><div><h3>${sport==='indoor'?'🚲 Indoor':sport==='outdoor'?'🚴 Outdoor':'🚴 Alle Radfahrten'}</h3><div class="activity-source">${selectedMonth}</div></div><span class="activity-demo" style="display:${all.length?'none':'inline-block'}">WARTET AUF DATEN</span></div><div class="trend-kpis"><div class="trend-kpi"><span>Distanz</span><strong>${all.length?km.toLocaleString('de-AT',{maximumFractionDigits:1})+' km':'–'}</strong><small>${prev.length?deltaText('',km,pkm).replace(':',''):''}</small></div><div class="trend-kpi"><span>Höhenmeter</span><strong>${all.length?Math.round(hm)+' hm':'–'}</strong><small>${prev.length?deltaText('',hm,phm).replace(':',''):''}</small></div><div class="trend-kpi"><span>Ø Leistung</span><strong>${watts?Math.round(watts)+' W':'–'}</strong><small>${prev.length&&pWatts?deltaText('',watts,pWatts).replace(':',''):''}</small></div><div class="trend-kpi"><span>Ø Geschwindigkeit</span><strong>${speed?(speed*3.6).toFixed(1)+' km/h':'–'}</strong></div></div><div class="trend-chart"><div class="trend-chart-head"><span>${ml} je Einheit</span><span>${points.length} Datenpunkte</span></div>${points.length?lineSvg(points):'<div class="activity-empty">Noch keine echten Datenpunkte.</div>'}<div class="trend-point-list"><span>${first?first.toFixed(md)+mu:''}</span><span>${last?last.toFixed(md)+mu:''}</span></div></div><div class="trend-comparison">${insight}</div></div>`;
+}
+
 // Automatic, throttled activity sync while the app is in use.
 let lastIntervalsAutoSync=0;
-async function maybeSyncIntervalsActivities(){if(!cloudUser||!sb||!navigator.onLine)return;const now=Date.now();if(now-lastIntervalsAutoSync<15*60*1000)return;lastIntervalsAutoSync=now;await syncIntervalsActivities(false)}
+async function maybeSyncIntervalsActivities(){if(!cloudUser||!sb||!navigator.onLine)return;const now=Date.now();if(now-lastIntervalsAutoSync<10*60*1000)return;lastIntervalsAutoSync=now;await syncIntervalsActivities(false)}
 window.addEventListener("online",maybeSyncIntervalsActivities);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")maybeSyncIntervalsActivities()});
 setTimeout(()=>{if(cloudUser){loadImportedActivities(false);maybeSyncIntervalsActivities()}},1800);
