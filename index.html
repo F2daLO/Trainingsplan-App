@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.33</title>
+<title>Training v6.34</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3116,7 +3116,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.33</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.34</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5980,7 +5980,46 @@ renderCoachSettingsPanel=function(){
 };
 
 
-function trendSportClass(a){const t=String(a.activity_type||a.name||'').toLowerCase();const n=String(a.name||'').toLowerCase();if(!/ride|cycl|bike|rad/.test(t))return'other';if(/virtual|indoor|zwift|mywhoosh|trainer/.test(t+' '+n+' '+String(a.source_device||'').toLowerCase()))return'indoor';return'outdoor'}
+function trendSportClass(a){
+ const t=(String(a.activity_type||'')+' '+String(a.name||'')+' '+String(a.source_device||'')).toLowerCase();
+ if(/ride|cycl|bike|rad|virtualride/.test(t)){
+   if(/virtual|indoor|zwift|mywhoosh|trainer|erg/.test(t))return'bike_indoor';
+   return'bike_outdoor';
+ }
+ if(/run|running|lauf|jog/.test(t)){
+   if(/treadmill|indoor|laufband/.test(t))return'run_indoor';
+   return'run_outdoor';
+ }
+ if(/walk|walking|gehen|spazier|hike|hiking|wandern/.test(t))return'walk_hike';
+ if(/swim|swimming|schwimm/.test(t))return'swim';
+ if(/strength|weight|kraft|calisthen|functional|workout/.test(t))return'strength';
+ if(/ski|skiing|skitour|alpine|nordic|cross.?country/.test(t))return'ski';
+ if(/row|rowing|rudern/.test(t))return'rowing';
+ if(/elliptical|crosstrainer/.test(t))return'elliptical';
+ return'other';
+}
+function trendSportLabel(k){
+ return ({all:'Alle Sportarten',bike_all:'Rad – gesamt',bike_outdoor:'Rad – Outdoor',bike_indoor:'Rad – Indoor',run_all:'Laufen – gesamt',run_outdoor:'Laufen – Outdoor',run_indoor:'Laufen – Indoor',walk_hike:'Gehen / Wandern',swim:'Schwimmen',strength:'Kraft / Functional',ski:'Ski / Skitour',rowing:'Rudern',elliptical:'Crosstrainer',other:'Sonstige'})[k]||k;
+}
+function trendSportMatch(a,k){
+ if(k==='all')return true;
+ const c=trendSportClass(a);
+ if(k==='bike_all')return c==='bike_outdoor'||c==='bike_indoor';
+ if(k==='run_all')return c==='run_outdoor'||c==='run_indoor';
+ return c===k;
+}
+function availableTrendSports(all){
+ const classes=new Set(all.map(trendSportClass));
+ const opts=[['all','Alle Sportarten']];
+ if(classes.has('bike_outdoor')||classes.has('bike_indoor'))opts.push(['bike_all','Rad – gesamt']);
+ if(classes.has('bike_outdoor'))opts.push(['bike_outdoor','Rad – Outdoor']);
+ if(classes.has('bike_indoor'))opts.push(['bike_indoor','Rad – Indoor']);
+ if(classes.has('run_outdoor')||classes.has('run_indoor'))opts.push(['run_all','Laufen – gesamt']);
+ if(classes.has('run_outdoor'))opts.push(['run_outdoor','Laufen – Outdoor']);
+ if(classes.has('run_indoor'))opts.push(['run_indoor','Laufen – Indoor']);
+ for(const k of ['walk_hike','swim','strength','ski','rowing','elliptical','other'])if(classes.has(k))opts.push([k,trendSportLabel(k)]);
+ return opts;
+}
 function monthKey(d){const x=new Date(d);return isNaN(x)?'':`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`}
 function pctChange(cur,prev){if(!prev)return null;return (cur-prev)/prev*100}
 function deltaText(label,cur,prev,unit='',digits=0){if(prev==null||cur==null)return'';const d=pctChange(cur,prev);if(d==null)return'';const cls=Math.abs(d)<1?'trend-neutral':d>0?'trend-positive':'trend-negative';return `<span class="${cls}">${label}: ${d>=0?'+':''}${d.toFixed(1)} %</span>`}
@@ -5994,10 +6033,10 @@ function renderDevelopmentAnalytics(){
  const sport=document.getElementById('trendSport')?.value||'all';
  const focus=document.getElementById('trendMetric')?.value||'all';
 
- const filtered=all.filter(a=>(sport==='all'||trendSportClass(a)===sport)&&monthKey(a.activity_date)===selectedMonth);
+ const filtered=all.filter(a=>trendSportMatch(a,sport)&&monthKey(a.activity_date)===selectedMonth);
  const prevDate=new Date(selectedMonth+'-01T12:00:00');prevDate.setMonth(prevDate.getMonth()-1);
  const prevKey=`${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;
- const prev=all.filter(a=>(sport==='all'||trendSportClass(a)===sport)&&monthKey(a.activity_date)===prevKey);
+ const prev=all.filter(a=>trendSportMatch(a,sport)&&monthKey(a.activity_date)===prevKey);
  const ordered=filtered.slice().sort((a,b)=>new Date(a.activity_date)-new Date(b.activity_date));
 
  const nums=(arr,getter)=>arr.map(getter).map(Number).filter(Number.isFinite);
@@ -6066,12 +6105,12 @@ function renderDevelopmentAnalytics(){
 
  root.innerHTML=`<div class="activity-toolbar"><div><strong>Entwicklung</strong><div class="activity-source">Standardmäßig alle verfügbaren Daten im gewählten Zeitraum · einzelne Kennzahl nur bei Bedarf fokussieren</div></div></div>
  <div class="trend-controls">
-  <select id="trendSport" onchange="renderDevelopmentAnalytics()"><option value="all" ${sport==='all'?'selected':''}>Alle Radfahrten</option><option value="outdoor" ${sport==='outdoor'?'selected':''}>Outdoor Rad</option><option value="indoor" ${sport==='indoor'?'selected':''}>Indoor Rad</option></select>
+  <select id="trendSport" onchange="renderDevelopmentAnalytics()">${availableTrendSports(all).map(([k,l])=>`<option value="${k}" ${sport===k?'selected':''}>${l}</option>`).join('')}</select>
   <select id="trendMonth" onchange="renderDevelopmentAnalytics()">${(months.length?months:['2026-10']).map(m=>`<option value="${m}" ${m===selectedMonth?'selected':''}>${new Date(m+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</option>`).join('')}</select>
   <select id="trendMetric" onchange="renderDevelopmentAnalytics()"><option value="all" ${focus==='all'?'selected':''}>Gesamtübersicht – alle Daten</option>${metrics.filter(m=>m.k!=='sessions').map(m=>`<option value="${m.k}" ${m.k===focus?'selected':''}>Nur ${m.label}</option>`).join('')}</select>
  </div>
  <div class="trend-hero glass">
-  <div class="trend-hero-head"><div><h3>${sport==='indoor'?'🚲 Indoor':sport==='outdoor'?'🚴 Outdoor':'🚴 Alle Radfahrten'} · ${new Date(selectedMonth+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</h3><div class="activity-source">Vergleich mit ${new Date(prevKey+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</div></div><span class="activity-demo" style="display:${all.length?'none':'inline-block'}">WARTET AUF DATEN</span></div>
+  <div class="trend-hero-head"><div><h3>${trendSportLabel(sport)} · ${new Date(selectedMonth+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</h3><div class="activity-source">Vergleich mit ${new Date(prevKey+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</div></div><span class="activity-demo" style="display:${all.length?'none':'inline-block'}">WARTET AUF DATEN</span></div>
   ${focus==='all'
    ? `<div class="trend-overview-head"><div><strong>Gesamtübersicht</strong><div class="activity-source">${available.length} verfügbare Kennzahlen</div></div></div><div class="trend-overview-grid">${overview}</div><div class="trend-overview-head"><div><strong>Entwicklung aller verfügbaren Kennzahlen</strong><div class="activity-source">Verlauf von Einheit zu Einheit</div></div></div><div class="trend-all-series">${allSeries||'<div class="activity-empty">Noch keine verwertbaren Messwerte.</div>'}</div>`
    : `<div class="trend-chart"><div class="trend-chart-head"><span>${selected.label} je Einheit</span><span>${selectedSeries.length} Datenpunkte</span></div>${selectedSeries.length?lineSvg(selectedSeries):'<div class="activity-empty">Keine Datenpunkte für diese Kennzahl.</div>'}<div class="trend-point-list"><span>${selectedSeries.length?valText(selectedSeries[0],selected):''}</span><span>${selectedSeries.length?valText(selectedSeries.at(-1),selected):''}</span></div><div class="trend-focus-note">Zeitraumwert: <strong>${valText(selectedCur,selected)}</strong>${prev.length&&selectedPrev!=null?` · Vorperiode: ${valText(selectedPrev,selected)} · ${delta(selectedCur,selectedPrev)}`:''}</div></div>`}
