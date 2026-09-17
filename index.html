@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.24</title>
+<title>Training v6.25</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -2909,6 +2909,19 @@ button.metric.analytics-link{border:inherit}
 #meinTrainingCoach .stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 @media(max-width:640px){#meinTrainingCoach .coach-grid{grid-template-columns:1fr}}
 
+
+/* V6.25 – Coach is a real app screen */
+.coach-screen{padding-bottom:calc(92px + env(safe-area-inset-bottom));}
+.coach-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;margin-bottom:10px}
+#coachScreenContent .coach-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#coachScreenContent .coach-value{font-size:1.08rem;font-weight:700;margin-top:8px}
+#coachScreenContent .coach-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid rgba(120,120,128,.15)}
+#coachScreenContent .coach-row:last-child{border-bottom:0}
+#coachScreenContent .stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#coachScreenContent .coach-section{margin-top:10px}
+@media(max-width:700px){#coachScreenContent .coach-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}.nav button{min-width:0}.nav button span{font-size:20px}}
+
 </style>
 </head>
 <body>
@@ -2918,6 +2931,7 @@ button.metric.analytics-link{border:inherit}
 <button id="navOverview" class="active" onclick="go('overview')"><span>⌂</span>Übersicht</button>
 <button id="navPlan" onclick="go('plan')"><span>▤</span>Plan</button>
 <button id="navAnalytics" onclick="go('analytics')"><span>◫</span>Auswertung</button>
+<button id="navCoach" onclick="go('coach')"><span>✦</span>Coach</button>
 <button onclick="openSession()"><span>＋</span>Training</button>
 <button id="navSettings" onclick="go('settings')"><span>⚙︎</span>Einstellungen</button>
 </nav>
@@ -2980,6 +2994,8 @@ function unitEmoji(s){const t=((s.type||"")+" "+(s.title||"")).toLowerCase();if(
 
 function persist(){localStorage.setItem(KEY,JSON.stringify(db));render();queueSync();maybeAutoBackup()}
 function go(s){
+ document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+ const navMap={overview:'navOverview',plan:'navPlan',analytics:'navAnalytics',coach:'navCoach',settings:'navSettings'}; const nb=document.getElementById(navMap[s]); if(nb)nb.classList.add('active');
  const enteringPlan=s==="plan"&&screen!=="plan";
  screen=s;
  if(enteringPlan)planInitialScrollKey=null;
@@ -2998,10 +3014,12 @@ function render(){
  if(screen==="overview")renderOverview();
  else if(screen==="plan")renderPlan();
  else if(screen==="analytics")renderAnalytics();
- else renderSettings();
+ else if(screen==="coach")renderCoach();
+ else if(screen==="settings")renderSettings();
+ else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.24</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.25</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5709,57 +5727,54 @@ async function copyTredictCoachRequest(){
  const txt=`Analysiere meine aktuellen Radsport-Aktivitäten in Tredict und verwende sie zusammen mit meinem Trainingsstand als Grundlage für die Fortsetzung von „${block?.title||"meinem aktuellen Block"}“ im Plan „${plan?.title||"Mein Training"}“. Berücksichtige besonders Leistung/Watt, Herzfrequenz, Kadenz, Belastungsverteilung, absolvierte Einheiten und den aktuellen FTP.`;
  try{await navigator.clipboard.writeText(txt);alert("Tredict-Analyseauftrag wurde kopiert. Füge ihn in ChatGPT ein – dort kann auf die verbundene Tredict-Integration zugegriffen werden.")}catch(_){prompt("Diesen Auftrag in ChatGPT verwenden:",txt)}
 }
-function renderCoachPanel(){
-  const box=document.getElementById("meinTrainingCoach");
-  if(!box)return;
-  const profile=coachState.profile;
-  const ready=coachState.packages.filter(x=>!x.applied_at);
-  const reqs=coachState.requests.slice(0,5);
-  box.innerHTML=`
-    <h3>Mein Training Coach</h3>
-    <div class="eq-small">Supabase Coach-Engine · Tredict kann zusätzlich für Aktivitätsanalyse durch ChatGPT verwendet werden</div>
-    <div class="coach-grid">
-      <div class="card glass">
-        <strong>Leistungsbasis</strong>
-        <div>${profile?.ftp_watts?`${profile.ftp_watts} W FTP`:"Noch kein FTP gespeichert"}</div>
-        <div class="eq-small">${profile?.ftp_date||""} ${profile?.ftp_source?`· ${profile.ftp_source}`:""}</div>
-        <div class="stack">
-          <button class="pill" onclick="exportFTPTest()">⚡ FTP-Test exportieren</button>
-          <button class="pill" onclick="saveFTPResult()">✓ FTP-Ergebnis speichern</button>
-        </div>
-      </div>
-      <div class="card glass">
-        <strong>Trainingsplan</strong>
-        <div>${coachCurrentBlock()?.title||"Kein Block ausgewählt"}</div>
-        <div class="stack">
-          <button class="pill primary" onclick="requestPlanContinuation()">＋ Fortsetzung anfordern</button>
-          <button class="pill" onclick="loadCoachState()">↻ Coach aktualisieren</button>
-          <button class="pill" onclick="copyTredictCoachRequest()">↗ Mit Tredict analysieren</button>
-        </div>
-      </div>
-    </div>
-    ${ready.length?`<div class="card glass"><strong>Bereit zur Übernahme</strong>${ready.map(x=>`
-      <div class="coach-row"><span>${x.package?.blocks?.[0]?.title||"Neuer Trainingsblock"}</span>
-      <button class="pill primary" onclick="applyCoachPackage('${x.id}')">Übernehmen</button></div>`).join("")}</div>`:""}
-    ${reqs.length?`<div class="card glass"><strong>Letzte Coach-Anfragen</strong>${reqs.map(r=>`
-      <div class="coach-row"><span>${r.request_type==="continue_plan"?"Plan fortsetzen":r.request_type} · ${coachStatusText(r)}</span>
-      <span class="eq-small">${new Date(r.created_at).toLocaleDateString("de-AT")}</span></div>`).join("")}</div>`:""}
-  `;
-}
-function installMeinTrainingCoach(){
-  if(document.getElementById("meinTrainingCoach"))return;
-  const candidates=[...document.querySelectorAll("main,section,div")];
-  const settings=candidates.find(el=>/Einstellungen/i.test(el.textContent||"") && el.offsetParent!==null) ||
-                 document.querySelector('#settings,.settings-screen,[data-screen="settings"]');
-  if(!settings)return;
-  const box=document.createElement("section");
-  box.id="meinTrainingCoach"; box.className="card glass";
-  settings.appendChild(box); renderCoachPanel(); loadCoachState();
-}
-new MutationObserver(()=>{installMeinTrainingCoach()}).observe(document.documentElement,{childList:true,subtree:true});
-document.addEventListener("DOMContentLoaded",()=>{installMeinTrainingCoach();loadCoachState()});
 
-/* Realtime: coach requests and packages update across iPhone/iPad/browser */
+function renderCoach(){
+ main.innerHTML=head("Mein Training Coach")+`
+ <div class="coach-screen">
+  <section class="coach-hero glass">
+   <div><strong>Trainingsplanung</strong><div class="eq-small">Planfortsetzung, FTP und Leistungsbasis</div></div>
+   <button class="pill" onclick="loadCoachState()">↻ Aktualisieren</button>
+  </section>
+  <div id="coachScreenContent"><div class="card glass">Coach-Daten werden geladen …</div></div>
+ </div>`;
+ renderCoachPanel();
+ if(!coachState.loaded) loadCoachState();
+}
+function renderCoachPanel(){
+ const box=document.getElementById("coachScreenContent");
+ if(!box || screen!=="coach") return;
+ const profile=coachState.profile;
+ const ready=coachState.packages.filter(x=>!x.applied_at);
+ const reqs=coachState.requests.slice(0,5);
+ box.innerHTML=`
+  <div class="coach-grid">
+   <section class="card glass">
+    <strong>Leistungsbasis</strong>
+    <div class="coach-value">${profile?.ftp_watts?`${profile.ftp_watts} W FTP`:"Noch kein FTP gespeichert"}</div>
+    <div class="eq-small">${profile?.ftp_date||""}${profile?.ftp_source?` · ${profile.ftp_source}`:""}</div>
+    <div class="stack">
+     <button class="pill" onclick="exportFTPTest()">⚡ FTP-Test exportieren</button>
+     <button class="pill" onclick="saveFTPResult()">✓ FTP-Ergebnis speichern</button>
+    </div>
+   </section>
+   <section class="card glass">
+    <strong>Aktueller Trainingsblock</strong>
+    <div class="coach-value">${coachCurrentBlock()?.title||"Kein Block ausgewählt"}</div>
+    <div class="stack">
+     <button class="pill primary" onclick="requestPlanContinuation()">＋ Fortsetzung anfordern</button>
+     <button class="pill" onclick="copyTredictCoachRequest()">↗ Mit Tredict analysieren</button>
+    </div>
+   </section>
+  </div>
+  ${ready.length?`<section class="card glass coach-section"><strong>Bereit zur Übernahme</strong>${ready.map(x=>`
+   <div class="coach-row"><span>${x.package?.blocks?.[0]?.title||"Neuer Trainingsblock"}</span>
+   <button class="pill primary" onclick="applyCoachPackage('${x.id}')">Übernehmen</button></div>`).join("")}</section>`:""}
+  <section class="card glass coach-section">
+   <strong>Letzte Coach-Anfragen</strong>
+   ${reqs.length?reqs.map(r=>`<div class="coach-row"><span>${r.request_type==="continue_plan"?"Plan fortsetzen":r.request_type} · ${coachStatusText(r)}</span><span class="eq-small">${new Date(r.created_at).toLocaleDateString("de-AT")}</span></div>`).join(""):'<div class="eq-small" style="margin-top:8px">Noch keine Coach-Anfrage.</div>'}
+  </section>
+ </div>`;
+}
 try{
  supabase.channel("mein-training-coach")
   .on("postgres_changes",{event:"*",schema:"public",table:"coach_requests"},()=>loadCoachState())
@@ -5767,6 +5782,7 @@ try{
   .on("postgres_changes",{event:"*",schema:"public",table:"coach_profiles"},()=>loadCoachState())
   .subscribe();
 }catch(_){}
+
 </script>
 
 <dialog id="passwordDialog">

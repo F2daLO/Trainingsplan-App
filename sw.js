@@ -1,4 +1,4 @@
-const CACHE="training-v6-24-auto-coach";
+const CACHE="training-v6-25-coach-screen";
 const ASSETS=["./","./index.html","./manifest.json","./icon.svg"];
 
 self.addEventListener("install",event=>{
