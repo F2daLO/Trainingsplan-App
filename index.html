@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.34</title>
+<title>Training v6.35</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3116,7 +3116,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.34</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.35</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5981,42 +5981,67 @@ renderCoachSettingsPanel=function(){
 
 
 function trendSportClass(a){
- const t=(String(a.activity_type||'')+' '+String(a.name||'')+' '+String(a.source_device||'')).toLowerCase();
- if(/ride|cycl|bike|rad|virtualride/.test(t)){
-   if(/virtual|indoor|zwift|mywhoosh|trainer|erg/.test(t))return'bike_indoor';
+ const type=String(a.activity_type||'').toLowerCase();
+ const name=String(a.name||'').toLowerCase();
+ const device=String(a.source_device||'').toLowerCase();
+ const raw=a.raw_summary||{};
+ const blob=(type+' '+name+' '+device+' '+JSON.stringify(raw)).toLowerCase();
+
+ // Cycling: use strong source/context signals first. "VirtualRide" alone is NOT
+ // enough to call an Apple Health import indoor, because Health imports may use
+ // that generic type even when the original ride was outdoors.
+ if(/ride|cycl|bike|rad|virtualride/.test(blob)){
+   const indoorStrong=/zwift|mywhoosh|wahoo kickr|kickr core|smart trainer|trainerroad|rouvy|kinomap|qdomyos|\bqz\b|erg mode|indoor cycling|indoor ride/.test(blob);
+   const outdoorStrong=/igpsport|bsc500|bsc 500|garmin edge|wahoo elemnt|hammerhead|gps|latitude|longitude|start_lat|start_lon|map|polyline|route/.test(blob);
+   if(indoorStrong&&!outdoorStrong)return'bike_indoor';
+   if(outdoorStrong&&!indoorStrong)return'bike_outdoor';
+   // A plain Ride/Cycling record without an indoor marker is normally outdoor.
+   // But VirtualRide from Apple Watch/Health without route or trainer evidence is ambiguous.
+   if(/virtualride/.test(type)&&/watch|apple|health/.test(blob))return'bike_unknown';
+   if(/virtualride/.test(type))return'bike_indoor';
    return'bike_outdoor';
  }
- if(/run|running|lauf|jog/.test(t)){
-   if(/treadmill|indoor|laufband/.test(t))return'run_indoor';
+ if(/run|running|lauf|jog|virtualrun/.test(blob)){
+   const indoorStrong=/treadmill|laufband|indoor run/.test(blob);
+   const outdoorStrong=/gps|latitude|longitude|start_lat|start_lon|map|polyline|route/.test(blob);
+   if(indoorStrong&&!outdoorStrong)return'run_indoor';
+   if(outdoorStrong&&!indoorStrong)return'run_outdoor';
+   if(/virtualrun/.test(type)&&/watch|apple|health/.test(blob))return'run_unknown';
+   if(/virtualrun/.test(type))return'run_indoor';
    return'run_outdoor';
  }
- if(/walk|walking|gehen|spazier|hike|hiking|wandern/.test(t))return'walk_hike';
- if(/swim|swimming|schwimm/.test(t))return'swim';
- if(/strength|weight|kraft|calisthen|functional|workout/.test(t))return'strength';
- if(/ski|skiing|skitour|alpine|nordic|cross.?country/.test(t))return'ski';
- if(/row|rowing|rudern/.test(t))return'rowing';
- if(/elliptical|crosstrainer/.test(t))return'elliptical';
+ if(/walk|walking|gehen|spazier|hike|hiking|wandern/.test(blob))return'walk_hike';
+ if(/swim|swimming|schwimm/.test(blob))return'swim';
+ if(/strength|weight|kraft|calisthen|functional|workout/.test(blob))return'strength';
+ if(/ski|skiing|skitour|alpine|nordic|cross.?country/.test(blob))return'ski';
+ if(/row|rowing|rudern/.test(blob))return'rowing';
+ if(/elliptical|crosstrainer/.test(blob))return'elliptical';
  return'other';
 }
 function trendSportLabel(k){
- return ({all:'Alle Sportarten',bike_all:'Rad – gesamt',bike_outdoor:'Rad – Outdoor',bike_indoor:'Rad – Indoor',run_all:'Laufen – gesamt',run_outdoor:'Laufen – Outdoor',run_indoor:'Laufen – Indoor',walk_hike:'Gehen / Wandern',swim:'Schwimmen',strength:'Kraft / Functional',ski:'Ski / Skitour',rowing:'Rudern',elliptical:'Crosstrainer',other:'Sonstige'})[k]||k;
+ return ({all:'Alle Sportarten',bike_all:'Rad – gesamt',bike_outdoor:'Rad – Outdoor',bike_indoor:'Rad – Indoor',bike_unknown:'Rad – nicht zugeordnet',run_all:'Laufen – gesamt',run_outdoor:'Laufen – Outdoor',run_indoor:'Laufen – Indoor',run_unknown:'Laufen – nicht zugeordnet',walk_hike:'Gehen / Wandern',swim:'Schwimmen',strength:'Kraft / Functional',ski:'Ski / Skitour',rowing:'Rudern',elliptical:'Crosstrainer',other:'Sonstige'})[k]||k;
 }
 function trendSportMatch(a,k){
  if(k==='all')return true;
  const c=trendSportClass(a);
- if(k==='bike_all')return c==='bike_outdoor'||c==='bike_indoor';
- if(k==='run_all')return c==='run_outdoor'||c==='run_indoor';
+ if(k==='bike_all')return c==='bike_outdoor'||c==='bike_indoor'||c==='bike_unknown';
+ if(k==='run_all')return c==='run_outdoor'||c==='run_indoor'||c==='run_unknown';
  return c===k;
 }
 function availableTrendSports(all){
  const classes=new Set(all.map(trendSportClass));
+ const hasBike=['bike_outdoor','bike_indoor','bike_unknown'].some(k=>classes.has(k));
+ const hasRun=['run_outdoor','run_indoor','run_unknown'].some(k=>classes.has(k));
  const opts=[['all','Alle Sportarten']];
- if(classes.has('bike_outdoor')||classes.has('bike_indoor'))opts.push(['bike_all','Rad – gesamt']);
- if(classes.has('bike_outdoor'))opts.push(['bike_outdoor','Rad – Outdoor']);
- if(classes.has('bike_indoor'))opts.push(['bike_indoor','Rad – Indoor']);
- if(classes.has('run_outdoor')||classes.has('run_indoor'))opts.push(['run_all','Laufen – gesamt']);
- if(classes.has('run_outdoor'))opts.push(['run_outdoor','Laufen – Outdoor']);
- if(classes.has('run_indoor'))opts.push(['run_indoor','Laufen – Indoor']);
+ // Keep the complete cycling split visible whenever any cycling data exists.
+ if(hasBike){
+   opts.push(['bike_all','Rad – gesamt'],['bike_outdoor','Rad – Outdoor'],['bike_indoor','Rad – Indoor']);
+   if(classes.has('bike_unknown'))opts.push(['bike_unknown','Rad – nicht zugeordnet']);
+ }
+ if(hasRun){
+   opts.push(['run_all','Laufen – gesamt'],['run_outdoor','Laufen – Outdoor'],['run_indoor','Laufen – Indoor']);
+   if(classes.has('run_unknown'))opts.push(['run_unknown','Laufen – nicht zugeordnet']);
+ }
  for(const k of ['walk_hike','swim','strength','ski','rowing','elliptical','other'])if(classes.has(k))opts.push([k,trendSportLabel(k)]);
  return opts;
 }
