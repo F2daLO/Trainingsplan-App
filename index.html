@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.40</title>
+<title>Training v6.41</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3118,7 +3118,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.40</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.41</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5755,7 +5755,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.40",
+    appVersion:"6.41",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
@@ -6415,4 +6415,22 @@ async function disconnectOwnIntervals(){
     <div id="gptExplainBody" class="gpt-explain-body"></div>
   </div>
 </div>
-</body></html>
+<section class="card" id="developmentRangeV641" style="margin-top:12px">
+<h3>Entwicklungszeitraum</h3>
+<div class="form-grid">
+<label>Zeitraum<select id="developmentRangeSelect" onchange="window.applyDevelopmentRangeV641&&applyDevelopmentRangeV641()">
+<option value="7d">Letzte 7 Tage</option><option value="30d">Letzte 30 Tage</option><option value="3m">Letzte 3 Monate</option><option value="6m">Letzte 6 Monate</option><option value="12m">Letzte 12 Monate</option><option value="year">Dieses Jahr</option><option value="lastyear">Letztes Jahr</option><option value="2y">Letzte 2 Jahre</option><option value="plan">Seit Planbeginn</option><option value="all">Seit erster Aktivität</option><option value="custom">Benutzerdefiniert</option></select></label>
+<label>Von<input id="developmentFrom" type="date"></label><label>Bis<input id="developmentTo" type="date"></label>
+</div><p class="muted">Der Zeitraum gilt für die Entwicklungs- und Verlaufsanalyse. „Seit Planbeginn“ richtet sich nach dem aktuell ausgewählten Trainingsplan.</p>
+</section>
+<section class="card" id="providerConnectionsV641" style="margin-top:12px">
+<h3>Datenquellen &amp; Verbindungen</h3>
+<p class="muted">Zentrale, benutzerbezogene Quellenverwaltung. Zugangsdaten und OAuth-Tokens werden ausschließlich serverseitig verarbeitet.</p>
+<div class="settings-list">
+<div><b>Intervals.icu</b> · verfügbar</div><div><b>iGPSPORT</b> · verfügbar</div>
+<div><b>Strava</b> · OAuth-Integration vorbereitet – Anbieter-App erforderlich</div>
+<div><b>Garmin Connect</b> · Integration vorbereitet – Garmin Developer Program erforderlich</div>
+<div><b>Suunto</b> · Provider-Schnittstelle vorbereitet</div><div><b>Zwift</b> · Provider-Schnittstelle vorbereitet</div><div><b>MyWhoosh</b> · Provider-Schnittstelle vorbereitet / über Intervals nutzbar</div>
+</div></section><script>
+window.formatActualSummaryV641=function(x){if(!x)return "";const v=(n,u="")=>n!=null?`${n}${u}`:"–";return `<div class="actual-summary"><h4>Tatsächlich absolviert</h4><div class="detail-grid"><div>Dauer: ${x.duration_s?Math.round(x.duration_s/60)+" min":"–"}</div><div>Distanz: ${x.distance_m?Number(x.distance_m/1000).toFixed(1)+" km":"–"}</div><div>Höhenmeter: ${v(x.elevation_gain_m," m")}</div><div>Ø Herzfrequenz: ${v(x.avg_hr," bpm")}</div><div>Max. Herzfrequenz: ${v(x.max_hr," bpm")}</div><div>Ø Leistung: ${v(x.avg_watts," W")}</div><div>Normalisierte Leistung: ${v(x.normalized_watts," W")}</div><div>Ø Trittfrequenz: ${v(x.avg_cadence," U/min")}</div><div>Trainingsbelastung: ${v(x.training_load)}</div><div>Kalorien: ${v(x.calories," kcal")}</div><div>Gerät: ${x.source_device||"–"}</div></div></div>`};
+</script></body></html>
