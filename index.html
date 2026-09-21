@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.43</title>
+<title>Training v6.44</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3025,7 +3025,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 
 </style>
 <style>
-/* v6.43: info/detail sheets must stay above the bottom navigation/handlebar */
+/* v6.44: info/detail sheets must stay above the bottom navigation/handlebar */
 .info-sheet-backdrop{z-index:1290!important}
 .info-sheet{z-index:1300!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
 @media(min-width:768px){.info-sheet{padding-bottom:24px!important}}
@@ -3033,7 +3033,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .actual-detail-grid>div{padding:10px;border-radius:12px;background:rgba(127,127,127,.09)}
 .actual-detail-grid small{display:block;color:var(--muted);font-size:11px}.actual-detail-grid strong{display:block;margin-top:2px}
 </style><style>
-/* v6.43 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
+/* v6.44 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
 :root{--app-bottom-clearance:calc(96px + env(safe-area-inset-bottom))}
 .quick-menu-backdrop,.info-sheet-backdrop{z-index:1990!important}
 .quick-menu,.info-sheet{z-index:2000!important;box-sizing:border-box!important}
@@ -3150,7 +3150,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.43</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.44</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -4032,12 +4032,12 @@ document.addEventListener("pointerdown",e=>{
     longTimer:null
   };
 
-  // Long press is only used in the weekly view.
-  if(el.classList.contains("dayitem")){
+  // Long press opens the same Ist-Auswertung in weekly and list views.
+  if(el.classList.contains("dayitem") || el.classList.contains("session")){
     gPointer.longTimer=setTimeout(()=>{
       if(!gPointer || gPointer.id!==id || gPointer.moved) return;
       gPointer.longTriggered=true;
-      sessionActualDetailV643(id);
+      sessionActualDetailV644(id);
     },GESTURE_LONG_MS);
   }
 
@@ -5484,7 +5484,6 @@ function sessionActionMenu(id){
     <button class="neutral" onclick="neutralizeSession('${id}');closeQuickMenu()">○ Neutralisieren</button>
     <button class="warn" onclick="openMoveMenu('${id}',true)">↪ Verschieben</button>
     <button class="bad" onclick="setStatus('${id}','cancel');closeQuickMenu()">✕ Ausgefallen</button>
-    <button onclick="closeQuickMenu();sessionActualDetailV643('${id}')">📊 Auswertung / Ist-Daten</button>
     <button onclick="closeQuickMenu();explainTrainingWithGPT('${id}')">💬 Mit GPT erklären</button>
     <button onclick="closeQuickMenu();exportSessionWorkout('${id}')">⇩ Workout exportieren</button>
     <button onclick="openSession('${id}');closeQuickMenu()">✏️ Bearbeiten</button>
@@ -5788,7 +5787,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.43",
+    appVersion:"6.44",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
@@ -6473,7 +6472,7 @@ async function disconnectOwnIntervals(){
 </div></section><script>
 window.formatActualSummaryV641=function(x){if(!x)return "";const v=(n,u="")=>n!=null?`${n}${u}`:"–";return `<div class="actual-summary"><h4>Tatsächlich absolviert</h4><div class="detail-grid"><div>Dauer: ${x.duration_s?Math.round(x.duration_s/60)+" min":"–"}</div><div>Distanz: ${x.distance_m?Number(x.distance_m/1000).toFixed(1)+" km":"–"}</div><div>Höhenmeter: ${v(x.elevation_gain_m," m")}</div><div>Ø Herzfrequenz: ${v(x.avg_hr," bpm")}</div><div>Max. Herzfrequenz: ${v(x.max_hr," bpm")}</div><div>Ø Leistung: ${v(x.avg_watts," W")}</div><div>Normalisierte Leistung: ${v(x.normalized_watts," W")}</div><div>Ø Trittfrequenz: ${v(x.avg_cadence," U/min")}</div><div>Trainingsbelastung: ${v(x.training_load)}</div><div>Kalorien: ${v(x.calories," kcal")}</div><div>Gerät: ${x.source_device||"–"}</div></div></div>`};
 </script><script>
-function sessionActualDetailV643(id){
+function sessionActualDetailV644(id){
  const s=db.sessions.find(x=>x.id===id); if(!s)return;
  let x=s.actualSummary;
  if(!x){
