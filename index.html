@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.39</title>
+<title>Training v6.40</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3118,7 +3118,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.39</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.40</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5755,7 +5755,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.39",
+    appVersion:"6.40",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
@@ -5945,7 +5945,14 @@ function extraActivityMetrics(a){
 }
 function activityCard(a){
  const open=String(openActivityId)===String(a.id);const power=a.demoPower||syntheticSeries(a.average_watts||140,20);const hr=a.demoHr||syntheticSeries(a.average_hr||135,14);const cad=a.demoCad||syntheticSeries(a.average_cadence||85,10);
- const planned=a.training_session_id?"✓ Mit geplanter Einheit verknüpft":a._demo?"Demo: automatische Soll-/Ist-Zuordnung":"Noch keiner Planeinheit zugeordnet";
+ const relationLabels={
+ "planned_match":"✓ Passender Planeinheit automatisch zugeordnet",
+ "replacement":"↔ Ersetzt eine geplante Einheit",
+ "on_top":"★ On Top – zusätzliche Einheit",
+ "instead_of_rest":"⚠ Training statt geplanter Regeneration",
+ "unplanned":"★ Ungeplant absolviert (On Top)"
+};
+ const planned=a.relation_note||relationLabels[a.plan_relation]|| (a.training_session_id?"✓ Mit geplanter Einheit verknüpft":a._demo?"Demo: automatische Soll-/Ist-Zuordnung":"Ungeplante Aktivität");
  return `<button type="button" class="activity-card" onclick="toggleActivityDetail('${esc(String(a.id))}')">
   <div class="activity-card-head"><div><div class="activity-date">${activityDateLabel(a)}</div><h3>${activitySportEmoji(a)} ${esc(a.name||"Training")}</h3><div class="activity-source">${esc(a.source_device||a.provider||"Intervals.icu")}</div></div>${a._demo?'<span class="activity-demo">DEMO</span>':""}</div>
   <div class="activity-kpis"><div class="activity-kpi"><strong>${fmtDuration(a.moving_time_seconds||a.elapsed_time_seconds)}</strong><span>Dauer</span></div><div class="activity-kpi"><strong>${fmtKm(a.distance_m)}</strong><span>Distanz</span></div><div class="activity-kpi"><strong>${fmtNum(a.average_watts," W")}</strong><span>Ø Leistung</span></div><div class="activity-kpi"><strong>${fmtNum(a.training_load,"",0)}</strong><span>Belastung</span></div></div>
