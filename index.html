@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.38</title>
+<title>Training v6.39</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3118,7 +3118,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.38</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.39</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5755,7 +5755,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.38",
+    appVersion:"6.39",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
@@ -6200,7 +6200,7 @@ async function connectOwnIntervals(){
  const athleteId=document.getElementById("intervalsAthleteInput")?.value?.trim();const apiKey=document.getElementById("intervalsApiKeyInput")?.value?.trim();
  if(!athleteId||!apiKey){alert("Bitte Athlete ID und persönlichen API Key eintragen.");return}
  try{const {data,error}=await sb.functions.invoke("intervals-connect",{body:{action:"connect",athleteId,apiKey}});if(error)throw error;if(data?.error)throw new Error(data.error);
-  const key=document.getElementById("intervalsApiKeyInput");if(key)key.value="";await loadIntervalsConnectionStatus();await syncIntervalsActivities(false);alert("Intervals.icu ist mit diesem Benutzer verbunden.");
+  const key=document.getElementById("intervalsApiKeyInput");if(key)key.value="";await loadIntervalsConnectionStatus(); await loadIgpsportStatus();await syncIntervalsActivities(false);alert("Intervals.icu ist mit diesem Benutzer verbunden.");
  }catch(e){console.error(e);alert("Verbindung fehlgeschlagen. Athlete ID und API Key bitte prüfen.")}
 }
 
