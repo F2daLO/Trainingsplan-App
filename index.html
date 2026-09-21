@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.42</title>
+<title>Training v6.43</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3025,13 +3025,37 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 
 </style>
 <style>
-/* v6.42: info/detail sheets must stay above the bottom navigation/handlebar */
+/* v6.43: info/detail sheets must stay above the bottom navigation/handlebar */
 .info-sheet-backdrop{z-index:1290!important}
 .info-sheet{z-index:1300!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
 @media(min-width:768px){.info-sheet{padding-bottom:24px!important}}
 .actual-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
 .actual-detail-grid>div{padding:10px;border-radius:12px;background:rgba(127,127,127,.09)}
 .actual-detail-grid small{display:block;color:var(--muted);font-size:11px}.actual-detail-grid strong{display:block;margin-top:2px}
+</style><style>
+/* v6.43 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
+:root{--app-bottom-clearance:calc(96px + env(safe-area-inset-bottom))}
+.quick-menu-backdrop,.info-sheet-backdrop{z-index:1990!important}
+.quick-menu,.info-sheet{z-index:2000!important;box-sizing:border-box!important}
+@media(max-width:767px){
+ .quick-menu,.info-sheet{
+   bottom:var(--app-bottom-clearance)!important;
+   max-height:calc(100dvh - var(--app-bottom-clearance) - max(14px,env(safe-area-inset-top)))!important;
+   overflow-y:auto!important;
+   overscroll-behavior:contain;
+ }
+ .quick-menu{padding-bottom:16px!important}
+ .info-sheet{padding-bottom:20px!important}
+ dialog[open] .modal,.equipment-sheet{
+   max-height:calc(100dvh - var(--app-bottom-clearance))!important;
+   padding-bottom:calc(20px + env(safe-area-inset-bottom))!important;
+   overflow-y:auto!important;
+ }
+}
+.trend-custom-dates{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.trend-axis{display:flex;justify-content:space-between;gap:6px;margin-top:3px;font-size:9px;color:var(--muted)}
+.trend-axis span:nth-child(2){text-align:center}.trend-axis span:last-child{text-align:right}
+.trend-stat-explain{font-size:9px;color:var(--muted);line-height:1.35;margin-top:5px}
 </style></head>
 <body>
 <div class="shell"><main id="main"></main></div>
@@ -3126,7 +3150,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.42</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.43</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -4013,7 +4037,7 @@ document.addEventListener("pointerdown",e=>{
     gPointer.longTimer=setTimeout(()=>{
       if(!gPointer || gPointer.id!==id || gPointer.moved) return;
       gPointer.longTriggered=true;
-      sessionActualDetailV642(id);
+      sessionActualDetailV643(id);
     },GESTURE_LONG_MS);
   }
 
@@ -5460,6 +5484,7 @@ function sessionActionMenu(id){
     <button class="neutral" onclick="neutralizeSession('${id}');closeQuickMenu()">○ Neutralisieren</button>
     <button class="warn" onclick="openMoveMenu('${id}',true)">↪ Verschieben</button>
     <button class="bad" onclick="setStatus('${id}','cancel');closeQuickMenu()">✕ Ausgefallen</button>
+    <button onclick="closeQuickMenu();sessionActualDetailV643('${id}')">📊 Auswertung / Ist-Daten</button>
     <button onclick="closeQuickMenu();explainTrainingWithGPT('${id}')">💬 Mit GPT erklären</button>
     <button onclick="closeQuickMenu();exportSessionWorkout('${id}')">⇩ Workout exportieren</button>
     <button onclick="openSession('${id}');closeQuickMenu()">✏️ Bearbeiten</button>
@@ -5763,7 +5788,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.42",
+    appVersion:"6.43",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
@@ -6071,6 +6096,12 @@ function monthKey(d){const x=new Date(d);return isNaN(x)?'':`${x.getFullYear()}-
 function pctChange(cur,prev){if(!prev)return null;return (cur-prev)/prev*100}
 function deltaText(label,cur,prev,unit='',digits=0){if(prev==null||cur==null)return'';const d=pctChange(cur,prev);if(d==null)return'';const cls=Math.abs(d)<1?'trend-neutral':d>0?'trend-positive':'trend-negative';return `<span class="${cls}">${label}: ${d>=0?'+':''}${d.toFixed(1)} %</span>`}
 function lineSvg(vals){if(!vals.length)return'';const w=600,h=100,p=8,min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;const pts=vals.map((v,i)=>`${p+(w-2*p)*(i/(Math.max(1,vals.length-1)))},${h-p-(h-2*p)*((v-min)/range)}`).join(' ');return `<svg class="trend-line" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="${pts.split(' ').at(-1).split(',')[0]}" cy="${pts.split(' ').at(-1).split(',')[1]}" r="5" fill="currentColor"/></svg>`}
+function trendAxisV643(arr){
+ if(!arr.length)return "";
+ const d=arr.map(a=>new Date(a.activity_date)).sort((a,b)=>a-b),f=x=>x.toLocaleDateString("de-AT",{day:"2-digit",month:"2-digit",year:d[d.length-1]-d[0]>31536000000?"2-digit":undefined});
+ const mid=d[Math.floor((d.length-1)/2)];
+ return `<div class="trend-axis"><span>${f(d[0])}</span><span>${f(mid)}</span><span>${f(d.at(-1))}</span></div>`;
+}
 function renderDevelopmentAnalytics(){
  const root=document.getElementById('analyticsDevelopment');if(!root)return;
  const all=importedActivities.length?importedActivities:[];
@@ -6142,7 +6173,8 @@ function renderDevelopmentAnalytics(){
 
  const allSeries=available.filter(m=>!['sessions'].includes(m.k)).map(m=>{
   const pts=series(m),cur=aggregate(filtered,m),pr=aggregate(prev,m);
-  return `<div class="trend-mini"><div class="trend-mini-head"><strong>${m.label}</strong><span>${valText(cur,m)}</span></div>${pts.length>1?lineSvg(pts):'<div class="activity-empty" style="padding:16px 4px">Zu wenig Datenpunkte</div>'}<div class="trend-point-list"><span>${pts.length?valText(pts[0],m):''}</span><span>${pts.length?valText(pts.at(-1),m):''}</span></div>${prev.length?`<div style="font-size:9px;margin-top:4px">${delta(cur,pr)}</div>`:''}</div>`;
+  const meaning=m.agg==='sum'?'Summe im gewählten Zeitraum':m.agg==='avg'?'Durchschnitt pro Einheit':m.agg==='maxavg'?'Höchster Einzelwert im Zeitraum':'Anzahl im Zeitraum';
+  return `<div class="trend-mini"><div class="trend-mini-head"><strong>${m.label}</strong><span>${valText(cur,m)}</span></div><div class="trend-stat-explain">${meaning}</div>${pts.length>1?lineSvg(pts):'<div class="activity-empty" style="padding:16px 4px">Zu wenig Datenpunkte</div>'}${trendAxisV643(ordered)}${prev.length?`<div style="font-size:9px;margin-top:4px">${delta(cur,pr)}</div>`:''}</div>`;
  }).join('');
 
  const dist=aggregate(filtered,metrics.find(m=>m.k==='distance'));
@@ -6161,8 +6193,7 @@ function renderDevelopmentAnalytics(){
   <select id="trendRange" onchange="renderDevelopmentAnalytics()">
    ${[['7d','7 Tage'],['30d','30 Tage'],['3m','3 Monate'],['6m','6 Monate'],['12m','12 Monate'],['year','Dieses Jahr'],['lastyear','Letztes Jahr'],['2y','Letzte 2 Jahre'],['plan','Seit Planbeginn'],['all','Seit erster Aktivität'],['custom','Benutzerdefiniert']].map(([v,l])=>`<option value="${v}" ${range===v?'selected':''}>${l}</option>`).join('')}
   </select>
-  <input id="trendFrom" type="date" value="${customFrom}" onchange="if(document.getElementById('trendRange').value==='custom')renderDevelopmentAnalytics()">
-  <input id="trendTo" type="date" value="${customTo}" onchange="if(document.getElementById('trendRange').value==='custom')renderDevelopmentAnalytics()">
+  ${range==='custom'?`<div class="trend-custom-dates"><label>Von<input id="trendFrom" type="date" value="${customFrom}" onchange="renderDevelopmentAnalytics()"></label><label>Bis<input id="trendTo" type="date" value="${customTo}" onchange="renderDevelopmentAnalytics()"></label></div>`:''}
   <select id="trendMetric" onchange="renderDevelopmentAnalytics()"><option value="all" ${focus==='all'?'selected':''}>Gesamtübersicht – alle Daten</option>${metrics.filter(m=>m.k!=='sessions').map(m=>`<option value="${m.k}" ${m.k===focus?'selected':''}>Nur ${m.label}</option>`).join('')}</select>
  </div>
  <div class="trend-hero glass">
@@ -6170,7 +6201,7 @@ function renderDevelopmentAnalytics(){
   ${!sportCount?`<div class="activity-empty" style="margin:12px 0">Für <strong>${trendSportLabel(sport)}</strong> gibt es in diesem Monat keine importierten Aktivitäten. Es werden bewusst keine Daten einer anderen Sportart angezeigt.</div>`:''}
   ${focus==='all'
    ? `<div class="trend-overview-head"><div><strong>Gesamtübersicht</strong><div class="activity-source">${available.length} verfügbare Kennzahlen</div></div></div><div class="trend-overview-grid">${overview}</div><div class="trend-overview-head"><div><strong>Entwicklung aller verfügbaren Kennzahlen</strong><div class="activity-source">Verlauf von Einheit zu Einheit</div></div></div><div class="trend-all-series">${allSeries||'<div class="activity-empty">Noch keine verwertbaren Messwerte.</div>'}</div>`
-   : `<div class="trend-chart"><div class="trend-chart-head"><span>${selected.label} je Einheit</span><span>${selectedSeries.length} Datenpunkte</span></div>${selectedSeries.length?lineSvg(selectedSeries):'<div class="activity-empty">Keine Datenpunkte für diese Kennzahl.</div>'}<div class="trend-point-list"><span>${selectedSeries.length?valText(selectedSeries[0],selected):''}</span><span>${selectedSeries.length?valText(selectedSeries.at(-1),selected):''}</span></div><div class="trend-focus-note">Zeitraumwert: <strong>${valText(selectedCur,selected)}</strong>${prev.length&&selectedPrev!=null?` · Vorperiode: ${valText(selectedPrev,selected)} · ${delta(selectedCur,selectedPrev)}`:''}</div></div>`}
+   : `<div class="trend-chart"><div class="trend-chart-head"><span>${selected.label} je Einheit</span><span>${selectedSeries.length} Datenpunkte</span></div>${selectedSeries.length?lineSvg(selectedSeries):'<div class="activity-empty">Keine Datenpunkte für diese Kennzahl.</div>'}${trendAxisV643(ordered)}<div class="trend-focus-note">Zeitraumwert: <strong>${valText(selectedCur,selected)}</strong>${prev.length&&selectedPrev!=null?` · Vorperiode: ${valText(selectedPrev,selected)} · ${delta(selectedCur,selectedPrev)}`:''}</div></div>`}
   <div class="trend-comparison">${insight}</div>
  </div>`;
 }
@@ -6442,9 +6473,13 @@ async function disconnectOwnIntervals(){
 </div></section><script>
 window.formatActualSummaryV641=function(x){if(!x)return "";const v=(n,u="")=>n!=null?`${n}${u}`:"–";return `<div class="actual-summary"><h4>Tatsächlich absolviert</h4><div class="detail-grid"><div>Dauer: ${x.duration_s?Math.round(x.duration_s/60)+" min":"–"}</div><div>Distanz: ${x.distance_m?Number(x.distance_m/1000).toFixed(1)+" km":"–"}</div><div>Höhenmeter: ${v(x.elevation_gain_m," m")}</div><div>Ø Herzfrequenz: ${v(x.avg_hr," bpm")}</div><div>Max. Herzfrequenz: ${v(x.max_hr," bpm")}</div><div>Ø Leistung: ${v(x.avg_watts," W")}</div><div>Normalisierte Leistung: ${v(x.normalized_watts," W")}</div><div>Ø Trittfrequenz: ${v(x.avg_cadence," U/min")}</div><div>Trainingsbelastung: ${v(x.training_load)}</div><div>Kalorien: ${v(x.calories," kcal")}</div><div>Gerät: ${x.source_device||"–"}</div></div></div>`};
 </script><script>
-function sessionActualDetailV642(id){
+function sessionActualDetailV643(id){
  const s=db.sessions.find(x=>x.id===id); if(!s)return;
- const x=s.actualSummary;
+ let x=s.actualSummary;
+ if(!x){
+   const a=(importedActivities||[]).find(a=>a.id===s.sourceActivityId||a.training_session_id===s.id);
+   if(a)x={duration_s:a.moving_time_seconds||a.elapsed_time_seconds,distance_m:a.distance_m,elevation_gain_m:a.elevation_gain_m,avg_hr:a.average_hr,max_hr:a.max_hr,avg_watts:a.average_watts,normalized_watts:a.normalized_watts,avg_cadence:a.average_cadence,training_load:a.training_load,calories:a.calories,source_device:a.source_device,provider:a.provider};
+ }
  closeInfoSheet?.();
  const back=document.createElement("div");back.className="info-sheet-backdrop";back.onclick=()=>closeInfoSheet?.();
  const sheet=document.createElement("div");sheet.className="info-sheet glass";
