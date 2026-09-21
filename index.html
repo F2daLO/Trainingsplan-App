@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.41</title>
+<title>Training v6.42</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3024,7 +3024,15 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 @media(prefers-color-scheme:dark){.trend-overview-card,.trend-mini{background:rgba(255,255,255,.055)}}
 
 </style>
-</head>
+<style>
+/* v6.42: info/detail sheets must stay above the bottom navigation/handlebar */
+.info-sheet-backdrop{z-index:1290!important}
+.info-sheet{z-index:1300!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
+@media(min-width:768px){.info-sheet{padding-bottom:24px!important}}
+.actual-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.actual-detail-grid>div{padding:10px;border-radius:12px;background:rgba(127,127,127,.09)}
+.actual-detail-grid small{display:block;color:var(--muted);font-size:11px}.actual-detail-grid strong{display:block;margin-top:2px}
+</style></head>
 <body>
 <div class="shell"><main id="main"></main></div>
 
@@ -3118,7 +3126,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.41</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.42</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -3708,7 +3716,7 @@ function packDesc(s){
 function unpackDesc(v){if(String(v||"").startsWith("__MT__")){try{return JSON.parse(String(v).slice(6))}catch{}}return{desc:v||"",scheduledAt:null}}
 function planRemote(p){return{id:p.id,user_id:cloudUser.id,name:p.name,description:"__MTP__"+JSON.stringify({eventId:p.eventId,focus:p.focus||"",description:p.description||"",eventName:db.events.find(e=>e.id===p.eventId)?.name||""})}}
 function planLocal(r){let meta={};if(String(r.description||"").startsWith("__MTP__"))try{meta=JSON.parse(String(r.description).slice(7))}catch{};if(meta.eventId&&!db.events.some(e=>e.id===meta.eventId))db.events.push({id:meta.eventId,name:meta.eventName||"Event",description:""});return{id:r.id,eventId:meta.eventId||db.activeEvent,name:r.name,focus:meta.focus||"",description:meta.description||""}}
-function sessionRemote(s){return{id:s.id,user_id:cloudUser.id,plan_id:s.planId,training_date:s.date,training_type:s.type||"",title:s.title||"",description:packDesc(s),note:s.note||"",status:s.status||"open",topup:!!s.topup,reminder:"auto",reminder_time:"18:00",updated_at:s.updatedAt||"2026-08-17T00:00:00.000Z"}}
+function sessionRemote(s){return{id:s.id,user_id:cloudUser.id,plan_id:s.planId,training_date:s.date,training_type:s.type||"",title:s.title||"",description:packDesc(s),note:s.note||"",status:s.status||"open",topup:!!s.topup,reminder:"auto",reminder_time:"18:00",origin:s.origin||"planned",source_activity_id:s.sourceActivityId||null,actual_summary:s.actualSummary||null,updated_at:s.updatedAt||"2026-08-17T00:00:00.000Z"}}
 function sessionLocal(r){
  const d=unpackDesc(r.description);
  const canonical=CANONICAL_PLAN_DESCRIPTIONS[r.id];
@@ -3721,7 +3729,7 @@ function sessionLocal(r){
    desc=canonical;
    updatedAt=new Date().toISOString();
  }
- return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",originalDate:d.originalDate||null,gptExplanation:d.gptExplanation||null,gptExplanationKey:d.gptExplanationKey||null,type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,reminder:"auto",reminderTime:"18:00",updatedAt};
+ return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",originalDate:d.originalDate||null,gptExplanation:d.gptExplanation||null,gptExplanationKey:d.gptExplanationKey||null,type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,origin:r.origin||"planned",sourceActivityId:r.source_activity_id||null,actualSummary:r.actual_summary||null,reminder:"auto",reminderTime:"18:00",updatedAt};
 }
 
 function makeClient(){
@@ -4005,7 +4013,7 @@ document.addEventListener("pointerdown",e=>{
     gPointer.longTimer=setTimeout(()=>{
       if(!gPointer || gPointer.id!==id || gPointer.moved) return;
       gPointer.longTriggered=true;
-      sessionActionMenu(id);
+      sessionActualDetailV642(id);
     },GESTURE_LONG_MS);
   }
 
@@ -5755,7 +5763,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.41",
+    appVersion:"6.42",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
@@ -6066,18 +6074,22 @@ function lineSvg(vals){if(!vals.length)return'';const w=600,h=100,p=8,min=Math.m
 function renderDevelopmentAnalytics(){
  const root=document.getElementById('analyticsDevelopment');if(!root)return;
  const all=importedActivities.length?importedActivities:[];
- const months=[...new Set(all.map(a=>monthKey(a.activity_date)).filter(Boolean))].sort().reverse();
- const currentMonth=months[0]||'2026-10';
- const selectedMonth=document.getElementById('trendMonth')?.value||currentMonth;
  const sport=document.getElementById('trendSport')?.value||'all';
  const focus=document.getElementById('trendMetric')?.value||'all';
-
- const filtered=all.filter(a=>trendSportMatch(a,sport)&&monthKey(a.activity_date)===selectedMonth);
- const prevDate=new Date(selectedMonth+'-01T12:00:00');prevDate.setMonth(prevDate.getMonth()-1);
- const prevKey=`${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}`;
- const prev=all.filter(a=>trendSportMatch(a,sport)&&monthKey(a.activity_date)===prevKey);
+ const range=document.getElementById('trendRange')?.value||'30d';
+ const customFrom=document.getElementById('trendFrom')?.value||'';
+ const customTo=document.getElementById('trendTo')?.value||'';
+ const now=new Date(), endDate=range==='custom'&&customTo?new Date(customTo+'T23:59:59'):now;
+ let startDate=new Date(endDate);
+ const subDays=n=>startDate.setDate(startDate.getDate()-n);
+ if(range==='7d')subDays(6); else if(range==='30d')subDays(29); else if(range==='3m')startDate.setMonth(startDate.getMonth()-3); else if(range==='6m')startDate.setMonth(startDate.getMonth()-6); else if(range==='12m')startDate.setFullYear(startDate.getFullYear()-1); else if(range==='2y')startDate.setFullYear(startDate.getFullYear()-2); else if(range==='year')startDate=new Date(now.getFullYear(),0,1); else if(range==='lastyear'){startDate=new Date(now.getFullYear()-1,0,1);endDate.setFullYear(now.getFullYear()-1,11,31);endDate.setHours(23,59,59)} else if(range==='plan'){const ds=db.sessions.filter(x=>x.planId===db.activePlan).map(x=>x.date).sort();startDate=ds[0]?new Date(ds[0]+'T00:00:00'):new Date(0)} else if(range==='all')startDate=new Date(0); else if(range==='custom'&&customFrom)startDate=new Date(customFrom+'T00:00:00');
+ const inRange=a=>{const d=new Date(a.activity_date);return d>=startDate&&d<=endDate};
+ const filtered=all.filter(a=>trendSportMatch(a,sport)&&inRange(a));
+ const span=Math.max(86400000,endDate-startDate),prevEnd=new Date(startDate.getTime()-1),prevStart=new Date(prevEnd.getTime()-span);
+ const prev=all.filter(a=>{const d=new Date(a.activity_date);return trendSportMatch(a,sport)&&d>=prevStart&&d<=prevEnd});
  const ordered=filtered.slice().sort((a,b)=>new Date(a.activity_date)-new Date(b.activity_date));
- const sportCount=all.filter(a=>trendSportMatch(a,sport)&&monthKey(a.activity_date)===selectedMonth).length;
+ const sportCount=filtered.length;
+ const rangeLabel=`${startDate.getTime()===0?'Seit erster Aktivität':startDate.toLocaleDateString('de-AT')} – ${endDate.toLocaleDateString('de-AT')}`;
 
  const nums=(arr,getter)=>arr.map(getter).map(Number).filter(Number.isFinite);
  const avgVals=(arr,getter)=>{const v=nums(arr,getter).filter(x=>x>0);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
@@ -6146,11 +6158,15 @@ function renderDevelopmentAnalytics(){
  root.innerHTML=`<div class="activity-toolbar"><div><strong>Entwicklung</strong><div class="activity-source">Standardmäßig alle verfügbaren Daten im gewählten Zeitraum · einzelne Kennzahl nur bei Bedarf fokussieren</div></div></div>
  <div class="trend-controls">
   <select id="trendSport" onchange="renderDevelopmentAnalytics()">${availableTrendSports(all).map(([k,l])=>`<option value="${k}" ${sport===k?'selected':''}>${l}</option>`).join('')}</select>
-  <select id="trendMonth" onchange="renderDevelopmentAnalytics()">${(months.length?months:['2026-10']).map(m=>`<option value="${m}" ${m===selectedMonth?'selected':''}>${new Date(m+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</option>`).join('')}</select>
+  <select id="trendRange" onchange="renderDevelopmentAnalytics()">
+   ${[['7d','7 Tage'],['30d','30 Tage'],['3m','3 Monate'],['6m','6 Monate'],['12m','12 Monate'],['year','Dieses Jahr'],['lastyear','Letztes Jahr'],['2y','Letzte 2 Jahre'],['plan','Seit Planbeginn'],['all','Seit erster Aktivität'],['custom','Benutzerdefiniert']].map(([v,l])=>`<option value="${v}" ${range===v?'selected':''}>${l}</option>`).join('')}
+  </select>
+  <input id="trendFrom" type="date" value="${customFrom}" onchange="if(document.getElementById('trendRange').value==='custom')renderDevelopmentAnalytics()">
+  <input id="trendTo" type="date" value="${customTo}" onchange="if(document.getElementById('trendRange').value==='custom')renderDevelopmentAnalytics()">
   <select id="trendMetric" onchange="renderDevelopmentAnalytics()"><option value="all" ${focus==='all'?'selected':''}>Gesamtübersicht – alle Daten</option>${metrics.filter(m=>m.k!=='sessions').map(m=>`<option value="${m.k}" ${m.k===focus?'selected':''}>Nur ${m.label}</option>`).join('')}</select>
  </div>
  <div class="trend-hero glass">
-  <div class="trend-hero-head"><div><h3>${trendSportLabel(sport)} · ${new Date(selectedMonth+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</h3><div class="activity-source">Vergleich mit ${new Date(prevKey+'-01T12:00:00').toLocaleDateString('de-AT',{month:'long',year:'numeric'})}</div></div><span class="activity-demo" style="display:${all.length?'none':'inline-block'}">WARTET AUF DATEN</span></div>
+  <div class="trend-hero-head"><div><h3>${trendSportLabel(sport)} · ${rangeLabel}</h3><div class="activity-source">Vergleich mit vorherigem gleich langen Zeitraum</div></div><span class="activity-demo" style="display:${all.length?'none':'inline-block'}">WARTET AUF DATEN</span></div>
   ${!sportCount?`<div class="activity-empty" style="margin:12px 0">Für <strong>${trendSportLabel(sport)}</strong> gibt es in diesem Monat keine importierten Aktivitäten. Es werden bewusst keine Daten einer anderen Sportart angezeigt.</div>`:''}
   ${focus==='all'
    ? `<div class="trend-overview-head"><div><strong>Gesamtübersicht</strong><div class="activity-source">${available.length} verfügbare Kennzahlen</div></div></div><div class="trend-overview-grid">${overview}</div><div class="trend-overview-head"><div><strong>Entwicklung aller verfügbaren Kennzahlen</strong><div class="activity-source">Verlauf von Einheit zu Einheit</div></div></div><div class="trend-all-series">${allSeries||'<div class="activity-empty">Noch keine verwertbaren Messwerte.</div>'}</div>`
@@ -6415,14 +6431,6 @@ async function disconnectOwnIntervals(){
     <div id="gptExplainBody" class="gpt-explain-body"></div>
   </div>
 </div>
-<section class="card" id="developmentRangeV641" style="margin-top:12px">
-<h3>Entwicklungszeitraum</h3>
-<div class="form-grid">
-<label>Zeitraum<select id="developmentRangeSelect" onchange="window.applyDevelopmentRangeV641&&applyDevelopmentRangeV641()">
-<option value="7d">Letzte 7 Tage</option><option value="30d">Letzte 30 Tage</option><option value="3m">Letzte 3 Monate</option><option value="6m">Letzte 6 Monate</option><option value="12m">Letzte 12 Monate</option><option value="year">Dieses Jahr</option><option value="lastyear">Letztes Jahr</option><option value="2y">Letzte 2 Jahre</option><option value="plan">Seit Planbeginn</option><option value="all">Seit erster Aktivität</option><option value="custom">Benutzerdefiniert</option></select></label>
-<label>Von<input id="developmentFrom" type="date"></label><label>Bis<input id="developmentTo" type="date"></label>
-</div><p class="muted">Der Zeitraum gilt für die Entwicklungs- und Verlaufsanalyse. „Seit Planbeginn“ richtet sich nach dem aktuell ausgewählten Trainingsplan.</p>
-</section>
 <section class="card" id="providerConnectionsV641" style="margin-top:12px">
 <h3>Datenquellen &amp; Verbindungen</h3>
 <p class="muted">Zentrale, benutzerbezogene Quellenverwaltung. Zugangsdaten und OAuth-Tokens werden ausschließlich serverseitig verarbeitet.</p>
@@ -6433,4 +6441,25 @@ async function disconnectOwnIntervals(){
 <div><b>Suunto</b> · Provider-Schnittstelle vorbereitet</div><div><b>Zwift</b> · Provider-Schnittstelle vorbereitet</div><div><b>MyWhoosh</b> · Provider-Schnittstelle vorbereitet / über Intervals nutzbar</div>
 </div></section><script>
 window.formatActualSummaryV641=function(x){if(!x)return "";const v=(n,u="")=>n!=null?`${n}${u}`:"–";return `<div class="actual-summary"><h4>Tatsächlich absolviert</h4><div class="detail-grid"><div>Dauer: ${x.duration_s?Math.round(x.duration_s/60)+" min":"–"}</div><div>Distanz: ${x.distance_m?Number(x.distance_m/1000).toFixed(1)+" km":"–"}</div><div>Höhenmeter: ${v(x.elevation_gain_m," m")}</div><div>Ø Herzfrequenz: ${v(x.avg_hr," bpm")}</div><div>Max. Herzfrequenz: ${v(x.max_hr," bpm")}</div><div>Ø Leistung: ${v(x.avg_watts," W")}</div><div>Normalisierte Leistung: ${v(x.normalized_watts," W")}</div><div>Ø Trittfrequenz: ${v(x.avg_cadence," U/min")}</div><div>Trainingsbelastung: ${v(x.training_load)}</div><div>Kalorien: ${v(x.calories," kcal")}</div><div>Gerät: ${x.source_device||"–"}</div></div></div>`};
+</script><script>
+function sessionActualDetailV642(id){
+ const s=db.sessions.find(x=>x.id===id); if(!s)return;
+ const x=s.actualSummary;
+ closeInfoSheet?.();
+ const back=document.createElement("div");back.className="info-sheet-backdrop";back.onclick=()=>closeInfoSheet?.();
+ const sheet=document.createElement("div");sheet.className="info-sheet glass";
+ const val=(v,u="")=>v!=null&&v!==""?`${v}${u}`:"–";
+ const dur=x?.duration_s?`${Math.floor(x.duration_s/3600)}:${String(Math.floor((x.duration_s%3600)/60)).padStart(2,"0")} h`:"–";
+ const dist=x?.distance_m?`${(Number(x.distance_m)/1000).toFixed(1)} km`:"–";
+ const grid=x?`<div class="actual-detail-grid">
+ <div><small>Dauer</small><strong>${dur}</strong></div><div><small>Distanz</small><strong>${dist}</strong></div>
+ <div><small>Höhenmeter</small><strong>${val(x.elevation_gain_m," m")}</strong></div><div><small>Ø Herzfrequenz</small><strong>${val(x.avg_hr," bpm")}</strong></div>
+ <div><small>Max. Herzfrequenz</small><strong>${val(x.max_hr," bpm")}</strong></div><div><small>Ø Leistung</small><strong>${val(x.avg_watts," W")}</strong></div>
+ <div><small>Normalisierte Leistung</small><strong>${val(x.normalized_watts," W")}</strong></div><div><small>Ø Trittfrequenz</small><strong>${val(x.avg_cadence," U/min")}</strong></div>
+ <div><small>Trainingsbelastung</small><strong>${val(x.training_load)}</strong></div><div><small>Kalorien</small><strong>${val(x.calories," kcal")}</strong></div>
+ <div style="grid-column:1/-1"><small>Aufzeichnungsgerät</small><strong>${esc(x.source_device||"–")}</strong></div></div>`:
+ `<div class="info-block">Für diese Planeinheit sind noch keine importierten Ist-Messdaten verknüpft.</div>`;
+ sheet.innerHTML=`<h3>${unitEmoji(s)} ${esc(s.title)}</h3><div class="activity-source">${esc(s.date)} · ${esc(s.type||"")}${s.topup?" · On Top":""}</div>${grid}${s.note?`<div class="info-block"><strong>Bemerkung</strong><br>${esc(s.note)}</div>`:""}<button class="pill" style="width:100%" onclick="closeInfoSheet()">Schließen</button>`;
+ document.body.append(back,sheet);
+}
 </script></body></html>
