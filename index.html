@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.44</title>
+<title>Training v6.45</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3025,7 +3025,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 
 </style>
 <style>
-/* v6.44: info/detail sheets must stay above the bottom navigation/handlebar */
+/* v6.45: info/detail sheets must stay above the bottom navigation/handlebar */
 .info-sheet-backdrop{z-index:1290!important}
 .info-sheet{z-index:1300!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
 @media(min-width:768px){.info-sheet{padding-bottom:24px!important}}
@@ -3033,7 +3033,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .actual-detail-grid>div{padding:10px;border-radius:12px;background:rgba(127,127,127,.09)}
 .actual-detail-grid small{display:block;color:var(--muted);font-size:11px}.actual-detail-grid strong{display:block;margin-top:2px}
 </style><style>
-/* v6.44 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
+/* v6.45 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
 :root{--app-bottom-clearance:calc(96px + env(safe-area-inset-bottom))}
 .quick-menu-backdrop,.info-sheet-backdrop{z-index:1990!important}
 .quick-menu,.info-sheet{z-index:2000!important;box-sizing:border-box!important}
@@ -3056,7 +3056,135 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .trend-axis{display:flex;justify-content:space-between;gap:6px;margin-top:3px;font-size:9px;color:var(--muted)}
 .trend-axis span:nth-child(2){text-align:center}.trend-axis span:last-child{text-align:right}
 .trend-stat-explain{font-size:9px;color:var(--muted);line-height:1.35;margin-top:5px}
-</style></head>
+</style>
+<style id="v645-theme">
+/* ===== v6.45 COMPLETE APPEARANCE SYSTEM ===== */
+:root{
+ --theme-bg:#ffffff;--theme-bg2:#f1f2f5;--theme-text:#1c1c1e;--theme-muted:#6e6e73;
+ --theme-panel:rgba(255,255,255,.76);--theme-panel-strong:rgba(255,255,255,.92);
+ --theme-soft:rgba(118,118,128,.08);--theme-border:rgba(210,214,221,.62);
+ --theme-shadow:0 10px 30px rgba(20,24,32,.07);--theme-nav:rgba(248,249,251,.88);
+ color-scheme:light;
+}
+html[data-theme="dark"]{
+ --theme-bg:#0b0c0e;--theme-bg2:#15171b;--theme-text:#f5f5f7;--theme-muted:#a9a9b0;
+ --theme-panel:rgba(30,32,37,.82);--theme-panel-strong:rgba(37,39,45,.96);
+ --theme-soft:rgba(255,255,255,.075);--theme-border:rgba(255,255,255,.14);
+ --theme-shadow:0 14px 38px rgba(0,0,0,.34);--theme-nav:rgba(25,27,31,.91);
+ color-scheme:dark;
+}
+html[data-theme="light"]{color-scheme:light}
+
+/* Full app canvas */
+html[data-theme],html[data-theme] body,html[data-theme] .shell,html[data-theme] main,
+html[data-theme] .plan-screen,html[data-theme] .plan-fixed,html[data-theme] .plan-scroll,
+html[data-theme] .week-title{
+ background:var(--theme-bg)!important;color:var(--theme-text)!important;
+}
+html[data-theme] body{
+ background-image:linear-gradient(180deg,var(--theme-bg),var(--theme-bg2))!important;
+}
+html[data-theme] body::before,html[data-theme] body::after{display:none!important}
+
+/* Every major surface */
+html[data-theme] .glass,html[data-theme] .event-card,html[data-theme] .session,
+html[data-theme] .dayitem,html[data-theme] .analytics-card,html[data-theme] .analytics-hero,
+html[data-theme] .metric,html[data-theme] .plan-head,html[data-theme] .block-stat,
+html[data-theme] .card,html[data-theme] .settings-card,html[data-theme] .settings-section,
+html[data-theme] .equipment-card,html[data-theme] .modal,html[data-theme] .quick-menu,
+html[data-theme] .info-sheet,html[data-theme] .gpt-explain-sheet,html[data-theme] .trend-hero,
+html[data-theme] .trend-chart,html[data-theme] .trend-kpi,html[data-theme] .trend-mini,
+html[data-theme] .trend-overview-card,html[data-theme] .activity-kpi,
+html[data-theme] .activity-detail-metric,html[data-theme] .activity-chart,
+html[data-theme] .tutorial-step,html[data-theme] .intervals-connect-box{
+ background:var(--theme-panel)!important;border-color:var(--theme-border)!important;
+ color:var(--theme-text)!important;box-shadow:var(--theme-shadow)!important;
+}
+html[data-theme] .session{background:color-mix(in srgb,var(--theme-panel) 92%,var(--theme-bg))!important}
+
+/* Text */
+html[data-theme] .meta,html[data-theme] .muted,html[data-theme] .cloud,
+html[data-theme] .settings-section-sub,html[data-theme] .activity-source,
+html[data-theme] .trend-mini-head,html[data-theme] .trend-stat-explain,
+html[data-theme] .trend-axis,html[data-theme] .eq-small,html[data-theme] .tutorial-step p,
+html[data-theme] .tutorial-note{color:var(--theme-muted)!important}
+html[data-theme] h1,html[data-theme] h2,html[data-theme] h3,html[data-theme] h4,
+html[data-theme] strong,html[data-theme] .stitle,html[data-theme] .page-title,
+html[data-theme] .quick-menu-title{color:var(--theme-text)!important}
+
+/* Inputs / controls */
+html[data-theme] input,html[data-theme] textarea,html[data-theme] select{
+ background:var(--theme-soft)!important;background-color:var(--theme-soft)!important;
+ border-color:var(--theme-border)!important;color:var(--theme-text)!important;
+ -webkit-text-fill-color:var(--theme-text)!important;
+}
+html[data-theme] input::placeholder,html[data-theme] textarea::placeholder{color:var(--theme-muted)!important;opacity:.9}
+html[data-theme] option{background:var(--theme-panel-strong)!important;color:var(--theme-text)!important}
+html[data-theme] .pill,html[data-theme] button:not(.primary):not(.ok):not(.bad):not(.warn){
+ color:var(--theme-text);
+}
+
+/* Navigation + sheets */
+html[data-theme] .nav{
+ background:var(--theme-nav)!important;border-color:var(--theme-border)!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.18)!important;
+}
+html[data-theme] .nav button{color:var(--theme-muted)!important}
+html[data-theme] .nav button.active{color:var(--theme-text)!important;background:var(--theme-soft)!important}
+html[data-theme] dialog::backdrop,html[data-theme] #planFilterDialog::backdrop{
+ background:rgba(0,0,0,.38)!important;backdrop-filter:blur(7px)!important;
+}
+html[data-theme] #planFilterDialog .plan-filter-modal{background:var(--theme-panel-strong)!important;border-color:var(--theme-border)!important}
+
+/* Status/semantic colors stay recognizable in both modes. */
+html[data-theme="dark"]{--green:#5ee27c;--red:#ff6961;--yellow:#ffd35a;--gold:#ffd35a}
+html[data-theme="dark"] .note,html[data-theme="dark"] .info-block,
+html[data-theme="dark"] .actual-detail-grid>div,html[data-theme="dark"] .tutorial-example{
+ background:rgba(255,255,255,.07)!important;color:var(--theme-text)!important;
+}
+html[data-theme="dark"] a{color:#7db7ff}
+
+/* Appearance selector */
+.appearance-choice{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.appearance-choice button{min-height:62px;border:1px solid var(--theme-border)!important;border-radius:15px;background:var(--theme-soft)!important;color:var(--theme-text)!important}
+.appearance-choice button.active{outline:2px solid currentColor!important;outline-offset:-2px}
+.appearance-choice button span{display:block;font-size:20px;margin-bottom:3px}
+@media(max-width:420px){.appearance-choice{grid-template-columns:1fr}}
+</style>
+</head>
+
+<script>
+const APPEARANCE_KEY="mt_appearance";
+const systemDarkQuery=window.matchMedia("(prefers-color-scheme: dark)");
+function appearanceSetting(){return localStorage.getItem(APPEARANCE_KEY)||"system"}
+function resolvedAppearance(){
+ const a=appearanceSetting();
+ return a==="system"?(systemDarkQuery.matches?"dark":"light"):a;
+}
+function appearanceLabel(){
+ const a=appearanceSetting();
+ return a==="light"?"Hell":a==="dark"?"Dunkel":"Systemseitig";
+}
+function applyAppearance(){
+ const mode=resolvedAppearance();
+ document.documentElement.dataset.theme=mode;
+ document.documentElement.dataset.appearance=appearanceSetting();
+ const meta=document.querySelector('meta[name="theme-color"]');
+ if(meta)meta.setAttribute("content",mode==="dark"?"#0b0c0e":"#ffffff");
+ const apple=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+ if(apple)apple.setAttribute("content",mode==="dark"?"black-translucent":"default");
+ document.querySelectorAll("[data-appearance]").forEach(b=>b.classList.toggle("active",b.dataset.appearance===appearanceSetting()));
+ const sub=document.getElementById("appearanceSettingsSub");if(sub)sub.textContent=appearanceLabel();
+}
+function setAppearance(mode){
+ if(!["light","dark","system"].includes(mode))mode="system";
+ localStorage.setItem(APPEARANCE_KEY,mode);applyAppearance();
+}
+try{systemDarkQuery.addEventListener("change",()=>{if(appearanceSetting()==="system")applyAppearance()})}
+catch{systemDarkQuery.addListener?.(()=>{if(appearanceSetting()==="system")applyAppearance()})}
+applyAppearance();
+document.addEventListener("DOMContentLoaded",applyAppearance);
+</script>
 <body>
 <div class="shell"><main id="main"></main></div>
 
@@ -3150,7 +3278,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.44</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.45</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -3590,6 +3718,24 @@ function renderSettings(){
    <div class="settings-section-body">
     <p id="settingsCloud">Status wird geprüft …</p>
     ${cloudUser?'<button class="pill" onclick="syncCloud(true)">Jetzt synchronisieren</button> <button class="pill" onclick="logout()">Abmelden</button>':'<button class="pill primary" onclick="loginDialog.showModal()">Mit E-Mail + Passwort anmelden</button>'}
+   </div>
+  </section>
+
+  <section class="settings-section glass" data-settings-section="appearance">
+   <button class="settings-section-head" type="button" onclick="toggleSettingsSection('appearance')">
+    <div class="settings-section-title">
+      <span class="emoji">◐</span>
+      <div><strong>Darstellung</strong><div class="settings-section-sub" id="appearanceSettingsSub">${appearanceLabel()}</div></div>
+    </div>
+    <div class="settings-section-right"><span class="settings-chevron">›</span></div>
+   </button>
+   <div class="settings-section-body">
+    <p class="muted">Farbdarstellung der gesamten App. „Systemseitig“ folgt automatisch der Einstellung von iPhone, iPad oder Computer.</p>
+    <div class="appearance-choice">
+      <button type="button" data-appearance="light" onclick="setAppearance('light')"><span>☀︎</span>Hell</button>
+      <button type="button" data-appearance="dark" onclick="setAppearance('dark')"><span>☾</span>Dunkel</button>
+      <button type="button" data-appearance="system" onclick="setAppearance('system')"><span>◐</span>Systemseitig</button>
+    </div>
    </div>
   </section>
 
@@ -5787,7 +5933,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.44",
+    appVersion:"6.45",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
