@@ -1,0 +1,58 @@
+{
+  "schema": "mein-training.plan-package.v1",
+  "packageId": "beispiel-2026-09",
+  "event": {
+    "externalId": "event-beispiel",
+    "title": "Beispiel Radmarathon",
+    "subtitle": "Route Typ C",
+    "date": "2027-06-20"
+  },
+  "plan": {
+    "externalId": "plan-beispiel",
+    "title": "Trainingsplan Radmarathon",
+    "description": "Beispielpaket für den Import."
+  },
+  "blocks": [
+    {
+      "externalId": "block-beispiel-1",
+      "title": "Block 1 · Grundlagen",
+      "description": "Grundlagenausdauer",
+      "startDate": "2026-10-01",
+      "endDate": "2026-10-31",
+      "sessions": [
+        {
+          "externalId": "session-beispiel-1",
+          "date": "2026-10-06",
+          "title": "Z2 Grundlage",
+          "type": "Indoor Rad",
+          "description": "60 min ruhige Grundlage",
+          "workout": {
+            "version": 1,
+            "sport": "bike",
+            "mode": "erg",
+            "steps": [
+              {
+                "type": "warmup",
+                "durationSec": 600,
+                "powerPctFtp": 0.5,
+                "cadence": 85
+              },
+              {
+                "type": "steady",
+                "durationSec": 2400,
+                "powerPctFtp": 0.65,
+                "cadence": 90
+              },
+              {
+                "type": "cooldown",
+                "durationSec": 600,
+                "powerPctFtp": 0.45,
+                "cadence": 85
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

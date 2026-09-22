@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.48</title>
+<title>Training v6.49</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3025,7 +3025,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 
 </style>
 <style>
-/* v6.48: info/detail sheets must stay above the bottom navigation/handlebar */
+/* v6.49: info/detail sheets must stay above the bottom navigation/handlebar */
 .info-sheet-backdrop{z-index:1290!important}
 .info-sheet{z-index:1300!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
 @media(min-width:768px){.info-sheet{padding-bottom:24px!important}}
@@ -3033,7 +3033,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .actual-detail-grid>div{padding:10px;border-radius:12px;background:rgba(127,127,127,.09)}
 .actual-detail-grid small{display:block;color:var(--muted);font-size:11px}.actual-detail-grid strong{display:block;margin-top:2px}
 </style><style>
-/* v6.48 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
+/* v6.49 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
 :root{--app-bottom-clearance:calc(96px + env(safe-area-inset-bottom))}
 .quick-menu-backdrop,.info-sheet-backdrop{z-index:1990!important}
 .quick-menu,.info-sheet{z-index:2000!important;box-sizing:border-box!important}
@@ -3058,7 +3058,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .trend-stat-explain{font-size:9px;color:var(--muted);line-height:1.35;margin-top:5px}
 </style>
 <style id="v645-theme">
-/* ===== v6.48 COMPLETE APPEARANCE SYSTEM ===== */
+/* ===== v6.49 COMPLETE APPEARANCE SYSTEM ===== */
 :root{
  --theme-bg:#ffffff;--theme-bg2:#f1f2f5;--theme-text:#1c1c1e;--theme-muted:#6e6e73;
  --theme-panel:rgba(255,255,255,.76);--theme-panel-strong:rgba(255,255,255,.92);
@@ -3374,7 +3374,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.48</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.49</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -3960,10 +3960,24 @@ function renderSettings(){
  <div class="tutorial-links"><button class="pill primary" onclick="connectIgpsport()">iGPSPORT verbinden</button><button class="pill" onclick="disconnectIgpsport()">Verbindung trennen</button></div>
  <div class="tutorial-note">Die iGPSPORT-Zugangsdaten werden serverseitig verschlüsselt gespeichert. Diese Anbindung verwendet eine inoffizielle Cloud-Schnittstelle.</div></div>
 </div></div></div>
-      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">5</span><div><strong>Equipment anlegen</strong><p>Unter „Gerätesetup & Equipment“ Outdoor-Rad, Indoor-Trainer oder andere Geräte mit Gültig-ab-Datum anlegen. So bleiben spätere Gerätewechsel historisch korrekt.</p></div></div></div>
-      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">6</span><div><strong>Trainingsplan anlegen oder importieren</strong><p>Event und Trainingsblöcke selbst anlegen oder über „Trainingsstruktur → Import“ importieren. Die beiden Beispiele aus dem Release-Paket zeigen CSV- und Planpaket-Format.</p><div class="tutorial-example">CSV: Event; Block; Datum; Trainingsart; Titel; Beschreibung …&#10;JSON: mein-training.plan-package.v1 mit Event, Plan, Blöcken und Einheiten</div></div></div></div>
-      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">7</span><div><strong>Auswertung & My Trainings Coach</strong><p>„Einzelne Einheiten“ zeigt die echten importierten Aktivitäten. „Entwicklung“ vergleicht Zeiträume. My Trainings Coach verwendet Plan + tatsächlich importierte Ist-Daten für die weitere Planung.</p></div></div></div>
-      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">8</span><div><strong>Mitteilungen</strong><p>Auf jedem gewünschten Gerät separat unter „Erinnerungen“ aktivieren und mit einer Test-Mitteilung prüfen.</p></div></div></div>
+      
+<div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">5</span><div><strong>Plan erstellen oder fortsetzen</strong>
+<p>Du brauchst keinen fertigen Import. My Trainings Coach kann einen neuen Trainingsplan oder die Fortsetzung eines bestehenden Plans direkt für dich erstellen.</p></div></div>
+<div class="tutorial-example"><b>Neuer Plan:</b> Gib Ziel/Event, Datum, Sportart, aktuellen Trainingsstand, verfügbare Trainingstage und vorhandenes Equipment an. Daraus kann ein neuer Plan mit Blöcken und Einheiten aufgebaut werden.</div>
+<div class="tutorial-example"><b>Fortsetzung:</b> Wenn bereits ein Plan vorhanden ist, kann My Trainings Coach ab dem aktuellen Stand weiterplanen. Bereits absolvierte Einheiten, Entwicklung, Zieltermin und verfügbare Zeit werden dabei als Grundlage verwendet.</div>
+<div class="tutorial-note">Importdateien sind deshalb optional: Sie eignen sich zum Übernehmen vorhandener Pläne oder als Vorlage, sind aber keine Voraussetzung für einen neuen oder fortgesetzten Trainingsplan.</div>
+</div>
+<div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">6</span><div><strong>Beispieldateien herunterladen</strong>
+<p>Die in dieser Anleitung erwähnten Beispiele kannst du direkt hier herunterladen und anschließend unter Einstellungen → Import verwenden.</p></div></div>
+<div class="tutorial-links">
+<button class="pill" type="button" onclick="downloadAppExample('import')">⬇ Import-Beispiel (CSV)</button>
+<button class="pill" type="button" onclick="downloadAppExample('plan')">⬇ Planpaket-Beispiel (JSON)</button>
+</div>
+</div>
+<div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">7</span><div><strong>Equipment anlegen</strong><p>Unter „Gerätesetup & Equipment“ Outdoor-Rad, Indoor-Trainer oder andere Geräte mit Gültig-ab-Datum anlegen. So bleiben spätere Gerätewechsel historisch korrekt.</p></div></div></div>
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">8</span><div><strong>Trainingsplan anlegen oder importieren</strong><p>Event und Trainingsblöcke selbst anlegen oder über „Trainingsstruktur → Import“ importieren. Die beiden Beispiele aus dem Release-Paket zeigen CSV- und Planpaket-Format.</p><div class="tutorial-example">CSV: Event; Block; Datum; Trainingsart; Titel; Beschreibung …&#10;JSON: mein-training.plan-package.v1 mit Event, Plan, Blöcken und Einheiten</div></div></div></div>
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">9</span><div><strong>Auswertung & My Trainings Coach</strong><p>„Einzelne Einheiten“ zeigt die echten importierten Aktivitäten. „Entwicklung“ vergleicht Zeiträume. My Trainings Coach verwendet Plan + tatsächlich importierte Ist-Daten für die weitere Planung.</p></div></div></div>
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">10</span><div><strong>Mitteilungen</strong><p>Auf jedem gewünschten Gerät separat unter „Erinnerungen“ aktivieren und mit einer Test-Mitteilung prüfen.</p></div></div></div>
     </div>
    </div>
   </section>
@@ -6066,7 +6080,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.48",
+    appVersion:"6.49",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
@@ -6800,5 +6814,13 @@ function normalizeAllDeviceNamesV647(){
 const __v647Render=render;
 render=function(){normalizeAllDeviceNamesV647();const r=__v647Render.apply(this,arguments);requestAnimationFrame(normalizeAllDeviceNamesV647);return r};
 </script><script>
+
+function downloadAppExample(file){
+ const allowed={import:"IMPORT_BEISPIEL.csv",plan:"PLANPAKET_BEISPIEL.json"};
+ const name=allowed[file]; if(!name)return;
+ const a=document.createElement("a");a.href="./"+name;a.download=name;
+ document.body.appendChild(a);a.click();a.remove();
+}
+
 function openIntervalsConnections(){window.open("https://intervals.icu/settings","_blank","noopener")}
 </script></body></html>

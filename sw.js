@@ -1,5 +1,5 @@
-const CACHE_NAME = "mein-training-v6.48";
-const APP_SHELL = ["./", "./index.html", "./manifest.json", "./icon.svg"];
+const CACHE_NAME = "mein-training-v6.49";
+const APP_SHELL = ["./", "./index.html", "./manifest.json", "./icon.svg","./IMPORT_BEISPIEL.csv","./PLANPAKET_BEISPIEL.json"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
