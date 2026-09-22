@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.47</title>
+<title>Training v6.48</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3025,7 +3025,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 
 </style>
 <style>
-/* v6.47: info/detail sheets must stay above the bottom navigation/handlebar */
+/* v6.48: info/detail sheets must stay above the bottom navigation/handlebar */
 .info-sheet-backdrop{z-index:1290!important}
 .info-sheet{z-index:1300!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
 @media(min-width:768px){.info-sheet{padding-bottom:24px!important}}
@@ -3033,7 +3033,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .actual-detail-grid>div{padding:10px;border-radius:12px;background:rgba(127,127,127,.09)}
 .actual-detail-grid small{display:block;color:var(--muted);font-size:11px}.actual-detail-grid strong{display:block;margin-top:2px}
 </style><style>
-/* v6.47 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
+/* v6.48 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
 :root{--app-bottom-clearance:calc(96px + env(safe-area-inset-bottom))}
 .quick-menu-backdrop,.info-sheet-backdrop{z-index:1990!important}
 .quick-menu,.info-sheet{z-index:2000!important;box-sizing:border-box!important}
@@ -3058,7 +3058,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .trend-stat-explain{font-size:9px;color:var(--muted);line-height:1.35;margin-top:5px}
 </style>
 <style id="v645-theme">
-/* ===== v6.47 COMPLETE APPEARANCE SYSTEM ===== */
+/* ===== v6.48 COMPLETE APPEARANCE SYSTEM ===== */
 :root{
  --theme-bg:#ffffff;--theme-bg2:#f1f2f5;--theme-text:#1c1c1e;--theme-muted:#6e6e73;
  --theme-panel:rgba(255,255,255,.76);--theme-panel-strong:rgba(255,255,255,.92);
@@ -3242,6 +3242,11 @@ html[data-theme="dark"] #sessionDialog .buttons button.primary{
  background:#f5f5f7!important;color:#111216!important;-webkit-text-fill-color:#111216!important;
  border-color:#f5f5f7!important;
 }
+</style><style id="v648-sources">
+.source-provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.source-provider{padding:13px;border:1px solid var(--theme-border,var(--line));border-radius:16px;background:var(--theme-soft,rgba(118,118,128,.08))}
+.source-provider>strong{display:block;margin-bottom:5px}.source-provider>span{display:block;font-size:11px;line-height:1.45;color:var(--muted);margin-bottom:9px}
+@media(max-width:680px){.source-provider-grid{grid-template-columns:1fr}}
 </style></head>
 
 <script>
@@ -3315,7 +3320,7 @@ document.addEventListener("DOMContentLoaded",applyAppearance);
 <label class="full">Passwort<input id="loginPassword" type="password" autocomplete="current-password"></label>
 <label class="full inline"><input id="rememberLogin" type="checkbox" checked> Angemeldet bleiben</label>
 </div><div id="loginStatus" class="helper"></div>
-<div class="buttons"><button type="button" onclick="passwordReset()">Passwort vergessen</button><button type="button" onclick="loginDialog.close()">Abbrechen</button><button class="primary">Anmelden</button></div>
+<div class="buttons"><button type="button" onclick="passwordReset()">Passwort vergessen</button><button type="button" onclick="signup()">Konto erstellen</button><button type="button" onclick="loginDialog.close()">Abbrechen</button><button class="primary">Anmelden</button></div>
 </form></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3369,7 +3374,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.47</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.48</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -3939,14 +3944,22 @@ function renderSettings(){
       <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">3</span><div><strong>Intervals.icu einmalig mit dieser App verbinden</strong><p>Athlete ID und API Key unten eintragen. Der Schlüssel wird direkt an die geschützte Serverfunktion übertragen und nicht im Browser oder in localStorage gespeichert. Danach verwendet jeder App-Benutzer ausschließlich sein eigenes Intervals.icu-Konto.</p></div></div>
        <div class="intervals-connect-box"><div id="intervalsConnectionStatus" class="intervals-status">Verbindungsstatus wird geprüft …</div><div class="intervals-connect-grid"><label>Athlete ID<input id="intervalsAthleteInput" autocomplete="off" placeholder="z. B. i123456"></label><label>Persönlicher API Key<input id="intervalsApiKeyInput" type="password" autocomplete="new-password" placeholder="nur einmal zum Verbinden"></label></div><div class="tutorial-links"><button class="pill primary" onclick="connectOwnIntervals()">Intervals.icu verbinden</button><button class="pill" onclick="disconnectOwnIntervals()">Verbindung trennen</button></div><div class="tutorial-note">Der API Key gehört immer dem gerade angemeldeten Benutzer. Niemals den Schlüssel einer anderen Person verwenden.</div></div>
       </div>
-      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">4</span><div><strong>Aktivitätsquellen & Automatik</strong><p>Intervals.icu wird serverseitig regelmäßig rückwirkend geprüft. Für BSC500-Fahrten kann zusätzlich iGPSPORT einmalig verbunden werden. Danach ist kein Windows-PC und kein manuelles Starten eines Sync-Programms vorgesehen.</p></div></div>
-<div class="intervals-connect-box">
+      <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">4</span><div><strong>Aktivitätsquellen verbinden</strong><p>Die App übernimmt Aktivitäten automatisch aus dem persönlichen Intervals.icu-Konto. Verbinde dort die Plattformen, die du tatsächlich verwendest. iGPSPORT kann zusätzlich direkt über unseren Server angebunden werden.</p></div></div>
+<div class="source-provider-grid">
+ <div class="source-provider"><strong>Zwift</strong><span>Direkt mit Intervals.icu verbinden. Neue Zwift-Aktivitäten werden danach automatisch übernommen.</span><button class="pill" onclick="openIntervalsConnections()">In Intervals.icu verbinden</button></div>
+ <div class="source-provider"><strong>MyWhoosh</strong><span>Direkte Intervals.icu-Integration verwenden. Trainings und Aktivitäten können zwischen den Plattformen synchronisiert werden.</span><button class="pill" onclick="openIntervalsConnections()">In Intervals.icu verbinden</button></div>
+ <div class="source-provider"><strong>Garmin Connect</strong><span>Garmin direkt mit Intervals.icu verbinden. Für Garmin-Geräte ist dies der bevorzugte Datenweg.</span><button class="pill" onclick="openIntervalsConnections()">In Intervals.icu verbinden</button></div>
+ <div class="source-provider"><strong>Suunto</strong><span>Suunto direkt in Intervals.icu verbinden; Aktivitäten werden anschließend von der App übernommen.</span><button class="pill" onclick="openIntervalsConnections()">In Intervals.icu verbinden</button></div>
+ <div class="source-provider"><strong>ROUVY</strong><span>ROUVY direkt in Intervals.icu verbinden; abgeschlossene Indoor-Einheiten fließen danach automatisch ein.</span><button class="pill" onclick="openIntervalsConnections()">In Intervals.icu verbinden</button></div>
+ <div class="source-provider"><strong>Strava</strong><span>Kann mit Intervals.icu verbunden werden. Wenn Garmin, Zwift, MyWhoosh, Suunto oder ROUVY direkt verfügbar sind, diese als Originalquelle bevorzugen, um Datenverluste und Dubletten zu vermeiden.</span><button class="pill" onclick="openIntervalsConnections()">In Intervals.icu verbinden</button></div>
+ <div class="source-provider"><strong>QZ</strong><span>QZ ist eine Brücke für kompatible Trainer/Apps. Die Aktivität muss anschließend in Intervals.icu ankommen; die App übernimmt sie von dort.</span></div>
+ <div class="source-provider"><strong>iGPSPORT / BSC500</strong><span>Optional direkte Serververbindung für iGPSPORT-Geräte.</span>
  <div id="igpsConnectionStatus" class="intervals-status">iGPSPORT-Status wird geprüft …</div>
  <div class="intervals-connect-grid"><label>iGPSPORT Konto<input id="igpsUserInput" autocomplete="username" placeholder="E-Mail / Benutzername"></label><label>iGPSPORT Passwort<input id="igpsPasswordInput" type="password" autocomplete="new-password" placeholder="nur einmal zum Verbinden"></label></div>
- <label>Region<select id="igpsRegionInput"><option value="intl" selected>International (app.igpsport.com)</option><option value="cn">China</option></select></label>
+ <label>Region<select id="igpsRegionInput"><option value="intl">International / Europa</option><option value="cn">China</option></select></label>
  <div class="tutorial-links"><button class="pill primary" onclick="connectIgpsport()">iGPSPORT verbinden</button><button class="pill" onclick="disconnectIgpsport()">Verbindung trennen</button></div>
- <div class="tutorial-note">Die Zugangsdaten werden nur an die geschützte Serverfunktion übertragen und serverseitig verschlüsselt gespeichert. Die iGPSPORT-Anbindung verwendet eine inoffizielle Cloud-Schnittstelle und kann bei Änderungen durch iGPSPORT angepasst werden müssen.</div>
-</div></div>
+ <div class="tutorial-note">Die iGPSPORT-Zugangsdaten werden serverseitig verschlüsselt gespeichert. Diese Anbindung verwendet eine inoffizielle Cloud-Schnittstelle.</div></div>
+</div></div></div>
       <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">5</span><div><strong>Equipment anlegen</strong><p>Unter „Gerätesetup & Equipment“ Outdoor-Rad, Indoor-Trainer oder andere Geräte mit Gültig-ab-Datum anlegen. So bleiben spätere Gerätewechsel historisch korrekt.</p></div></div></div>
       <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">6</span><div><strong>Trainingsplan anlegen oder importieren</strong><p>Event und Trainingsblöcke selbst anlegen oder über „Trainingsstruktur → Import“ importieren. Die beiden Beispiele aus dem Release-Paket zeigen CSV- und Planpaket-Format.</p><div class="tutorial-example">CSV: Event; Block; Datum; Trainingsart; Titel; Beschreibung …&#10;JSON: mein-training.plan-package.v1 mit Event, Plan, Blöcken und Einheiten</div></div></div></div>
       <div class="tutorial-step"><div class="tutorial-step-head"><span class="tutorial-no">7</span><div><strong>Auswertung & My Trainings Coach</strong><p>„Einzelne Einheiten“ zeigt die echten importierten Aktivitäten. „Entwicklung“ vergleicht Zeiträume. My Trainings Coach verwendet Plan + tatsächlich importierte Ist-Daten für die weitere Planung.</p></div></div></div>
@@ -4001,10 +4014,38 @@ function makeClient(){
 async function login(e){
  e.preventDefault();loginStatus.textContent="Anmeldung …";localStorage.setItem("mt_remember",String(rememberLogin.checked));sb=makeClient();
  const {data,error}=await sb.auth.signInWithPassword({email:loginEmail.value.trim(),password:loginPassword.value});if(error){loginStatus.textContent=error.message;return}
- cloudUser=data.session?.user||data.user;loginDialog.close();await syncCloud(false);render()
+ cloudUser=data.session?.user||data.user;await prepareEmptyNewUser();loginDialog.close();await syncCloud(false);render()
 }
 
 async function logout(){await sb.auth.signOut();cloudUser=null;render()}
+async function signup(){
+ const email=loginEmail.value.trim(),password=loginPassword.value;
+ if(!email||!password){loginStatus.textContent="Bitte E-Mail und Passwort eingeben.";return}
+ if(password.length<8){loginStatus.textContent="Das Passwort muss mindestens 8 Zeichen haben.";return}
+ loginStatus.textContent="Konto wird erstellt …";sb=makeClient();
+ const {data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
+ if(error){loginStatus.textContent=error.message;return}
+ if(data?.session){
+   cloudUser=data.user;await prepareEmptyNewUser();loginDialog.close();await syncCloud(false);render();
+ }else{
+   loginStatus.textContent="Konto erstellt. Bitte den Bestätigungslink in der E-Mail öffnen und danach anmelden.";
+ }
+}
+function looksLikeBundledDemoPlan(){
+ return db?.events?.some(e=>e.id==="event-mondsee-2027") || db?.plans?.some(p=>p.id==="MONDSEE-B1");
+}
+async function prepareEmptyNewUser(){
+ if(!cloudUser||!sb)return;
+ try{
+   const {data,error}=await sb.from("training_plans").select("id").limit(1);
+   if(error)throw error;
+   if((data||[]).length===0 && looksLikeBundledDemoPlan()){
+     db={events:[],plans:[],sessions:[],activeEvent:null,activePlan:null};
+     localStorage.setItem(KEY,JSON.stringify(db));
+   }
+ }catch(e){console.error("New-user preparation",e)}
+}
+
 
 function migrateLocalPlanIds(){
  if(!cloudUser)return;
@@ -4068,7 +4109,7 @@ async function initCloud(){
       setTimeout(async()=>{
         await handleRecoverySession(event,session);
         if(cloudUser && event!=="PASSWORD_RECOVERY"){
-          try{await syncCloud(false)}catch(e){console.error(e)}
+          try{await prepareEmptyNewUser();await syncCloud(false)}catch(e){console.error(e)}
         }
         render();
       },0);
@@ -4080,6 +4121,7 @@ async function initCloud(){
     if(cloudUser && /type=recovery/i.test(u)){
       setTimeout(()=>handleRecoverySession("PASSWORD_RECOVERY",data.session),80);
     }else if(cloudUser){
+      await prepareEmptyNewUser();
       await syncCloud(false);
     }
     render();
@@ -6024,7 +6066,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.47",
+    appVersion:"6.48",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
@@ -6698,15 +6740,7 @@ async function disconnectOwnIntervals(){
     <div id="gptExplainBody" class="gpt-explain-body"></div>
   </div>
 </div>
-<section class="card" id="providerConnectionsV641" style="margin-top:12px">
-<h3>Datenquellen &amp; Verbindungen</h3>
-<p class="muted">Zentrale, benutzerbezogene Quellenverwaltung. Zugangsdaten und OAuth-Tokens werden ausschließlich serverseitig verarbeitet.</p>
-<div class="settings-list">
-<div><b>Intervals.icu</b> · verfügbar</div><div><b>iGPSPORT</b> · verfügbar</div>
-<div><b>Strava</b> · OAuth-Integration vorbereitet – Anbieter-App erforderlich</div>
-<div><b>Garmin Connect</b> · Integration vorbereitet – Garmin Developer Program erforderlich</div>
-<div><b>Suunto</b> · Provider-Schnittstelle vorbereitet</div><div><b>Zwift</b> · Provider-Schnittstelle vorbereitet</div><div><b>MyWhoosh</b> · Provider-Schnittstelle vorbereitet / über Intervals nutzbar</div>
-</div></section><script>
+<script>
 window.formatActualSummaryV641=function(x){if(!x)return "";const v=(n,u="")=>n!=null?`${n}${u}`:"–";return `<div class="actual-summary"><h4>Tatsächlich absolviert</h4><div class="detail-grid"><div>Dauer: ${x.duration_s?Math.round(x.duration_s/60)+" min":"–"}</div><div>Distanz: ${x.distance_m?Number(x.distance_m/1000).toFixed(1)+" km":"–"}</div><div>Höhenmeter: ${v(x.elevation_gain_m," m")}</div><div>Ø Herzfrequenz: ${v(x.avg_hr," bpm")}</div><div>Max. Herzfrequenz: ${v(x.max_hr," bpm")}</div><div>Ø Leistung: ${v(x.avg_watts," W")}</div><div>Normalisierte Leistung: ${v(x.normalized_watts," W")}</div><div>Ø Trittfrequenz: ${v(x.avg_cadence," U/min")}</div><div>Trainingsbelastung: ${v(x.training_load)}</div><div>Kalorien: ${v(x.calories," kcal")}</div><div>Gerät: ${x.source_device||"–"}</div></div></div>`};
 </script><script>
 function sessionActualDetailV644(id){
@@ -6765,4 +6799,6 @@ function normalizeAllDeviceNamesV647(){
 }
 const __v647Render=render;
 render=function(){normalizeAllDeviceNamesV647();const r=__v647Render.apply(this,arguments);requestAnimationFrame(normalizeAllDeviceNamesV647);return r};
+</script><script>
+function openIntervalsConnections(){window.open("https://intervals.icu/settings","_blank","noopener")}
 </script></body></html>
