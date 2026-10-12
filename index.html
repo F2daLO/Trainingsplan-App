@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.49</title>
+<title>Training v6.51</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3025,7 +3025,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 
 </style>
 <style>
-/* v6.49: info/detail sheets must stay above the bottom navigation/handlebar */
+/* v6.51: info/detail sheets must stay above the bottom navigation/handlebar */
 .info-sheet-backdrop{z-index:1290!important}
 .info-sheet{z-index:1300!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
 @media(min-width:768px){.info-sheet{padding-bottom:24px!important}}
@@ -3033,7 +3033,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .actual-detail-grid>div{padding:10px;border-radius:12px;background:rgba(127,127,127,.09)}
 .actual-detail-grid small{display:block;color:var(--muted);font-size:11px}.actual-detail-grid strong{display:block;margin-top:2px}
 </style><style>
-/* v6.49 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
+/* v6.51 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
 :root{--app-bottom-clearance:calc(96px + env(safe-area-inset-bottom))}
 .quick-menu-backdrop,.info-sheet-backdrop{z-index:1990!important}
 .quick-menu,.info-sheet{z-index:2000!important;box-sizing:border-box!important}
@@ -3058,7 +3058,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .trend-stat-explain{font-size:9px;color:var(--muted);line-height:1.35;margin-top:5px}
 </style>
 <style id="v645-theme">
-/* ===== v6.49 COMPLETE APPEARANCE SYSTEM ===== */
+/* ===== v6.51 COMPLETE APPEARANCE SYSTEM ===== */
 :root{
  --theme-bg:#ffffff;--theme-bg2:#f1f2f5;--theme-text:#1c1c1e;--theme-muted:#6e6e73;
  --theme-panel:rgba(255,255,255,.76);--theme-panel-strong:rgba(255,255,255,.92);
@@ -3374,7 +3374,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.49</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.51</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -5992,22 +5992,22 @@ function validatePlanPackage(pkg){
  }
  return pkg;
 }
-function importPlanPackageObject(raw){
+function importPlanPackageObject(raw,coachPackageId=null){
  const pkg=validatePlanPackage(structuredClone(raw));
  const now=new Date().toISOString();
  db.events=db.events||[];db.plans=db.plans||[];db.blocks=db.blocks||[];db.sessions=db.sessions||[];
  let ev=db.events.find(x=>x.externalId===pkg.event.externalId);
- if(!ev){ev={id:crypto.randomUUID(),externalId:pkg.event.externalId,title:pkg.event.title,subtitle:pkg.event.subtitle||"",date:pkg.event.date||"",updatedAt:now};db.events.push(ev)}
+ if(!ev){ev={id:crypto.randomUUID(),externalId:pkg.event.externalId,title:pkg.event.title,subtitle:pkg.event.subtitle||"",date:pkg.event.date||"",updatedAt:now,coachPackageId:coachPackageId||null};db.events.push(ev)}
  let pl=db.plans.find(x=>x.externalId===pkg.plan.externalId);
- if(!pl){pl={id:crypto.randomUUID(),externalId:pkg.plan.externalId,eventId:ev.id,title:pkg.plan.title,description:pkg.plan.description||"",updatedAt:now};db.plans.push(pl)}
+ if(!pl){pl={id:crypto.randomUUID(),externalId:pkg.plan.externalId,eventId:ev.id,title:pkg.plan.title,description:pkg.plan.description||"",updatedAt:now,coachPackageId:coachPackageId||null};db.plans.push(pl)}
  let addedBlocks=0,addedSessions=0,updatedFuture=0;
  for(const ib of pkg.blocks){
   let b=db.blocks.find(x=>x.externalId===ib.externalId);
-  if(!b){b={id:crypto.randomUUID(),externalId:ib.externalId,planId:pl.id,title:ib.title,description:ib.description||"",startDate:ib.startDate||"",endDate:ib.endDate||"",updatedAt:now};db.blocks.push(b);addedBlocks++}
+  if(!b){b={id:crypto.randomUUID(),externalId:ib.externalId,planId:pl.id,title:ib.title,description:ib.description||"",startDate:ib.startDate||"",endDate:ib.endDate||"",updatedAt:now,coachPackageId:coachPackageId||null};db.blocks.push(b);addedBlocks++}
   for(const is of ib.sessions){
    let s=db.sessions.find(x=>x.externalId===is.externalId);
-   const payload={externalId:is.externalId,blockId:b.id,date:is.date,title:is.title,description:is.description||"",type:is.type||"Indoor Rad",equipment:is.equipment||"",workout:is.workout||null,updatedAt:now};
-   if(!s){db.sessions.push({id:crypto.randomUUID(),status:"neutral",...payload});addedSessions++;continue}
+   const payload={externalId:is.externalId,planId:pl.id,blockId:b.id,date:is.date,title:is.title,description:is.description||"",type:is.type||"Indoor Rad",equipment:is.equipment||"",workout:is.workout||null,updatedAt:now};
+   if(!s){db.sessions.push({id:crypto.randomUUID(),status:"neutral",coachPackageId:coachPackageId||null,...payload});addedSessions++;continue}
    /* Never overwrite training history/progress. Only update still-neutral future/open imported sessions. */
    const today=localTodayISO();
    if((s.status==="neutral"||s.status==="open"||!s.status)&&String(s.date)>=today){
@@ -6048,23 +6048,26 @@ const COACH_SCHEMA="mein-training.plan-package.v1";
 let coachState={profile:null,requests:[],packages:[],loaded:false};
 
 async function coachUser(){
-  const {data:{user}}=await supabase.auth.getUser();
+  if(!sb){throw new Error("Cloud-Verbindung fehlt. Bitte anmelden.")}
+  const {data:{user},error}=await sb.auth.getUser();
+  if(error)throw error;
   return user||null;
 }
 async function loadCoachState(){
   const user=await coachUser(); if(!user)return;
   const [p,r,k]=await Promise.all([
-    supabase.from("coach_profiles").select("*").eq("user_id",user.id).maybeSingle(),
-    supabase.from("coach_requests").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20),
-    supabase.from("coach_plan_packages").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20)
+    sb.from("coach_profiles").select("*").eq("user_id",user.id).maybeSingle(),
+    sb.from("coach_requests").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20),
+    sb.from("coach_plan_packages").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20)
   ]);
+  for(const [name,result] of [["Profil",p],["Anfragen",r],["Planpakete",k]])if(result.error)throw new Error(name+": "+result.error.message);
   coachState.profile=p.data||null; coachState.requests=r.data||[]; coachState.packages=k.data||[]; coachState.loaded=true;
   renderCoachPanel();
 }
 async function upsertCoachProfile(patch){
   const user=await coachUser(); if(!user)return;
   const base={user_id:user.id,updated_at:new Date().toISOString(),...(coachState.profile||{}),...patch};
-  const {data,error}=await supabase.from("coach_profiles").upsert(base,{onConflict:"user_id"}).select().single();
+  const {data,error}=await sb.from("coach_profiles").upsert(base,{onConflict:"user_id"}).select().single();
   if(error){alert("Coach-Profil konnte nicht gespeichert werden:\n"+error.message);return}
   coachState.profile=data; renderCoachPanel();
 }
@@ -6080,7 +6083,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.49",
+    appVersion:"6.51",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
@@ -6104,19 +6107,21 @@ async function createCoachRequest(type,requirements=""){
     status:"pending",
     updated_at:new Date().toISOString()
   };
-  const {data,error}=await supabase.from("coach_requests").insert(row).select().single();
+  const {data,error}=await sb.from("coach_requests").insert(row).select().single();
   if(error){alert("Coach-Anfrage konnte nicht erstellt werden:\n"+error.message);return null}
   coachState.requests.unshift(data); renderCoachPanel();
   if(type==="continue_plan"){
     try{
-      const {data:fn,error:fe}=await supabase.functions.invoke("training-coach",{body:{requestId:data.id}});
+      const {data:fn,error:fe}=await sb.functions.invoke("training-coach",{body:{requestId:data.id}});
       if(fe)throw fe;
+      if(fn?.error)throw new Error(fn.error);
       await loadCoachState();
+      if(fn?.packageId)coachPackagePreview(fn.packageId);
     }catch(e){
       console.error("TRAINING_COACH_INVOKE",e);
-      await supabase.from("coach_requests").update({status:"failed",updated_at:new Date().toISOString()}).eq("id",data.id);
+      await sb.from("coach_requests").update({status:"failed",updated_at:new Date().toISOString()}).eq("id",data.id);
       await loadCoachState();
-      alert("Die Coach-Anfrage wurde gespeichert, die automatische Erstellung ist aber fehlgeschlagen.\n"+(e?.message||e));
+      alert("Die Anforderung wurde gespeichert, die Planerstellung ist fehlgeschlagen.\n"+(e?.message||e));
     }
   }
   return data;
@@ -6149,7 +6154,7 @@ function ftpTestWorkout(){
 async function createFTPTestRecord(){
   const user=await coachUser(); if(!user){alert("Bitte zuerst anmelden.");return null}
   const row={user_id:user.id,protocol:"20min",source:"My Trainings Coach",workout:ftpTestWorkout(),metrics:{}};
-  const {data,error}=await supabase.from("ftp_tests").insert(row).select().single();
+  const {data,error}=await sb.from("ftp_tests").insert(row).select().single();
   if(error){alert("FTP-Test konnte nicht gespeichert werden:\n"+error.message);return null}
   return data;
 }
@@ -6169,7 +6174,7 @@ async function saveFTPResult(){
   const src=prompt("Quelle, z. B. MyWhoosh, QZ, Zwift Ride oder MERACH:","MyWhoosh")||"manuell";
   const user=await coachUser(); if(!user)return;
   const today=localTodayISO();
-  const {error}=await supabase.from("ftp_tests").insert({
+  const {error}=await sb.from("ftp_tests").insert({
     user_id:user.id,test_date:today,protocol:"20min",result_ftp_watts:ftp,source:src,metrics:{}
   });
   if(error){alert("FTP-Ergebnis konnte nicht gespeichert werden:\n"+error.message);return}
@@ -6180,12 +6185,50 @@ async function applyCoachPackage(id){
   const pkg=coachState.packages.find(x=>x.id===id); if(!pkg)return;
   try{
     if(!pkg.package||pkg.package.schema!==COACH_SCHEMA)throw new Error("Ungültiges Planpaket.");
-    importPlanPackageObject(pkg.package);
+    importPlanPackageObject(pkg.package,id);
     const now=new Date().toISOString();
-    await supabase.from("coach_plan_packages").update({applied_at:now}).eq("id",id);
-    if(pkg.coach_request_id)await supabase.from("coach_requests").update({status:"applied",updated_at:now}).eq("id",pkg.coach_request_id);
+    await sb.from("coach_plan_packages").update({applied_at:now}).eq("id",id);
+    if(pkg.coach_request_id)await sb.from("coach_requests").update({status:"applied",updated_at:now}).eq("id",pkg.coach_request_id);
     await loadCoachState();
   }catch(e){alert("Planpaket konnte nicht übernommen werden:\n"+e.message)}
+}
+async function undoCoachPackage(id){
+ const item=coachState.packages.find(x=>x.id===id);
+ if(!item?.applied_at){alert("Dieses Planpaket wurde noch nicht übernommen.");return}
+ const own=(db.sessions||[]).filter(x=>x.coachPackageId===id);
+ const protectedRows=own.filter(x=>!["neutral","open",null,undefined].includes(x.status)||x.actualSummary||x.sourceActivityId||x.source_activity_id);
+ if(protectedRows.length){alert("Rücknahme gesperrt: "+protectedRows.length+" Einheiten enthalten bereits Fortschritt oder Ist-Daten. Diese Daten werden nicht gelöscht. Bitte zuerst eine sichere manuelle Prüfung durchführen.");return}
+ if(!confirm(`Planübernahme zurücknehmen?\n\n${own.length} ausschließlich von diesem Planpaket angelegte, noch unbearbeitete Einheiten werden entfernt.\n\nBestehende Pläne, FTP-Werte und Aktivitäten bleiben erhalten.`))return;
+ const snapshot=structuredClone(db);
+ try{
+  const removed=new Set(own.map(x=>x.id));
+  db.sessions=db.sessions.filter(x=>!removed.has(x.id));
+  const blockIds=new Set((db.blocks||[]).filter(x=>x.coachPackageId===id&&!db.sessions.some(y=>y.blockId===x.id)).map(x=>x.id));
+  db.blocks=db.blocks.filter(x=>!blockIds.has(x.id));
+  const planIds=new Set((db.plans||[]).filter(x=>x.coachPackageId===id&&!db.sessions.some(y=>y.planId===x.id)&&!db.blocks.some(b=>b.planId===x.id)).map(x=>x.id));
+  db.plans=db.plans.filter(x=>!planIds.has(x.id));
+  const eventIds=new Set((db.events||[]).filter(x=>x.coachPackageId===id&&!db.plans.some(y=>y.eventId===x.id)).map(x=>x.id));
+  db.events=db.events.filter(x=>!eventIds.has(x.id));
+  if(planIds.has(db.activePlan))db.activePlan=db.plans[0]?.id||null;
+  if(eventIds.has(db.activeEvent))db.activeEvent=db.events[0]?.id||null;
+  const {error}=await sb.from("coach_plan_packages").update({applied_at:null}).eq("id",id);
+  if(error)throw error;
+  if(item.coach_request_id)await sb.from("coach_requests").update({status:"ready",updated_at:new Date().toISOString()}).eq("id",item.coach_request_id);
+  persist();await loadCoachState();alert("Planübernahme zurückgenommen. Vorhandene Historie und Ist-Daten blieben erhalten.");
+ }catch(e){db=snapshot;persist();alert("Rücknahme fehlgeschlagen: "+e.message)}
+}
+function exportCoachPackage(id){
+ const item=coachState.packages.find(x=>x.id===id);if(!item?.package)return alert("Planpaket nicht gefunden.");
+ const blob=new Blob([JSON.stringify(item.package,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="My_Trainings_Coach_Planpaket_"+(item.package.packageId||id)+".json";
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function coachPackagePreview(id){
+ const item=coachState.packages.find(x=>x.id===id);if(!item?.package)return;
+ const pkg=item.package;let count=(pkg.blocks||[]).reduce((n,b)=>n+(b.sessions||[]).length,0);
+ const text=`${pkg.plan?.title||"Trainingsplan"}\n${(pkg.blocks||[]).length} Blöcke · ${count} Einheiten\n\nJetzt direkt übernehmen?\nAbbrechen = vorerst nicht übernehmen; der Download bleibt verfügbar.`;
+ if(confirm(text))applyCoachPackage(id);
 }
 function coachStatusText(r){
   return ({pending:"Angefragt",processing:"Wird erstellt",ready:"Bereit",applied:"Übernommen",failed:"Fehler"})[r.status]||r.status;
@@ -6224,13 +6267,14 @@ function renderCoachSettingsPanel(){
     <div class="stack"><button class="pill primary" onclick="requestPlanContinuation()">＋ Fortsetzung anfordern</button><button class="pill" onclick="syncIntervalsActivities(true)">↻ Trainingsdaten synchronisieren</button><button class="pill" onclick="loadCoachState()">↻ Aktualisieren</button></div>
    </div>
   </div>
-  ${ready.length?`<div class="coach-settings-card coach-section"><strong>Bereit zur Übernahme</strong>${ready.map(x=>`<div class="coach-row"><span>${x.package?.blocks?.[0]?.title||"Neuer Trainingsblock"}</span><button class="pill primary" onclick="applyCoachPackage('${x.id}')">Übernehmen</button></div>`).join("")}</div>`:""}
+  ${coachState.packages.some(x=>x.applied_at)?`<div class="coach-settings-card coach-section"><strong>Übernommene Coach-Pläne</strong>${coachState.packages.filter(x=>x.applied_at).map(x=>`<div class="coach-row"><span>${x.package?.plan?.title||"Planfortsetzung"}</span><button class="pill" onclick="undoCoachPackage('${x.id}')">Übernahme zurücknehmen</button></div>`).join("")}</div>`:""}
+  ${ready.length?`<div class="coach-settings-card coach-section"><strong>Bereit zur Übernahme</strong>${ready.map(x=>`<div class="coach-row"><span>${x.package?.blocks?.[0]?.title||"Neuer Trainingsblock"}</span><button class="pill primary" onclick="coachPackagePreview('${x.id}')">Vorschau / Übernehmen</button><button class="pill" onclick="exportCoachPackage('${x.id}')">JSON herunterladen</button></div>`).join("")}</div>`:""}
   <div class="coach-settings-card coach-section"><strong>Letzte Coach-Anfragen</strong>${reqs.length?reqs.map(r=>`<div class="coach-row"><span>${r.request_type==="continue_plan"?"Plan fortsetzen":r.request_type} · ${coachStatusText(r)}</span><span class="eq-small">${new Date(r.created_at).toLocaleDateString("de-AT")}</span></div>`).join(""):'<div class="eq-small" style="margin-top:8px">Noch keine Coach-Anfrage.</div>'}</div>`;
 }
 function renderCoachPanel(){ renderCoachSettingsPanel(); }
 
 try{
- supabase.channel("mein-training-coach")
+ sb.channel("mein-training-coach")
   .on("postgres_changes",{event:"*",schema:"public",table:"coach_requests"},()=>loadCoachState())
   .on("postgres_changes",{event:"*",schema:"public",table:"coach_plan_packages"},()=>loadCoachState())
   .on("postgres_changes",{event:"*",schema:"public",table:"coach_profiles"},()=>loadCoachState())
