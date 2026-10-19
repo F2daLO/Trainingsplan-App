@@ -1,5 +1,5 @@
 const COACH_SCHEMA="mein-training.plan-package.v1";
-let coachState={profile:null,requests:[],packages:[],loaded:false};
+let coachState={profile:null,requests:[],packages:[],tests:[],loaded:false};
 
 async function coachUser(){
   if(!sb){throw new Error("Cloud-Verbindung fehlt. Bitte anmelden.")}
@@ -14,6 +14,7 @@ async function loadCoachState(){
     sb.from("coach_requests").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20),
     sb.from("coach_plan_packages").select("*").eq("user_id",user.id).order("created_at",{ascending:false}).limit(20)
   ]);
+  try{const t=await sb.from("activity_imports").select("activity_date,name,moving_time_seconds,average_watts,normalized_watts,raw_summary").eq("user_id",user.id).or("name.ilike.%ramp%,name.ilike.%ftp%").order("activity_date",{ascending:false}).limit(5);coachState.tests=t.data||[]}catch(e){coachState.tests=[]}
   for(const [name,result] of [["Profil",p],["Anfragen",r],["Planpakete",k]])if(result.error)throw new Error(name+": "+result.error.message);
   coachState.profile=p.data||null; coachState.requests=r.data||[]; coachState.packages=k.data||[]; coachState.loaded=true;
   renderCoachPanel();
@@ -124,8 +125,8 @@ function coachOpenRequestDialog(initial="",opts={}){
  const plans=db.plans||[];
  const planId=opts.planId||opts.restore?.plan_id||coachCurrentPlan()?.id||plans[0]?.id||"";
  const last=planId?coachPlanLastDate(planId):"";
- const tomorrow=coachIso(Date.now()+864e5);
- const startDefault=p.startDate&&p.startDate>=tomorrow?p.startDate:(last&&last>=coachIso(Date.now())?coachIso(new Date(last+"T12:00:00").getTime()+864e5):tomorrow);
+ const todayIso=coachIso(Date.now());
+ const startDefault=p.startDate&&p.startDate>=todayIso?p.startDate:(last&&last>=todayIso?coachIso(new Date(last+"T12:00:00").getTime()+864e5):todayIso);
  const overlay=document.createElement("div");overlay.id="coachRequestDialog";
  overlay.dataset.refine=opts.refineOf||"";
  overlay.className="coach-overlay";
@@ -151,7 +152,7 @@ function coachOpenRequestDialog(initial="",opts={}){
   <input id="coachGoalDate" type="date" value="${esc(p.goalDate||"")}" class="coach-field">
  </div>
  ${lab('<label for="coachStart">Beginn</label>')}
- <input id="coachStart" type="date" min="${tomorrow}" value="${esc(startDefault)}" class="coach-field">
+ <input id="coachStart" type="date" min="${todayIso}" value="${esc(startDefault)}" class="coach-field">
  <div class="eq-small" id="coachStartHint"></div>
  ${lab('<label for="coachWeeks">Zeitraum</label>')}
  <select id="coachWeeks" class="coach-field">${weekOpts}</select>
@@ -160,7 +161,7 @@ function coachOpenRequestDialog(initial="",opts={}){
  ${lab('<label for="coachMaxMin">Maximale Dauer pro Einheit (Minuten, optional)</label>')}
  <input id="coachMaxMin" type="number" inputmode="numeric" min="15" max="600" step="5" value="${esc(String(p.maxMinutes||""))}" class="coach-field">
  ${lab('<label for="coachEnv">Indoor / Outdoor</label>')}
- <select id="coachEnv" class="coach-field"><option value="mixed"${p.environment==="mixed"?" selected":""}>Mischung</option><option value="indoor"${p.environment==="indoor"?" selected":""}>Nur Indoor</option><option value="outdoor"${p.environment==="outdoor"?" selected":""}>Bevorzugt Outdoor</option></select>
+ <select id="coachEnv" class="coach-field"><option value="mixed"${p.environment==="mixed"?" selected":""}>Mischung</option><option value="indoor"${p.environment==="indoor"?" selected":""}>Nur Indoor (Rad indoor + Kraft/BetterMe)</option><option value="outdoor"${p.environment==="outdoor"?" selected":""}>Bevorzugt Outdoor</option></select>
  ${lab('<label for="coachFocus">Schwerpunkt</label>')}
  <select id="coachFocus" class="coach-field">${focusOpts}</select>
  ${refine?`${lab('Bisherige Wünsche')}<div class="eq-small coach-quote">${esc(initial||"(keine)")}</div>
@@ -189,7 +190,7 @@ function coachPlanChanged(){
  if(last){
   const next=coachIso(new Date(last+"T12:00:00").getTime()+864e5);
   hint.textContent="Der gewählte Plan hat Einheiten bis "+last+". Empfohlener Beginn: "+next+".";
-  if(!start.dataset.touched&&next>start.min)start.value=next;
+  if(!start.dataset.touched&&next>=start.min)start.value=next;
  }else hint.textContent="";
  start.addEventListener("input",()=>{start.dataset.touched="1"},{once:true});
 }
@@ -198,6 +199,7 @@ function coachReadDialog(){
  const mode=g("coachMode").value==="new"?"new":"continue";
  const days=[...document.querySelectorAll('#coachRequestDialog input[name="coachDay"]:checked')].map(x=>Number(x.value));
  const params={mode,weeks:Number(g("coachWeeks").value)||4,trainingDays:days,environment:g("coachEnv").value||"mixed"};
+ const pl=coachPlatforms();if(pl.length)params.platforms=pl;
  const start=g("coachStart").value; if(/^\d{4}-\d{2}-\d{2}$/.test(start))params.startDate=start;
  const mm=parseInt(g("coachMaxMin").value,10); if(Number.isFinite(mm)&&mm>=15)params.maxMinutes=Math.min(600,mm);
  const focus=g("coachFocus").value; if(focus)params.focus=focus;
@@ -301,6 +303,31 @@ async function exportFTPTest(){
   if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:"FTP Test 20 min"});return}catch(e){if(e.name==="AbortError")return}}
   const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();a.remove();
 }
+function coachFtpTestsHtml(){
+ const t=coachState.tests||[]; if(!t.length)return "";
+ return `<div class="eq-small" style="margin-top:8px">Erkannte Testeinheiten:</div>`+t.map((a,i)=>{const icu=a.raw_summary?.icu_ftp;return `<div class="coach-row"><span>${esc((a.activity_date||"").slice(0,10))} · ${esc(a.name||"Test")}<br><small>${a.average_watts?Math.round(a.average_watts)+" W Ø":""}${icu?` · Intervals.icu-FTP: ${esc(String(icu))} W`:""}</small></span><button class="pill" onclick="useFtpTest(${i})">Als FTP übernehmen</button></div>`}).join("");
+}
+async function useFtpTest(i){
+ const a=(coachState.tests||[])[i]; if(!a)return;
+ const icu=a.raw_summary?.icu_ftp;
+ const val=prompt("FTP-Wert aus dem Test \""+(a.name||"")+"\" (Rampentest: ca. 75 % der besten Minute, siehe MyWhoosh-Ergebnis):",icu||"");
+ if(val===null)return;
+ await saveFtpValue(val,"Test "+(a.activity_date||"").slice(0,10)+" · "+(a.name||""),(a.activity_date||"").slice(0,10),"ramp");
+}
+async function editFTP(){
+ const val=prompt("FTP in Watt eintragen oder ändern:",coachState.profile?.ftp_watts||"");
+ if(val===null)return;
+ await saveFtpValue(val,"manuell",localTodayISO(),"manual");
+}
+async function saveFtpValue(val,src,date,protocol){
+ const ftp=Math.round(Number(String(val).replace(",",".")));
+ if(!Number.isFinite(ftp)||ftp<50||ftp>600){alert("Bitte einen plausiblen FTP-Wert in Watt eingeben.");return}
+ const user=await coachUser(); if(!user)return;
+ const {error}=await sb.from("ftp_tests").insert({user_id:user.id,test_date:date,protocol,result_ftp_watts:ftp,source:src,metrics:{}});
+ if(error){alert("FTP konnte nicht gespeichert werden:\n"+error.message);return}
+ await upsertCoachProfile({ftp_watts:ftp,ftp_date:date,ftp_source:src});
+ alert(`FTP gespeichert: ${ftp} W. Der Coach nutzt diesen Wert ab sofort.`);
+}
 async function saveFTPResult(){
   const val=prompt("Ermittelten FTP-Wert in Watt eingeben:","");
   if(val===null)return;
@@ -371,15 +398,44 @@ function exportCoachPackage(id){
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function coachClosePackagePreview(){document.getElementById("coachPackagePreview")?.remove()}
+
+const COACH_PLATFORMS=[["MyWhoosh","MyWhoosh","Workout-Datei (.zwo) in MyWhoosh importieren: Trainings → Eigene Workouts → Import. Die App-Menüs ändern sich, bitte dort nachsehen."],["QZ","QZ (qdomyos-zwift)","In QZ: Trainingsprogramme → .zwo-Datei auswählen."],["Zwift","Zwift","Datei in Dokumente/Zwift/Workouts/<ID> kopieren; danach in Zwift unter Eigene Workouts."],["Intervals.icu","Intervals.icu","In Intervals.icu per Kalender → Workout hochladen (.zwo)."]];
+function coachPlatforms(){const p=coachState.profile?.preferences?.platforms;return Array.isArray(p?.list)?p.list:[]}
+async function coachSavePlatforms(){
+ const list=[...document.querySelectorAll('input[name="coachPlat"]:checked')].map(x=>x.value);
+ const primary=document.querySelector('input[name="coachPlatPrimary"]:checked')?.value||list[0]||"";
+ await upsertCoachProfile({preferences:{...(coachState.profile?.preferences||{}),platforms:{list,primary:list.includes(primary)?primary:list[0]||""}}});
+}
+function coachPlatformsHtml(){
+ const cur=coachPlatforms(),primary=coachState.profile?.preferences?.platforms?.primary||"";
+ return `<div class="coach-settings-card"><strong>Plattformen</strong><div class="eq-small">Auf welchen Plattformen fährst du Workouts? Der Coach plant dafür fahrbare Einheiten (Datei .zwo).</div>`+COACH_PLATFORMS.map(([k,l])=>`<label class="coach-day" style="display:flex;gap:8px;margin:6px 0"><input type="checkbox" name="coachPlat" value="${k}"${cur.includes(k)?" checked":""} onchange="coachSavePlatforms()"> ${l} <span style="margin-left:auto"><input type="radio" name="coachPlatPrimary" value="${k}"${primary===k?" checked":""} onchange="coachSavePlatforms()" title="Hauptplattform"> Haupt</span></label>`).join("")+`<div class="eq-small">Eine direkte Anbindung gibt es bei MyWhoosh, QZ und Zwift nicht (keine offene Schnittstelle). Deshalb: Export als .zwo und Import dort. Intervals.icu ist bereits angebunden.</div></div>`;
+}
+function coachIsoWeek(d){const x=new Date(d+"T12:00:00Z");const day=(x.getUTCDay()+6)%7;x.setUTCDate(x.getUTCDate()-day+3);const y=x.getUTCFullYear();const j=new Date(Date.UTC(y,0,4,12));const wk=1+Math.round(((x-j)/864e5-3+((j.getUTCDay()+6)%7))/7);return {wk,y}}
+function coachWeekRange(d){const x=new Date(d+"T12:00:00Z");const day=(x.getUTCDay()+6)%7;const a=new Date(x-day*864e5),b=new Date(+a+6*864e5);const f=z=>String(z.getUTCDate()).padStart(2,"0")+"."+String(z.getUTCMonth()+1).padStart(2,"0")+".";return f(a)+"–"+f(b)}
+function coachSessionFile(s){const w=normalizeStructuredWorkout(s.workout);const name=((s.date||"")+"_"+(s.title||"Workout")).replace(/[^\p{L}\p{N}_-]+/gu,"_")+".zwo";return new File([new Blob([zwoFromStructured(s.title||"Workout",w)],{type:"application/xml"})],name,{type:"application/xml"})}
+async function coachDeliverFiles(files,title){
+ if(!files.length){alert("Keine exportierbaren Workouts (Indoor-Einheiten mit Struktur) vorhanden.");return}
+ if(navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files,title});return}catch(e){if(e.name==="AbortError")return}}
+ for(const f of files){const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();await new Promise(r=>setTimeout(r,350))}
+}
+function coachPkgSessions(id){const item=coachState.packages.find(x=>x.id===id);return (item?.package?.blocks||[]).flatMap(b=>b.sessions||[]).filter(s=>s.workout&&(s.workout.steps||[]).length).sort((a,b)=>String(a.date).localeCompare(String(b.date)))}
+function coachExportOne(id,i){const s=coachPkgSessions(id)[i];if(s)coachDeliverFiles([coachSessionFile(s)],s.title)}
+function coachExportAll(id){coachDeliverFiles(coachPkgSessions(id).map(coachSessionFile),"Coach-Workouts")}
+function coachExportHelp(){const pl=coachPlatforms();const list=COACH_PLATFORMS.filter(([k])=>!pl.length||pl.includes(k));return list.map(([k,l,h])=>`<div class="eq-small"><b>${esc(l)}:</b> ${esc(h)}</div>`).join("")}
 function coachPackagePreview(id){
  const item=coachState.packages.find(x=>x.id===id);if(!item?.package)return;
  coachClosePackagePreview();
  const pkg=item.package,fmtDay=d=>{const x=new Date(d+"T12:00:00");return isNaN(x)?d:x.toLocaleDateString("de-AT",{weekday:"short",day:"2-digit",month:"2-digit"})};
  const minutes=s=>{const sec=(s.workout?.steps||[]).reduce((n,x)=>n+(Number(x.durationSec)||0)*(Number(x.repeat)||1),0);return sec?Math.round(sec/60)+" min":""};
  let count=0;
- const blocks=(pkg.blocks||[]).map(b=>{
-  const rows=(b.sessions||[]).slice().sort((x,y)=>String(x.date).localeCompare(String(y.date))).map(s=>{count++;return `<div class="coach-item"><span class="coach-item-date">${esc(fmtDay(s.date))}</span><span style="flex:1"><strong>${esc(s.title||"")}</strong><br><small>${esc(s.type||"")}${minutes(s)?" · "+minutes(s):""}${s.description?" · "+esc(String(s.description).slice(0,140)):""}</small></span></div>`}).join("");
-  return `<div style="margin:12px 0 4px"><strong>${esc(b.title||"Block")}</strong> <small>${esc(b.startDate||"")} – ${esc(b.endDate||"")}</small></div>${rows}`;
+ const all=[];for(const b of pkg.blocks||[])for(const s of b.sessions||[])all.push({...s,_block:b.title||""});
+ all.sort((x,y)=>String(x.date).localeCompare(String(y.date)));
+ const wl=coachPkgSessions(id);
+ const weeks=new Map();for(const s of all){const k=coachIsoWeek(s.date);const key=k.y+"-"+k.wk;if(!weeks.has(key))weeks.set(key,{k,date:s.date,items:[]});weeks.get(key).items.push(s)}
+ const blocks=[...weeks.values()].map(w=>{
+  const tot=w.items.reduce((n,s)=>n+Math.round((s.workout?.steps||[]).reduce((m,x)=>m+(Number(x.durationSec)||0)*(Number(x.repeat)||1),0)/60),0);
+  const rows=w.items.map(s=>{count++;const xi=wl.findIndex(x=>x.date===s.date&&x.title===s.title);const exp=xi>=0?`<button type="button" class="pill" onclick="coachExportOne('${esc(id)}',${xi})">⇩ .zwo</button>`:"";return `<div class="coach-item"><span class="coach-item-date">${esc(fmtDay(s.date))}</span><span style="flex:1"><strong>${esc(s.title||"")}</strong><br><small>${esc(s.type||"")}${minutes(s)?" · "+minutes(s):""}${s._block?" · "+esc(s._block):""}</small>${s.description?`<details><summary class="eq-small">Details</summary><small>${esc(String(s.description))}</small></details>`:""}</span>${exp}</div>`}).join("");
+  return `<div style="margin:14px 0 4px"><strong>KW ${w.k.wk}</strong> <small>${esc(coachWeekRange(w.date))}${tot?" · "+Math.floor(tot/60)+" h "+String(tot%60).padStart(2,"0")+" min Radtraining":""}</small></div>${rows}`;
  }).join("");
  const overlay=document.createElement("div");overlay.id="coachPackagePreview";
  overlay.className="coach-overlay top";
@@ -388,9 +444,10 @@ function coachPackagePreview(id){
   <div class="eq-small">${(pkg.blocks||[]).length} Block/Blöcke · ${count} Einheiten${item.applied_at?" · bereits übernommen":""}</div>
   ${pkg.coachNote?`<p class="coach-note">${esc(pkg.coachNote)}</p>`:""}
   ${blocks}
+  ${coachPkgSessions(id).length?`<div style="margin-top:14px"><button type="button" class="pill" onclick="coachExportAll('${esc(id)}')">⇩ Alle Workouts als .zwo</button>${coachExportHelp()}</div>`:""}
   <div style="display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end;margin-top:16px">
    <button type="button" class="pill" onclick="coachClosePackagePreview()">Später entscheiden</button>
-   ${item.applied_at?"":`<button type="button" class="pill" onclick="coachDiscardPackage('${esc(id)}')">Verwerfen</button><button type="button" class="pill" onclick="coachRefinePackage('${esc(id)}')">Wünsche ergänzen &amp; neu erstellen</button><button type="button" class="pill primary" onclick="coachClosePackagePreview();applyCoachPackage('${esc(id)}')">Übernehmen</button>`}
+   ${item.applied_at?"":`<button type="button" class="pill" onclick="coachDiscardPackage('${esc(id)}')">Verwerfen</button><button type="button" class="pill" onclick="coachRefinePackage('${esc(id)}')">Überarbeiten (Wünsche ergänzen)</button><button type="button" class="pill primary" onclick="coachClosePackagePreview();applyCoachPackage('${esc(id)}')">Übernehmen</button>`}
   </div></section>`;
  document.body.appendChild(overlay);
 }
@@ -423,8 +480,10 @@ function renderCoachSettingsPanel(){
     <strong>Leistungsbasis</strong>
     <div class="coach-value">${profile?.ftp_watts?`${profile.ftp_watts} W FTP`:"Noch kein FTP gespeichert"}</div>
     <div class="eq-small">${profile?.ftp_date||""}${profile?.ftp_source?` · ${profile.ftp_source}`:""}</div>
-    <div class="stack"><button class="pill" onclick="exportFTPTest()">⚡ FTP-Test exportieren</button><button class="pill" onclick="saveFTPResult()">✓ FTP-Ergebnis speichern</button></div>
+    ${coachFtpTestsHtml()}
+    <div class="stack"><button class="pill" onclick="editFTP()">✎ FTP manuell eintragen/ändern</button><button class="pill" onclick="exportFTPTest()">⚡ FTP-Test exportieren</button><button class="pill" onclick="saveFTPResult()">✓ FTP-Ergebnis speichern</button></div>
    </div>
+   ${coachPlatformsHtml()}
    <div class="coach-settings-card">
     <strong>Trainingsplanung</strong>
     <div class="coach-value">${coachCurrentBlock()?.title||"Kein Block ausgewählt"}</div>
