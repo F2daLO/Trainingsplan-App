@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Training v6.51</title>
+<title>Training v6.52</title>
 <style>
 :root{
   color-scheme:light dark;
@@ -3025,7 +3025,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 
 </style>
 <style>
-/* v6.51: info/detail sheets must stay above the bottom navigation/handlebar */
+/* v6.52: info/detail sheets must stay above the bottom navigation/handlebar */
 .info-sheet-backdrop{z-index:1290!important}
 .info-sheet{z-index:1300!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
 @media(min-width:768px){.info-sheet{padding-bottom:24px!important}}
@@ -3033,7 +3033,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .actual-detail-grid>div{padding:10px;border-radius:12px;background:rgba(127,127,127,.09)}
 .actual-detail-grid small{display:block;color:var(--muted);font-size:11px}.actual-detail-grid strong{display:block;margin-top:2px}
 </style><style>
-/* v6.51 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
+/* v6.52 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
 :root{--app-bottom-clearance:calc(96px + env(safe-area-inset-bottom))}
 .quick-menu-backdrop,.info-sheet-backdrop{z-index:1990!important}
 .quick-menu,.info-sheet{z-index:2000!important;box-sizing:border-box!important}
@@ -3058,7 +3058,7 @@ body:has(#navSettings.active) .settings-section.open .settings-section-body{
 .trend-stat-explain{font-size:9px;color:var(--muted);line-height:1.35;margin-top:5px}
 </style>
 <style id="v645-theme">
-/* ===== v6.51 COMPLETE APPEARANCE SYSTEM ===== */
+/* ===== v6.52 COMPLETE APPEARANCE SYSTEM ===== */
 :root{
  --theme-bg:#ffffff;--theme-bg2:#f1f2f5;--theme-text:#1c1c1e;--theme-muted:#6e6e73;
  --theme-panel:rgba(255,255,255,.76);--theme-panel-strong:rgba(255,255,255,.92);
@@ -3374,7 +3374,7 @@ function render(){
  else { screen="overview"; renderOverview(); }
  updateCloud();
 }
-function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.51</div></div></div>`}
+function head(title){return `<div class="page-head"><div class="page-title">${esc(title)}</div><div class="cloud-wrap"><div id="cloudStatus" class="cloud">☁️ Cloud wird geprüft …</div><div class="app-version">v6.52</div></div></div>`}
 
 function renderOverview(){
  const cards=db.events.map(e=>{
@@ -6083,7 +6083,7 @@ function coachSnapshot(extra={}){
   const completed=sessions.filter(s=>["done","completed"].includes(s.status)).length;
   const cancelled=sessions.filter(s=>["cancel","cancelled","failed"].includes(s.status)).length;
   return {
-    appVersion:"6.51",
+    appVersion:"6.52",
     plan:{id:plan?.id||null,title:plan?.title||plan?.name||""},
     block:{id:block?.id||null,title:block?.title||""},
     ftp:coachState.profile?.ftp_watts||null,
@@ -6113,32 +6113,68 @@ async function createCoachRequest(type,requirements=""){
   if(type==="continue_plan"){
     try{
       const {data:fn,error:fe}=await sb.functions.invoke("training-coach",{body:{requestId:data.id}});
-      if(fe)throw fe;
+      if(fe)throw new Error(await coachFunctionError(fe));
       if(fn?.error)throw new Error(fn.error);
       await loadCoachState();
       if(fn?.packageId)coachPackagePreview(fn.packageId);
     }catch(e){
       console.error("TRAINING_COACH_INVOKE",e);
-      await sb.from("coach_requests").update({status:"failed",updated_at:new Date().toISOString()}).eq("id",data.id);
+      await sb.from("coach_requests").update({status:"failed",error_message:String(e?.message||e).slice(0,1500),updated_at:new Date().toISOString()}).eq("id",data.id);
       await loadCoachState();
       alert("Die Anforderung wurde gespeichert, die Planerstellung ist fehlgeschlagen.\n"+(e?.message||e));
     }
   }
   return data;
 }
-async function requestPlanContinuation(){
-  const plan=coachCurrentPlan(),block=coachCurrentBlock();
-  const req=prompt(
-    `Fortsetzung für ${block?.title||"aktuellen Block"}\n\nZusätzliche Voraussetzungen/Wünsche:`,
-    ""
-  );
-  if(req===null)return;
-  const row=await createCoachRequest("continue_plan",req.trim());
-  if(row){
-    const fresh=coachState.requests.find(x=>x.id===row.id);
-    if(fresh?.status==="ready") alert("Der neue Trainingsblock wurde automatisch erstellt und steht unter „Bereit zur Übernahme“.");
-    else if(fresh?.status!=="failed") alert("Coach-Anfrage wurde erstellt. Der neue Trainingsblock wird automatisch erzeugt.");
-  }
+function coachCloseRequestDialog(){document.getElementById("coachRequestDialog")?.remove()}
+function coachOpenRequestDialog(initial=""){
+ coachCloseRequestDialog();
+ const plan=coachCurrentPlan(),block=coachCurrentBlock();
+ const overlay=document.createElement("div");overlay.id="coachRequestDialog";
+ overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;display:flex;align-items:center;justify-content:center;padding:14px";
+ overlay.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="coachDialogTitle" style="width:min(620px,100%);max-height:92dvh;overflow:auto;background:var(--card,#20252b);color:var(--text,#fff);border:1px solid #7c8590;border-radius:16px;padding:18px;box-shadow:0 12px 45px #0008">
+ <h3 id="coachDialogTitle">Trainingsplan fortsetzen</h3>
+ <p class="eq-small">${esc(plan?.title||plan?.name||"Aktueller Plan")} · ${esc(block?.title||"Nächster Block")}</p>
+ <label for="coachWishes"><strong>Deine Wünsche und Vorgaben</strong></label>
+ <textarea id="coachWishes" rows="9" style="box-sizing:border-box;width:100%;min-height:200px;max-height:48dvh;overflow-y:auto;resize:vertical;border-radius:10px;padding:12px;font:inherit;line-height:1.5;background:var(--bg,#12171c);color:var(--text,#fff);border:1px solid #8c939b" placeholder="Zum Beispiel: verfügbare Trainingstage, maximale Dauer, Indoor/Outdoor, Urlaubszeiten, gewünschte Schwerpunkte, Wettkampfziel …">${esc(initial)}</textarea>
+ <div class="eq-small" style="margin:8px 0 14px">Die Wünsche werden mit den gespeicherten Plan-, FTP- und Aktivitätsdaten an den Trainingscoach übermittelt. Eine bestehende Anforderung bleibt im Verlauf abrufbar.</div>
+ <div style="display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end"><button type="button" class="pill" onclick="coachCloseRequestDialog()">Abbrechen</button><button type="button" class="pill primary" id="coachSubmitWishes" onclick="coachSubmitRequestDialog()">Plan erstellen</button></div>
+ <div id="coachRequestFeedback" role="status" aria-live="polite" style="margin-top:12px"></div></section>`;
+ document.body.appendChild(overlay);
+ overlay.querySelector('textarea').focus();
+}
+async function coachSubmitRequestDialog(){
+ const input=document.getElementById("coachWishes"),button=document.getElementById("coachSubmitWishes"),feedback=document.getElementById("coachRequestFeedback");
+ if(!input||!button)return;
+ const wishes=input.value.trim();button.disabled=true;button.textContent="Anforderung wird verarbeitet …";
+ feedback.textContent="Die Wünsche werden gespeichert und die Planerstellung gestartet. Bitte dieses Fenster geöffnet lassen.";
+ try{
+  const row=await createCoachRequest("continue_plan",wishes);
+  if(!row)throw new Error("Die Anforderung konnte nicht gespeichert werden.");
+  const fresh=coachState.requests.find(x=>x.id===row.id);
+  if(fresh?.status==="ready"){coachCloseRequestDialog();return}
+  if(fresh?.status==="failed"){
+   feedback.textContent="Die Wünsche wurden gespeichert, aber die Erstellung ist fehlgeschlagen. Du findest die Anforderung unten im Verlauf und kannst sie erneut starten.";
+  }else{coachCloseRequestDialog()}
+ }catch(e){feedback.textContent="Fehler: "+(e?.message||e)}
+ finally{button.disabled=false;button.textContent="Plan erstellen"}
+}
+function requestPlanContinuation(){coachOpenRequestDialog()}
+async function coachRetryRequest(id){
+ const r=coachState.requests.find(x=>x.id===id);if(!r)return alert("Anforderung nicht gefunden.");
+ coachOpenRequestDialog(r.requirements||"");
+}
+function coachShowRequest(id){
+ const r=coachState.requests.find(x=>x.id===id);if(!r)return;
+ const when=new Date(r.created_at).toLocaleString("de-AT");
+ const details=`Anforderung vom ${when}\nStatus: ${coachStatusText(r)}\n\nWünsche:\n${r.requirements||"(Keine zusätzlichen Wünsche)"}\n\n${r.error_message?"Fehler: "+r.error_message:""}`;
+ alert(details);
+}
+async function coachFunctionError(error){
+ let message=error?.message||String(error);
+ try{if(error?.context?.json){const body=await error.context.json();message=body?.error||body?.message||message}
+ else if(error?.context?.text){const body=await error.context.text();try{const obj=JSON.parse(body);message=obj.error||obj.message||message}catch{message=body||message}}}catch(_){}
+ return message;
 }
 function ftpTestWorkout(){
  return {version:1,sport:"bike",mode:"erg",steps:[
@@ -6269,7 +6305,7 @@ function renderCoachSettingsPanel(){
   </div>
   ${coachState.packages.some(x=>x.applied_at)?`<div class="coach-settings-card coach-section"><strong>Übernommene Coach-Pläne</strong>${coachState.packages.filter(x=>x.applied_at).map(x=>`<div class="coach-row"><span>${x.package?.plan?.title||"Planfortsetzung"}</span><button class="pill" onclick="undoCoachPackage('${x.id}')">Übernahme zurücknehmen</button></div>`).join("")}</div>`:""}
   ${ready.length?`<div class="coach-settings-card coach-section"><strong>Bereit zur Übernahme</strong>${ready.map(x=>`<div class="coach-row"><span>${x.package?.blocks?.[0]?.title||"Neuer Trainingsblock"}</span><button class="pill primary" onclick="coachPackagePreview('${x.id}')">Vorschau / Übernehmen</button><button class="pill" onclick="exportCoachPackage('${x.id}')">JSON herunterladen</button></div>`).join("")}</div>`:""}
-  <div class="coach-settings-card coach-section"><strong>Letzte Coach-Anfragen</strong>${reqs.length?reqs.map(r=>`<div class="coach-row"><span>${r.request_type==="continue_plan"?"Plan fortsetzen":r.request_type} · ${coachStatusText(r)}</span><span class="eq-small">${new Date(r.created_at).toLocaleDateString("de-AT")}</span></div>`).join(""):'<div class="eq-small" style="margin-top:8px">Noch keine Coach-Anfrage.</div>'}</div>`;
+  <div class="coach-settings-card coach-section"><strong>Letzte Coach-Anfragen</strong>${reqs.length?reqs.map(r=>`<div class="coach-row"><span>${r.request_type==="continue_plan"?"Plan fortsetzen":r.request_type} · ${coachStatusText(r)}<br><small>${esc((r.requirements||"Keine zusätzlichen Wünsche").slice(0,100))}</small></span><span class="eq-small">${new Date(r.created_at).toLocaleDateString("de-AT")}<br><button class="pill" onclick="coachShowRequest('${r.id}')">Details</button> ${r.status==="failed"?`<button class="pill" onclick="coachRetryRequest('${r.id}')">Erneut versuchen</button>`:""}</span></div>`).join(""):'<div class="eq-small" style="margin-top:8px">Noch keine Coach-Anfrage.</div>'}</div>`;
 }
 function renderCoachPanel(){ renderCoachSettingsPanel(); }
 
