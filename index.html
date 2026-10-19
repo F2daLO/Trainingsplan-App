@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://vhbhocfjzrgdcekjuime.supabase.co wss://vhbhocfjzrgdcekjuime.supabase.co; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Mein Training – Trainingsplan und Coach">
+<title>Training v6.54</title>
+<link rel="stylesheet" href="css/app.css?v=6.54">
+
+
+</head>
+
+<script src="js/00-theme.js?v=6.54"></script>
+<body>
+<div class="shell"><main id="main"></main></div>
+
+<nav class="nav">
+<button id="navOverview" class="active" onclick="go('overview')"><span>⌂</span>Übersicht</button>
+<button id="navPlan" onclick="go('plan')"><span>▤</span>Plan</button>
+<button id="navAnalytics" onclick="go('analytics')"><span>◫</span>Auswertung</button>
+<button onclick="openSession()"><span>＋</span>Training</button>
+<button id="navSettings" onclick="go('settings')"><span>⚙︎</span>Einstellungen</button>
+</nav>
+
+<dialog id="planFilterDialog" tabindex="-1"><form class="modal glass plan-filter-modal" onsubmit="applyPlanFilter(event)"><h2>Plan filtern</h2><div class="grid"><label>Kalenderwoche<select id="pfWeek"></select></label><label>Equipment / Trainingsart<select id="pfEquipment"></select></label><label>Wochentag<select id="pfWeekday"><option value="all">Alle Wochentage</option><option>Montag</option><option>Dienstag</option><option>Mittwoch</option><option>Donnerstag</option><option>Freitag</option><option>Samstag</option><option>Sonntag</option></select></label><label>Status<select id="pfStatus"><option value="all">Alle Status</option><option value="open">Nur offen</option><option value="overdue">Nur überfällig offen</option><option value="done">Nur erledigt</option><option value="moved">Nur verschoben</option><option value="cancel">Nur ausgefallen</option><option value="topup">Nur On Top</option></select></label></div><div class="modal-actions"><button type="button" class="pill" onclick="resetPlanFilter()">Zurücksetzen</button><button type="button" class="pill" onclick="planFilterDialog.close()">Abbrechen</button><button class="pill primary">Anwenden</button></div></form></dialog>
+<dialog id="sessionDialog"><form class="modal glass" onsubmit="saveSession(event)">
+<h2 id="sessionHeading" tabindex="-1">Training</h2><p class="helper">Datum und Uhrzeit werden für neue Einheiten automatisch auf jetzt gesetzt.</p>
+<div class="grid">
+<label>Datum & Uhrzeit<input id="sDateTime" type="datetime-local"></label>
+<label>Trainingsart<select id="sType"><option>Indoor Rad</option><option>Outdoor Rad</option><option>Kraft / BetterMe</option><option>Regeneration</option><option>Laufen</option><option>Schwimmen</option><option>Ski</option><option>Skitour</option><option>Mobilität</option><option>Sonstiges</option></select></label>
+<label class="full">Titel<input id="sTitle"></label>
+<div id="assignedEquipmentHint" class="eq-small"></div><label class="full">Planbeschreibung
+      <textarea id="sDesc" rows="2" readonly aria-readonly="true"></textarea>
+    </label>
+    <label class="full">Eigene Beschreibung / Notiz
+      <textarea id="sNote" rows="2" placeholder="Eigene Ergänzung zur Einheit …"></textarea>
+    </label>
+<label>Status<select id="sStatus"><option value="open">Offen</option><option value="done">Durchgeführt</option><option value="cancel">Ausgefallen</option><option value="move">Verschoben</option></select></label>
+<input id="sReminder" type="hidden" value="auto">
+<input id="sReminderTime" type="hidden" value="18:00">
+<label class="full inline"><input id="sTopup" type="checkbox"> ⭐ On-Top-Zusatztraining</label>
+
+</div><div class="buttons"><button type="button" onclick="sessionDialog.close()">Abbrechen</button><button class="primary">Speichern</button></div>
+</form></dialog>
+
+<dialog id="loginDialog"><form class="modal glass" onsubmit="login(event)">
+<h2>Cloud anmelden</h2><p class="helper">E-Mail + Passwort. Die Session bleibt auf Wunsch auf diesem Gerät gespeichert.</p>
+<div class="grid">
+<label class="full">E-Mail<input id="loginEmail" type="email" autocomplete="email"></label>
+<label class="full">Passwort<input id="loginPassword" type="password" autocomplete="current-password"></label>
+<label class="full inline"><input id="rememberLogin" type="checkbox" checked> Angemeldet bleiben</label>
+</div><div id="loginStatus" class="helper"></div>
+<div class="buttons"><button type="button" onclick="passwordReset()">Passwort vergessen</button><button type="button" onclick="signup()">Konto erstellen</button><button type="button" onclick="loginDialog.close()">Abbrechen</button><button class="primary">Anmelden</button></div>
+</form></dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+<script src="js/01-storage.js?v=6.54"></script>
+<script src="js/02-sync-core.js?v=6.54"></script>
+<script src="js/05-demo-data.js?v=6.54"></script>
+<script src="js/10-core.js?v=6.54"></script>
+<script src="js/20-overview-plan.js?v=6.54"></script>
+<script src="js/30-settings.js?v=6.54"></script>
+<script src="js/40-cloud-sync.js?v=6.54"></script>
+<script src="js/50-session-ui.js?v=6.54"></script>
+<script src="js/60-backup-push.js?v=6.54"></script>
+<script src="js/70-equipment.js?v=6.54"></script>
+<script src="js/80-realtime-gpt.js?v=6.54"></script>
+<script src="js/90-workout-package.js?v=6.54"></script>
+<script src="js/95-coach.js?v=6.54"></script>
+<script src="js/97-activities.js?v=6.54"></script>
+
+<dialog id="passwordDialog">
+  <form class="modal glass" onsubmit="saveNewPassword(event)">
+    <h2>Neues Passwort festlegen</h2>
+    <p class="helper">Du bist über den Recovery-Link angemeldet. Lege jetzt dein neues Passwort fest.</p>
+    <div class="grid">
+      <label class="full">Neues Passwort<input id="newPassword" type="password" minlength="8" autocomplete="new-password"></label>
+      <label class="full">Passwort wiederholen<input id="newPassword2" type="password" minlength="8" autocomplete="new-password"></label>
+    </div>
+    <div id="passwordStatus" class="helper"></div>
+    <div class="buttons"><button type="button" onclick="passwordDialog.close()">Abbrechen</button><button class="primary">Passwort speichern</button></div>
+  </form>
+</dialog>
+
+<input id="importPlanFile" type="file" accept=".json,.csv,text/csv,application/json" hidden onchange="importPlanFileSelected(event)">
+
+<dialog id="eventDialog">
+  <form class="modal glass" onsubmit="saveNewEvent(event)">
+    <h2>Neues Event</h2>
+    <p class="helper">Ein Event enthält einen oder mehrere Trainingsblöcke.</p>
+    <div class="grid">
+      <label>Sportart
+        <select id="newEventSport">
+          <option value="cycling">🚴 Rad</option>
+          <option value="triathlon">🏊🚴🏃 Triathlon</option>
+          <option value="running">🏃 Laufen</option>
+          <option value="swimming">🏊 Schwimmen</option>
+          <option value="ski">⛷️ Ski</option><option value="skitour">🎿 Skitour</option>
+          <option value="general">🏋️ Sonstiges</option>
+        </select>
+      </label>
+      <label class="full">Eventname
+        <input id="newEventName" placeholder="z. B. Mondsee Radmarathon 2028">
+      </label>
+      <label class="full">Route / grobe Details
+        <input id="newEventDetails" placeholder="z. B. Route Typ C · 75 km">
+      </label>
+      <label>Erster Block
+        <input id="newEventBlockName" value="Block 1">
+      </label>
+      <label>Schwerpunkt
+        <input id="newEventBlockFocus" value="Grundlagen">
+      </label>
+    </div>
+    <div class="buttons">
+      <button type="button" onclick="eventDialog.close()">Abbrechen</button>
+      <button class="primary">Event anlegen</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="blockDialog">
+  <form class="modal glass" onsubmit="saveNewBlock(event)">
+    <h2>Neuer Trainingsblock</h2>
+    <p class="helper" id="blockEventLabel"></p>
+    <div class="grid">
+      <label>Block
+        <input id="newBlockName" placeholder="Block 2">
+      </label>
+      <label>Schwerpunkt
+        <input id="newBlockFocus" placeholder="Aufbau">
+      </label>
+      <label class="full">Beschreibung
+        <textarea id="newBlockDescription" rows="2" placeholder="Optional"></textarea>
+      </label>
+    </div>
+    <div class="buttons">
+      <button type="button" onclick="blockDialog.close()">Abbrechen</button>
+      <button class="primary">Block anlegen</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="backupDialog">
+  <div class="modal glass">
+    <h2>Backups</h2>
+    <p class="helper">Lokale Snapshots auf diesem Gerät. Cloud-Snapshots werden zusätzlich gespeichert, sobald die Supabase-Backup-Tabelle eingerichtet ist.</p>
+    <div id="backupList"></div>
+    <div class="buttons"><button onclick="backupDialog.close()">Schließen</button></div>
+  </div>
+</dialog>
+
+
+
+<div id="equipmentModal" class="equipment-modal" aria-hidden="true">
+  <div class="equipment-sheet glass" role="dialog" aria-modal="true" aria-labelledby="equipmentModalHeading">
+    <div class="equipment-sheet-head">
+      <strong id="equipmentModalHeading" tabindex="-1">Equipment</strong>
+      <button type="button" class="iconbtn" onclick="closeEquipmentEditor()">✕</button>
+    </div>
+
+    <div class="equipment-sheet-body">
+      <input id="eqId" type="hidden">
+
+      <label>Bezeichnung <span class="required-mark">*</span>
+        <input id="eqName" placeholder="z. B. Cube Attain SLX" autocomplete="off">
+      </label>
+
+      <label>Trainingsart / Funktion <span class="required-mark">*</span>
+        <select id="eqType">
+          <option value="bike_indoor">🚲 Rad Indoor</option>
+          <option value="bike_outdoor">🚴 Rad Outdoor</option>
+          <option value="run">🏃 Laufen</option>
+          <option value="swim">🏊 Schwimmen</option>
+          <option value="strength">💪 Kraft / BetterMe</option>
+          <option value="ski">⛷️ Ski</option>
+          <option value="other">⚙️ Sonstiges</option>
+        </select>
+      </label>
+
+      <div class="eq-grid">
+        <label>Gültig ab <span class="required-mark">*</span>
+          <input id="eqFrom" type="date">
+        </label>
+        <label>Gültig bis <span class="eq-small">(optional)</span>
+          <input id="eqTo" type="date">
+        </label>
+      </div>
+
+      <label class="inline-check">
+        <input id="eqDefault" type="checkbox">
+        <span>Standard für diese Trainingsart</span>
+      </label>
+
+      <div class="eq-grid">
+        <label>Start-Kilometer <span class="eq-small">(optional)</span>
+          <input id="eqStartKm" type="number" min="0" step="0.1" inputmode="decimal">
+        </label>
+        <label>Aktueller Kilometerstand <span class="eq-small">(optional)</span>
+          <input id="eqCurrentKm" type="number" min="0" step="0.1" inputmode="decimal">
+        </label>
+      </div>
+
+      <div class="eq-grid">
+        <label>Wartung alle (km) <span class="eq-small">(optional)</span>
+          <input id="eqMaintInterval" type="number" min="0" step="1" inputmode="decimal">
+        </label>
+        <label>Letzte Wartung bei km <span class="eq-small">(optional)</span>
+          <input id="eqMaintLastKm" type="number" min="0" step="0.1" inputmode="decimal">
+        </label>
+      </div>
+
+      <label>Komponenten / Setup <span class="eq-small">(optional)</span>
+        <textarea id="eqComponents" rows="3" placeholder="z. B. Favero Assioma Duo, Continental GP5000, Shimano 105"></textarea>
+      </label>
+
+      <label>Details / Notiz <span class="eq-small">(optional)</span>
+        <textarea id="eqNote" rows="3" placeholder="z. B. Outdoor-Rad, Einsatz bis Saisonende"></textarea>
+      </label>
+
+      <div class="required-note">* Pflichtfeld</div>
+    </div>
+
+    <div class="equipment-sheet-foot">
+      <button type="button" class="pill" onclick="closeEquipmentEditor()">Abbrechen</button>
+      <button type="button" class="pill primary" onclick="saveEquipment()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="ptrIndicator" class="ptr-indicator glass">↻ Synchronisieren</div>
+
+<div id="gptExplainModal" class="gpt-explain-modal" aria-hidden="true">
+  <div class="gpt-explain-sheet glass">
+    <div class="gpt-explain-head">
+      <div class="gpt-explain-titlewrap">
+        <strong id="gptExplainTitle">Training erklären</strong>
+        <div class="eq-small">GPT-Analyse der aktuellen Einheit</div>
+      </div>
+      <div class="gpt-explain-actions">
+        <button id="gptWorkoutBtn" type="button" class="pill gpt-workout-btn" onclick="exportCurrentGPTWorkout()">⇩ Workout</button>
+        <button id="gptRegenerateBtn" type="button" class="pill" onclick="regenerateGPTExplanation()">Neu erstellen</button>
+        <button type="button" class="pill primary" onclick="closeGPTExplanation()">Schließen</button>
+      </div>
+    </div>
+    <div id="gptExplainBody" class="gpt-explain-body"></div>
+  </div>
+</div>
+<script src="js/98-actual-summary.js?v=6.54"></script><script src="js/98-late-patches.js?v=6.54"></script><script src="js/98-device-names-v646.js?v=6.54"></script><script src="js/98-device-names-v647.js?v=6.54"></script><script src="js/99-app-examples.js?v=6.54"></script><script src="js/99-a11y.js?v=6.54"></script></body></html>

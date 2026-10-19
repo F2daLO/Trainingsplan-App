@@ -1,0 +1,2450 @@
+/* ===== block-0 ===== */
+:root{--text:#1c1c1e;--muted:#76767d;--green:#34c759;--red:#ff453a;--yellow:#d6a200;--gold:#c99700;}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;min-height:100vh;overflow-x:hidden;}
+button,input,textarea,select{font:inherit} input,textarea,select{font-size:16px}
+button{cursor:pointer}
+main{max-width:1120px;margin:auto;padding:24px 16px 36px}
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:4px 0 18px}
+.page-title{font-size:32px;font-weight:760;letter-spacing:-.7px}.cloud{font-size:12px;color:var(--muted);text-align:right}
+.event-grid{display:grid;grid-template-columns:1fr;gap:14px}
+.event-card{border-radius:22px;padding:20px;min-height:128px;display:flex;flex-direction:column;justify-content:space-between}
+.event-card h2{line-height:1.2;}.event-card p{margin:0;color:var(--muted);font-size:13px}
+.event-card .foot{display:flex;justify-content:space-between;align-items:end;margin-top:20px}
+.event-card .blocks{font-size:12px;color:var(--muted)} .chev{font-size:24px}
+.plan-head{border-radius:22px;padding:18px;margin-bottom:14px}
+.plan-event{font-weight:720;font-size:18px;margin-bottom:10px}
+.plan-controls{display:flex;gap:10px;flex-wrap:wrap}
+select,input,textarea{border:1px solid var(--border);color:var(--text);border-radius:13px;padding:11px 12px;outline:0;}
+.segment{display:flex;gap:2px;border-radius:12px;background:rgba(118,118,128,.11);width:max-content;}
+.segment button{color:var(--muted);padding:8px 13px;border-radius:9px;}
+.segment button.active{color:var(--text);}
+.actions-top{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.pill{border:1px solid var(--border);color:var(--text);border-radius:14px;padding:10px 13px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);}.pill.gold{color:#715500;}
+.week-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.35px;margin:22px 4px 8px}
+.session{position:relative;padding:15px 15px 13px 19px;margin:8px 0;}
+.session:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#c7c7cc}
+.session.done:before{background:var(--green)}.session.cancel:before{background:var(--red)}.session.move:before{background:var(--yellow)}
+.session.topup{outline:1px solid rgba(201,151,0,.40);}
+.session.topup:before{background:var(--gold)}
+.badge{display:inline-block;font-size:10px;font-weight:750;border-radius:8px;padding:3px 7px;margin-bottom:7px;background:rgba(255,239,159,.55);color:#755700}
+.row{display:flex;justify-content:space-between;gap:10px}.stitle{font-weight:690}.sdate{font-size:12px;color:var(--muted);white-space:nowrap}
+.meta{font-size:13px;color:var(--muted);margin-top:5px;line-height:1.35}.note{margin-top:9px;padding:9px;border-radius:11px;background:rgba(255,255,255,.24);font-size:13px}
+.sactions{display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid rgba(127,127,127,.10);padding-top:10px;margin-top:11px}
+.sactions button{border:0;background:transparent;padding:2px;color:var(--muted);font-size:12px}.sactions .ok{color:var(--green)}.sactions .bad{color:var(--red)}.sactions .warn{color:#9a7200}
+.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));}.day{border-radius:15px;padding:8px;min-height:84px}
+.day.today{outline:2px solid rgba(100,100,105,.48)}.daynum{font-weight:700;}
+.dayitem{margin-top:5px;border-radius:7px;background:rgba(255,255,255,.30);overflow:hidden;}.dayitem.topup{background:rgba(255,239,159,.35)}
+.settings-card{border-radius:20px;padding:17px;margin:10px 0}.settings-card h3{margin:0 0 5px}.settings-card p{color:var(--muted);font-size:13px;line-height:1.45}
+.empty{text-align:center;color:var(--muted);padding:50px}
+.nav{bottom:calc(12px + env(safe-area-inset-bottom));pointer-events:none;}
+.nav button{pointer-events:auto;backdrop-filter:blur(30px) saturate(150%);-webkit-backdrop-filter:blur(30px) saturate(150%);}
+dialog{border:0;padding:0;background:transparent;width:min(94vw,620px);max-height:88dvh}
+dialog::backdrop{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+.modal{border-radius:24px;padding:20px;max-height:88dvh;overflow:auto}.modal h2{margin:0 0 8px}.helper{font-size:13px;color:var(--muted);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}label{font-size:12px;color:var(--muted);font-weight:650;display:flex;flex-direction:column;gap:6px}
+.inline{flex-direction:row;align-items:center;background:rgba(255,246,195,.30);padding:10px;border-radius:12px}.inline input{width:18px;height:18px}
+.buttons{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px}.buttons button{border:0;border-radius:12px;padding:10px 13px}.buttons .primary{background:#55575c;color:#fff}
+@media(min-width:768px) and (max-width:1199px){main{padding:28px 28px 40px}.event-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1200px){
+  .shell{padding:0 0 0 126px}.nav{left:18px;top:50%;bottom:auto;transform:translateY(-50%);flex-direction:column}.event-grid{grid-template-columns:repeat(2,1fr)} main{padding:34px 40px 48px}}
+@media(prefers-color-scheme:dark){
+  :root{--text:#f3f3f5;--muted:#aaaab0;--glass:rgba(42,43,47,.30);--glass2:rgba(48,49,53,.42);--border:rgba(255,255,255,.10);--shadow:0 18px 44px rgba(0,0,0,.28)}
+  select,input,textarea{background:rgba(56,57,61,.42)}.segment button.active,.nav button.active{background:rgba(78,79,84,.50)}
+  .nav button{background:rgba(32,33,36,.44)}.modal{background:rgba(30,31,34,.72)}}/* ===== V5.3 definitive UI overrides ===== */
+.event-card h2{font-size:23px!important;font-weight:800!important;letter-spacing:-.4px!important;margin:0 0 5px!important}
+.event-card .event-sub{display:block!important;font-size:13px!important;line-height:1.35!important;color:var(--muted)!important;margin-top:2px!important}
+.session{border-radius:24px!important;overflow:hidden!important}
+.session::before{width:10px!important;border-radius:24px 0 0 24px!important}
+.session.done{background:rgba(52,199,89,.075)!important}
+.session.cancel{background:rgba(255,69,58,.065)!important}
+.session.move{background:rgba(214,162,0,.070)!important}
+.session.topup{background:rgba(201,151,0,.070)!important}
+.calendar{grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:7px!important}
+.day{min-width:0!important;overflow:hidden!important}
+.dayitem{font-size:9px!important;line-height:1.18!important;padding:5px 4px!important;white-space:normal!important;word-break:normal!important;overflow-wrap:anywhere!important;hyphens:auto!important;min-width:0!important}
+.daynum{font-size:10px!important;line-height:1.1!important}
+.nav{align-items:center!important;}
+.nav button{height:64px!important;text-align:center!important;}
+.nav button span{margin:0!important;}
+@media(min-width:1200px){.nav button{width:98px!important;min-width:98px!important;height:72px!important;font-size:11px!important}}
+@media(prefers-color-scheme:dark){.session.done{background:rgba(52,199,89,.12)!important}.session.cancel{background:rgba(255,69,58,.10)!important}.session.move{background:rgba(214,162,0,.10)!important}.session.topup{background:rgba(201,151,0,.11)!important}}/* ===== V5.4 Status Reset + Responsive Details ===== */
+dialog#sessionDialog{max-height:min(92dvh,900px) !important;margin:auto !important;}
+#sessionDialog .modal{-webkit-overflow-scrolling:touch;}
+.session{touch-action:pan-y}
+.action-sheet{
+  position:fixed;z-index:120;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(92vw,420px);padding:10px;border-radius:22px
+}
+.action-sheet h3{margin:6px 8px 10px;font-size:15px}
+.action-sheet button{
+  width:100%;border:0;border-radius:14px;padding:13px;margin:4px 0;
+  background:rgba(255,255,255,.40);color:var(--text)
+}
+.action-sheet button.danger{color:var(--red)}
+.action-sheet button.neutral{color:var(--muted)}
+.action-sheet-backdrop{
+  position:fixed;z-index:119;inset:0;background:rgba(0,0,0,.15);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)
+}
+@media(max-width:767px){
+  dialog#sessionDialog{
+    width:calc(100vw - 12px) !important;
+    max-width:none !important;
+    max-height:calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important
+  }
+  #sessionDialog .modal{
+    max-height:calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    padding:16px !important;border-radius:24px !important
+  }
+  #sessionDialog .grid{grid-template-columns:1fr !important;gap:10px !important}}
+@media(min-width:768px) and (max-width:1199px){
+  dialog#sessionDialog{width:min(90vw,700px) !important}}/* ===== V5.5 Week status colors ===== */
+.dayitem.open{
+  background:rgba(160,160,165,.12) !important;
+  border:1px solid rgba(160,160,165,.14) !important;
+}
+.dayitem.done{
+  background:rgba(52,199,89,.14) !important;
+  border:1px solid rgba(52,199,89,.18) !important;
+}
+.dayitem.move{
+  background:rgba(214,162,0,.14) !important;
+  border:1px solid rgba(214,162,0,.18) !important;
+}
+.dayitem.cancel{
+  background:rgba(255,69,58,.13) !important;
+  border:1px solid rgba(255,69,58,.17) !important;
+}
+.dayitem.topup{
+  box-shadow:inset 0 0 0 1px rgba(201,151,0,.22);
+}
+.dayitem.done.topup{
+  background:
+    linear-gradient(180deg,rgba(255,239,159,.18),rgba(52,199,89,.12)) !important;
+}
+.dayitem.move.topup{
+  background:
+    linear-gradient(180deg,rgba(255,239,159,.20),rgba(214,162,0,.12)) !important;
+}
+.dayitem.cancel.topup{
+  background:
+    linear-gradient(180deg,rgba(255,239,159,.18),rgba(255,69,58,.11)) !important;
+}
+@media(prefers-color-scheme:dark){
+  .dayitem.open{background:rgba(160,160,165,.16) !important}
+  .dayitem.done{background:rgba(52,199,89,.20) !important}
+  .dayitem.move{background:rgba(214,162,0,.19) !important}
+  .dayitem.cancel{background:rgba(255,69,58,.18) !important}}/* ===== V5.6 Gesture-first interaction ===== */
+.session{
+  user-select:none;
+  -webkit-user-select:none;
+}
+.sdate{
+  cursor:pointer;
+  padding:4px 7px;
+  margin:-4px -7px -4px 0;
+  border-radius:9px;
+  transition:background .14s ease;
+}
+.sdate:active{
+  background:rgba(118,118,128,.10);
+}
+.detail-icon{
+  border:0 !important;
+  background:rgba(255,255,255,.24) !important;
+  border-radius:10px !important;
+  width:32px;height:30px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:15px !important;
+  color:var(--muted) !important;
+  padding:0 !important;
+}
+.gesture-hint{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:8px;
+  opacity:.72;
+}
+.quick-menu{
+  position:fixed;
+  z-index:130;
+  left:50%;
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(92vw,430px);
+  padding:10px;
+  border-radius:24px;
+}
+.quick-menu-title{
+  padding:7px 9px 10px;
+  font-size:13px;
+  font-weight:700;
+}
+.quick-menu button{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:13px 14px;
+  margin:4px 0;
+  text-align:left;
+  background:rgba(255,255,255,.34);
+  color:var(--text);
+}
+.quick-menu button.ok{color:var(--green)}
+.quick-menu button.warn{color:#9a7200}
+.quick-menu button.bad{color:var(--red)}
+.quick-menu button.neutral{color:var(--muted)}
+.quick-menu-backdrop{
+  position:fixed;z-index:129;inset:0;
+  background:rgba(0,0,0,.14);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.week-emoji{
+  display:inline-block;
+}
+.week-text{
+  display:inline;
+}
+@media(max-width:767px){
+  .week-text{display:none !important}
+  .dayitem{
+    text-align:center !important;
+    font-size:14px !important;
+    line-height:1.1 !important;
+    padding:6px 2px !important;
+    min-height:27px;
+  }
+  .week-emoji{
+    font-size:17px;
+    line-height:1;
+  }}/* ===== V5.7 Interaction cleanup ===== */
+.session,.dayitem{
+  -webkit-user-select:none!important;
+  user-select:none!important;
+  -webkit-touch-callout:none!important;
+}
+.note-icon{
+  border:0!important;
+  background:rgba(255,255,255,.22)!important;
+  color:var(--muted)!important;
+  border-radius:10px!important;
+  width:30px!important;
+  height:28px!important;
+  padding:0!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:14px!important;
+}
+.session .row{align-items:flex-start!important}
+.session .right-tools{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.quick-menu,.action-sheet{
+  -webkit-user-select:none!important;
+  user-select:none!important;
+  -webkit-touch-callout:none!important;
+}
+.info-sheet{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(92vw,440px);padding:14px;border-radius:24px;}
+.info-sheet h3{margin:4px 4px 10px;font-size:16px}
+.info-sheet .info-block{
+  padding:11px;border-radius:14px;background:rgba(255,255,255,.24);
+  margin:8px 0;white-space:pre-wrap;line-height:1.4;font-size:13px
+}
+.info-sheet-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}/* V5.8 gesture safety */
+.session[data-session-id],.dayitem[data-session-id]{
+  touch-action:pan-y !important;
+  -webkit-user-select:none !important;
+  user-select:none !important;
+  -webkit-touch-callout:none !important;
+}/* ===== V5.9 Note separation + desktop actions + Liquid Glass nav ===== */
+#sDesc[readonly]{
+  opacity:.82;
+  background:rgba(118,118,128,.08) !important;
+  color:var(--muted) !important;
+}
+.cloud-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:2px;
+}
+.app-version{
+  font-size:10px;
+  line-height:1;
+  color:var(--muted);
+  opacity:.62;
+  letter-spacing:.15px;
+}/* iPhone/iPad: one floating, highly translucent capsule. */
+@media(max-width:1199px){
+  .nav{border-radius:28px;}
+  .nav button:active{
+    transform:scale(.96);
+  }
+  .nav button.active{box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.38),
+      0 4px 14px rgba(0,0,0,.06) !important;backdrop-filter:blur(24px) saturate(185%) !important;-webkit-backdrop-filter:blur(24px) saturate(185%) !important;}}/* Desktop stays compact and floating on the left, but cleaner. */
+@media(min-width:1200px){
+  .nav{
+    padding:7px !important;
+    gap:4px !important;
+    border:1px solid rgba(255,255,255,.24);
+    border-radius:26px;
+    background:rgba(255,255,255,.10) !important;
+    box-shadow:0 18px 42px rgba(20,22,28,.10);
+    backdrop-filter:blur(32px) saturate(160%) !important;
+    -webkit-backdrop-filter:blur(32px) saturate(160%) !important;
+  }
+  .nav button{
+    border:0 !important;
+    box-shadow:none !important;
+    background:transparent !important;
+    border-radius:19px !important;
+  }
+  .nav button.active{
+    background:rgba(255,255,255,.25) !important;
+    box-shadow:inset 0 1px rgba(255,255,255,.35) !important;
+  }}
+
+@media(prefers-color-scheme:dark){
+  @media(max-width:1199px){
+    .nav{background:rgba(28,29,32,.15) !important;border-color:rgba(255,255,255,.10)}
+    .nav button.active{background:rgba(255,255,255,.11) !important}}
+  @media(min-width:1200px){
+    .nav{background:rgba(28,29,32,.18) !important;border-color:rgba(255,255,255,.09)}
+    .nav button.active{background:rgba(255,255,255,.10) !important}}}/* ===== V6.0 Events / Import / Backup / Floating Glass ===== */
+.overview-actions,.plan-extra-actions{
+  display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px;
+}
+.backup-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  padding:11px 3px;
+  border-bottom:1px solid rgba(127,127,127,.10);
+}
+.backup-row:last-child{border-bottom:0}
+.backup-main{font-size:13px}
+.backup-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.backup-actions{display:flex;gap:5px}
+.backup-actions button{border:0;border-radius:10px;padding:7px 8px;background:rgba(255,255,255,.22);color:var(--text)}
+.import-help{
+  font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px;
+}/* Mobile/tablet: separate floating translucent controls again, no shared bar. */
+@media(max-width:1199px){
+  .nav{
+    background:transparent !important;
+    border:0 !important;
+    box-shadow:none !important;
+    padding:0 !important;
+    gap:7px !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+  .nav button{
+    width:74px !important;
+    min-width:74px !important;
+    height:56px !important;
+    border-radius:20px !important;
+    border:1px solid rgba(255,255,255,.22) !important;
+    background:rgba(255,255,255,.075) !important;
+    box-shadow:
+      0 12px 30px rgba(20,22,28,.09),
+      inset 0 1px 0 rgba(255,255,255,.24) !important;
+    backdrop-filter:blur(38px) saturate(185%) !important;
+    -webkit-backdrop-filter:blur(38px) saturate(185%) !important;
+    color:var(--muted) !important;
+    transition:background .18s ease, opacity .18s ease, transform .16s ease !important;
+  }
+  .nav button.active{
+    color:var(--text) !important;
+    background:rgba(255,255,255,.16) !important;
+    border-color:rgba(255,255,255,.30) !important;
+  }
+  body.nav-scrolling .nav button{
+    background:rgba(255,255,255,.035) !important;
+    opacity:.82;
+  }
+  body.nav-scrolling .nav button.active{
+    background:rgba(255,255,255,.085) !important;
+  }}
+@media(max-width:390px){
+  .nav button{width:67px !important;min-width:67px !important;}}
+@media(prefers-color-scheme:dark) and (max-width:1199px){
+  .nav button{
+    background:rgba(28,29,32,.075) !important;
+    border-color:rgba(255,255,255,.085) !important;
+  }
+  .nav button.active{background:rgba(255,255,255,.075) !important}
+  body.nav-scrolling .nav button{background:rgba(28,29,32,.035) !important}}/* ===== V6.1 Overview FAB / create menu ===== */
+.overview-fab{
+  position:fixed;
+  z-index:70;
+  right:18px;
+  bottom:calc(92px + env(safe-area-inset-bottom));
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.24);
+  background:rgba(255,255,255,.075);
+  color:var(--text);
+  font-size:27px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 14px 34px rgba(20,22,28,.12),inset 0 1px 0 rgba(255,255,255,.26);
+  backdrop-filter:blur(36px) saturate(185%);
+  -webkit-backdrop-filter:blur(36px) saturate(185%);
+}
+.overview-fab:active{transform:scale(.95)}
+.create-menu{
+  position:fixed;
+  z-index:145;
+  right:16px;
+  bottom:calc(150px + env(safe-area-inset-bottom));
+  width:min(86vw,300px);
+  padding:10px;
+  border-radius:22px;
+}
+.create-menu button{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:13px 14px;
+  margin:4px 0;
+  text-align:left;
+  background:rgba(255,255,255,.28);
+  color:var(--text);
+}
+.create-menu-backdrop{
+  position:fixed;
+  z-index:144;
+  inset:0;
+  background:rgba(0,0,0,.10);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+@media(min-width:1200px){
+  .overview-fab{
+    right:28px;
+    bottom:28px;
+  }
+  .create-menu{
+    right:28px;
+    bottom:88px;
+  }}
+@media(prefers-color-scheme:dark){
+  .overview-fab{background:rgba(28,29,32,.08);border-color:rgba(255,255,255,.08)}
+  .create-menu button{background:rgba(255,255,255,.08)}}/* ===== V6.3 Reminder / Push settings ===== */
+.push-status{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border-radius:14px;
+  background:rgba(255,255,255,.18);
+  font-size:12px;color:var(--muted);margin:10px 0;
+}
+.push-dot{width:8px;height:8px;border-radius:50%;background:#8e8e93;flex:0 0 8px}
+.push-status.on .push-dot{background:#34c759}
+.push-status.off .push-dot{background:#ff453a}
+.reminder-rule{
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(255,255,255,.16);
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+  margin-top:10px;
+}/* V6.4 Equipment */
+.eq-row{background:rgba(255,255,255,.14);}
+.eq-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.eq-small{font-size:11px;color:var(--muted)}
+.empty-start{text-align:center;padding:28px 16px}
+@media(max-width:600px){.eq-grid{grid-template-columns:1fr}}/* ===== V6.5 Equipment Management ===== */
+.eq-row{overflow:hidden;}
+.eq-metrics{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:10px 0 6px;
+}
+.eq-metric{
+  padding:8px 9px;
+  border-radius:12px;
+  background:rgba(255,255,255,.16);
+}
+.eq-metric strong{
+  display:block;
+  font-size:14px;
+  color:var(--text);
+}
+.eq-metric span{
+  display:block;
+  font-size:10px;
+  color:var(--muted);
+  margin-top:2px;
+}
+.eq-maint-due{
+  border:1px solid rgba(255,159,10,.25);
+  background:rgba(255,159,10,.08);
+}
+.eq-components{
+  margin-top:8px;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+.eq-chip{
+  font-size:10px;
+  padding:4px 7px;
+  border-radius:999px;
+  background:rgba(255,255,255,.14);
+  color:var(--muted);
+}
+.eq-progress{
+  height:6px;
+  border-radius:999px;
+  background:rgba(118,118,128,.10);
+  overflow:hidden;
+  margin-top:8px;
+}
+.eq-progress > span{
+  display:block;
+  height:100%;
+  background:rgba(255,159,10,.45);
+}
+@media(max-width:600px){
+  .eq-metrics{grid-template-columns:1fr 1fr}}/* ===== V6.5.1 Equipment editor fix ===== */
+#equipmentModal{
+  display:none !important;
+  position:fixed !important;
+  inset:0 !important;
+  z-index:180 !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:16px !important;
+  background:rgba(10,10,12,.16) !important;
+  backdrop-filter:blur(12px) !important;
+  -webkit-backdrop-filter:blur(12px) !important;
+}
+#equipmentModal.show{
+  display:flex !important;
+}
+#equipmentModal .sheet{width:min(94vw,620px) !important;max-height:min(90dvh,860px) !important;overflow:auto !important;border-radius:24px !important;padding:18px !important;}
+#equipmentModal .sheet-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:14px;
+}
+#equipmentModal .iconbtn{
+  border:0;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:rgba(255,255,255,.18);
+  color:var(--text);
+}
+#equipmentModal label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin:10px 0;
+}
+#equipmentModal input,
+#equipmentModal select,
+#equipmentModal textarea{
+  width:100%;
+}/* ===== V6.5.2 Equipment modal iPhone UX ===== */
+#equipmentModal{
+  overscroll-behavior:contain !important;
+}
+#equipmentModal .sheet{
+  width:min(94vw,620px) !important;
+  max-height:calc(100dvh - 18px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior:contain !important;
+  padding-bottom:calc(18px + env(safe-area-inset-bottom)) !important;
+}
+#equipmentModal input,
+#equipmentModal select,
+#equipmentModal textarea{
+  font-size:16px !important;
+  line-height:1.25 !important;
+}
+#equipmentModal textarea{
+  resize:vertical;
+}
+#equipmentModal .sheet-head{
+  position:sticky;
+  top:0;
+  z-index:3;
+  padding:4px 0 10px;
+  background:linear-gradient(180deg,rgba(245,245,247,.82),rgba(245,245,247,.62) 70%,transparent);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+#equipmentModal .pill.primary{
+  position:sticky;
+  bottom:0;
+  z-index:3;
+  width:100%;
+  margin-top:14px;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+@media(max-width:767px){
+  #equipmentModal{
+    padding:6px !important;
+    align-items:flex-end !important;
+  }
+  #equipmentModal .sheet{
+    width:100% !important;
+    max-width:none !important;
+    max-height:calc(100dvh - 6px - env(safe-area-inset-top)) !important;
+    border-radius:26px 26px 18px 18px !important;
+    padding:16px !important;
+    padding-bottom:calc(16px + env(safe-area-inset-bottom)) !important;
+  }
+  #equipmentModal .eq-grid{
+    grid-template-columns:1fr !important;
+    gap:6px !important;
+  }}
+@media(prefers-color-scheme:dark){
+  #equipmentModal .sheet-head{
+    background:linear-gradient(180deg,rgba(28,29,32,.88),rgba(28,29,32,.66) 70%,transparent);
+  }}/* ===== V6.5.3 Equipment modal stable scrolling ===== */
+.equipment-modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:1200;
+  padding:12px;
+  background:rgba(10,10,12,.18);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  align-items:center;
+  justify-content:center;
+  overscroll-behavior:none;
+}
+.equipment-modal.show{display:flex}
+.equipment-sheet{
+  width:min(94vw,640px);
+  height:min(88dvh,860px);
+  max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border-radius:26px;
+}
+.equipment-sheet-head,
+.equipment-sheet-foot{
+  flex:0 0 auto;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:rgba(245,245,247,.34);
+  backdrop-filter:blur(22px) saturate(150%);
+  -webkit-backdrop-filter:blur(22px) saturate(150%);
+}
+.equipment-sheet-head{
+  justify-content:space-between;
+  border-bottom:1px solid rgba(127,127,127,.10);
+}
+.equipment-sheet-foot{
+  justify-content:flex-end;
+  border-top:1px solid rgba(127,127,127,.10);
+  padding-bottom:calc(14px + env(safe-area-inset-bottom));
+}
+.equipment-sheet-body{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding:14px 16px 22px;
+}
+.equipment-sheet-body label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin:10px 0;
+}
+.equipment-sheet-body input,
+.equipment-sheet-body select,
+.equipment-sheet-body textarea{
+  width:100%;
+  font-size:16px !important;
+  line-height:1.25;
+}
+.equipment-sheet-body textarea{
+  resize:vertical;
+  min-height:86px;
+}
+.inline-check{
+  flex-direction:row !important;
+  align-items:center;
+  gap:10px !important;
+}
+.inline-check input{
+  width:18px !important;
+  height:18px;
+  flex:0 0 18px;
+}
+.required-mark{
+  color:#ff3b30;
+  font-weight:700;
+}
+.required-note{
+  margin-top:12px;
+  color:var(--muted);
+  font-size:11px;
+}
+body.modal-open{
+  overflow:hidden !important;
+  position:fixed;
+  width:100%;
+}
+@media(max-width:767px){
+  .equipment-modal{
+    padding:0;
+    align-items:flex-end;
+  }
+  .equipment-sheet{
+    width:100%;
+    height:calc(100dvh - max(6px,env(safe-area-inset-top)));
+    max-height:none;
+    padding-bottom:calc(86px + env(safe-area-inset-bottom));
+    border-radius:28px 28px 0 0;
+  }
+  .equipment-sheet-body{
+    padding:12px 14px 24px;
+  }
+  .equipment-sheet-head{
+    padding-top:14px;
+  }
+  .equipment-sheet-foot{
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .eq-grid{
+    grid-template-columns:1fr !important;
+  }}
+@media(prefers-color-scheme:dark){
+  .equipment-sheet-head,
+  .equipment-sheet-foot{
+    background:rgba(28,29,32,.46);
+  }}/* ===== V6.5.4 compact equipment cards ===== */
+#equipmentList{
+  display:grid;
+  gap:10px;
+}
+.eq-row{
+  position:relative;
+  border-radius:22px;
+  padding:15px 16px;
+  margin:0 !important;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+  touch-action:pan-y;
+}
+.eq-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.eq-emoji{
+  font-size:22px;
+  flex:0 0 auto;
+}
+.eq-title{
+  font-weight:700;
+  font-size:15px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.eq-note-btn{
+  border:0;
+  width:32px;
+  height:32px;
+  border-radius:11px;
+  background:rgba(255,255,255,.18);
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:15px;
+  flex:0 0 32px;
+}
+.eq-fab{
+  position:fixed;
+  right:18px;
+  bottom:calc(92px + env(safe-area-inset-bottom));
+  z-index:90;
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.24);
+  background:rgba(255,255,255,.07);
+  color:var(--text);
+  font-size:28px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 14px 34px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.24);
+  backdrop-filter:blur(36px) saturate(185%);
+  -webkit-backdrop-filter:blur(36px) saturate(185%);
+}
+.eq-info-sheet{
+  position:fixed;
+  z-index:260;
+  left:50%;
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(92vw,460px);
+  padding:14px;
+  border-radius:24px;
+}
+.eq-info-backdrop{
+  position:fixed;
+  z-index:259;
+  inset:0;
+  background:rgba(0,0,0,.14);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.eq-info-block{
+  padding:11px;
+  border-radius:14px;
+  background:rgba(255,255,255,.18);
+  margin:8px 0;
+  font-size:13px;
+  line-height:1.45;
+}
+.eq-action-menu{
+  position:fixed;
+  z-index:270;
+  left:50%;
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(92vw,430px);
+  padding:10px;
+  border-radius:24px;
+}
+.eq-action-backdrop{
+  position:fixed;
+  z-index:269;
+  inset:0;
+  background:rgba(0,0,0,.14);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.eq-action-menu button{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:13px 14px;
+  margin:4px 0;
+  text-align:left;
+  background:rgba(255,255,255,.28);
+  color:var(--text);
+}/* date inputs visually align with other fields */
+#equipmentModal input[type="date"]{
+  appearance:none;
+  -webkit-appearance:none;
+  background:rgba(255,255,255,.24) !important;
+  color:var(--text) !important;
+  border:1px solid var(--border) !important;
+  border-radius:13px !important;
+  padding:11px 12px !important;
+  min-height:44px;
+}
+#equipmentModal input[type="date"]::-webkit-date-and-time-value{
+  text-align:left;
+}
+#equipmentModal input[type="date"]::-webkit-calendar-picker-indicator{
+  opacity:.65;
+}
+@media(min-width:1200px){
+  .eq-fab{right:28px;bottom:28px}}
+@media(prefers-color-scheme:dark){
+  .eq-note-btn,.eq-action-menu button,#equipmentModal input[type="date"]{
+    background:rgba(255,255,255,.07) !important;
+  }}/* ===== V6.6 Settings accordion ===== */
+.settings-accordion{
+  display:grid;
+  gap:10px;
+}
+.settings-section{
+  border-radius:20px;
+  overflow:hidden;
+}
+.settings-section-head{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  padding:15px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  text-align:left;
+}
+.settings-section-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.settings-section-title .emoji{
+  font-size:20px;
+  flex:0 0 auto;
+}
+.settings-section-title strong{
+  font-size:15px;
+}
+.settings-section-sub{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px;
+}
+.settings-section-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex:0 0 auto;
+}
+.settings-chevron{
+  color:var(--muted);
+  font-size:16px;
+  transition:transform .18s ease;
+}
+.settings-section.open .settings-chevron{
+  transform:rotate(90deg);
+}
+.settings-section-body{
+  display:none;
+  padding:0 16px 16px;
+  border-top:1px solid rgba(127,127,127,.08);
+}
+.settings-section.open .settings-section-body{
+  display:block;
+}
+.settings-inline-plus{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.24);
+  background:rgba(255,255,255,.08);
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  line-height:1;
+  box-shadow:0 8px 20px rgba(0,0,0,.08),inset 0 1px rgba(255,255,255,.2);
+  backdrop-filter:blur(24px) saturate(170%);
+  -webkit-backdrop-filter:blur(24px) saturate(170%);
+}
+#equipmentSettingsFab.eq-fab{
+  display:none !important;
+}
+.settings-section-body .settings-card{
+  margin:0;
+  padding:0;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+}
+.settings-section-body select{
+  width:100%;
+}/* ===== V6.7 Pull-to-refresh / realtime ===== */
+.ptr-indicator{
+  position:fixed;
+  top:calc(8px + env(safe-area-inset-top));
+  left:50%;
+  transform:translate(-50%,-70px);
+  z-index:400;
+  min-width:140px;
+  padding:8px 14px;
+  border-radius:999px;
+  text-align:center;
+  font-size:12px;
+  color:var(--text);
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.20);
+  box-shadow:0 12px 30px rgba(0,0,0,.10);
+  backdrop-filter:blur(28px) saturate(170%);
+  -webkit-backdrop-filter:blur(28px) saturate(170%);
+  opacity:0;
+  transition:transform .18s ease,opacity .18s ease;
+  pointer-events:none;
+}
+.ptr-indicator.show{
+  opacity:1;
+}
+.ptr-indicator.ready{
+  transform:translate(-50%,0);
+}
+.ptr-indicator.syncing{
+  transform:translate(-50%,0);
+}
+.sync-flash{
+  animation:syncFlash .55s ease;
+}
+@keyframes syncFlash{
+  0%{opacity:.55}
+  100%{opacity:1}
+}/* ===== V6.8 Moved date + ChatGPT handoff ===== */
+.sdate-wrap{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:2px;
+  min-width:0;
+}
+.original-date{
+  font-size:10px;
+  line-height:1.15;
+  color:var(--muted);
+  opacity:.72;
+  white-space:nowrap;
+}
+.original-date .move-emoji{
+  font-size:9px;
+  margin-right:3px;
+}
+.chatgpt-btn{
+  border:0 !important;
+  background:rgba(255,255,255,.20) !important;
+  color:var(--muted) !important;
+  border-radius:10px !important;
+  min-width:32px;
+  height:30px;
+  padding:0 8px !important;
+  display:inline-flex !important;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  font-size:13px !important;
+}
+.chatgpt-toast{
+  position:fixed;
+  z-index:500;
+  left:50%;
+  bottom:calc(100px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  width:min(88vw,380px);
+  padding:10px 13px;
+  border-radius:18px;
+  text-align:center;
+  font-size:12px;
+  color:var(--text);
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.20);
+  box-shadow:0 14px 34px rgba(0,0,0,.12);
+  backdrop-filter:blur(28px) saturate(170%);
+  -webkit-backdrop-filter:blur(28px) saturate(170%);
+}/* ===== V6.9 embedded GPT explanation ===== */
+.gpt-explain-modal{display:none;position:fixed;inset:0;z-index:430;padding:12px;align-items:center;justify-content:center;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+.gpt-explain-modal.show{display:flex}
+.gpt-explain-sheet{
+  width:min(94vw,680px);
+  max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border-radius:26px;
+}
+.gpt-explain-head,.gpt-explain-foot{flex:0 0 auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.gpt-explain-body{flex:1 1 auto;line-height:1.5;font-size:14px;}
+.gpt-loading{
+  padding:26px 12px;
+  text-align:center;
+  color:var(--muted);
+}
+.gpt-error{
+  padding:12px;
+  border-radius:14px;
+  background:rgba(255,69,58,.08);
+  color:var(--text);
+}
+@media(max-width:767px){
+  .gpt-explain-modal{padding:0;align-items:flex-end}
+  .gpt-explain-sheet{width:100%;height:calc(100dvh - max(6px,env(safe-area-inset-top)));padding-bottom:calc(86px + env(safe-area-inset-bottom));border-radius:28px 28px 0 0;}}
+@media(prefers-color-scheme:dark){
+  .gpt-explain-head,.gpt-explain-foot{background:rgba(28,29,32,.46)}}/* ===== V6.10 block statistics ===== */
+.plan-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px 18px;
+  align-items:center;
+}
+.plan-main{
+  min-width:0;
+}
+.plan-controls{
+  margin-top:8px;
+}
+.block-stats{
+  min-width:260px;
+  max-width:360px;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  align-self:stretch;
+  justify-content:center;
+}
+.block-stats-top{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+}
+.block-stats-total{
+  font-size:12px;
+  color:var(--muted);
+}
+.block-stats-percent{
+  font-size:15px;
+  font-weight:700;
+  color:var(--text);
+}
+.block-progress{
+  height:6px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(118,118,128,.12);
+}
+.block-progress > span{
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:rgba(52,199,89,.58);
+  transition:width .25s ease;
+}
+.block-stat-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:5px;
+}
+.block-stat{
+  border-radius:10px;
+  padding:6px 7px;
+  min-width:0;
+  text-align:center;
+  background:rgba(255,255,255,.12);
+}
+.block-stat strong{
+  display:block;
+  font-size:13px;
+  line-height:1.1;
+}
+.block-stat span{
+  display:block;
+  margin-top:2px;
+  font-size:9px;
+  line-height:1.1;
+  color:var(--muted);
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.block-stat.done{background:rgba(52,199,89,.10)}
+.block-stat.move{background:rgba(255,204,0,.11)}
+.block-stat.cancel{background:rgba(255,69,58,.09)}
+.block-stat.open{background:rgba(142,142,147,.09)}
+.block-stat.done strong{color:#248a3d}
+.block-stat.move strong{color:#9a6d00}
+.block-stat.cancel strong{color:#d70015}
+
+@media(max-width:820px){
+  .plan-head{
+    grid-template-columns:1fr;
+  }
+  .block-stats{
+    min-width:0;
+    max-width:none;
+    width:100%;
+  }}
+@media(max-width:430px){
+  .block-stat-grid{gap:4px}
+  .block-stat{padding:5px 4px}
+  .block-stat span{font-size:8.5px}
+  .block-stats-total{font-size:11px}}
+@media(prefers-color-scheme:dark){
+  .block-stat.done strong{color:#30d158}
+  .block-stat.move strong{color:#ffd60a}
+  .block-stat.cancel strong{color:#ff453a}}/* ===== V6.11 iOS 27 ultra-clear Liquid Glass + fixed plan + analytics ===== */
+.nav{border-color:rgba(255,255,255,.58)!important;}
+.nav button.active,.segment button.active{
+  background:rgba(255,255,255,.42)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.82),0 4px 14px rgba(20,22,26,.07)!important;
+}
+select,input,textarea{
+  background:rgba(255,255,255,.24);
+  border-color:rgba(255,255,255,.62);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.pill{background:rgba(255,255,255,.18)}
+.plan-screen{height:calc(100dvh - 92px - env(safe-area-inset-bottom));}
+.plan-fixed{padding-bottom:2px;}
+.plan-scroll{scrollbar-gutter:stable;}
+.analytics-hero{
+  border-radius:28px;padding:22px;display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:14px;
+}
+.analytics-hero h2{margin:3px 0 5px;font-size:22px}.analytics-hero p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}
+.a-eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:750}
+.a-big{text-align:center;min-width:88px}.a-big strong{display:block;font-size:31px;letter-spacing:-1px}.a-big span{font-size:11px;color:var(--muted)}
+.metric-grid{display:grid;gap:8px;margin-bottom:12px;}
+.metric{border-radius:20px;padding:14px;text-align:center}.metric span{display:block;font-size:10px;color:var(--muted)}.metric strong{display:block;font-size:24px;margin:3px 0}.metric small{font-size:10px;color:var(--muted)}
+.metric.done strong{color:var(--green)}.metric.move strong{color:var(--yellow)}.metric.cancel strong{color:var(--red)}.metric.topup strong{color:var(--gold)}
+.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.analytics-card{border-radius:24px;padding:18px;margin-bottom:12px}.analytics-card h3{margin:0 0 4px;font-size:16px}.a-muted{color:var(--muted);font-size:11px;line-height:1.4}
+.a-bar-row{margin:12px 0}.a-bar-label{display:flex;justify-content:space-between;gap:12px;font-size:11px;margin-bottom:5px}.a-bar-label strong{font-size:11px}
+.a-bar-track{height:8px;border-radius:999px;background:rgba(118,118,128,.10);overflow:hidden}.a-bar-track>span{display:block;height:100%;border-radius:inherit;background:rgba(72,74,80,.48)}
+.block-analysis-row{display:grid;grid-template-columns:minmax(180px,1fr) minmax(120px,2fr) 42px;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(127,127,127,.08)}
+.block-analysis-row:last-child{border-bottom:0}.block-analysis-title span{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.move-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(127,127,127,.08)}.move-row:last-child{border-bottom:0}
+.a-status{font-size:10px;padding:5px 8px;border-radius:999px;background:rgba(118,118,128,.10)}.a-status.done{color:var(--green)}.a-status.cancel{color:var(--red)}.a-status.move{color:#987000}
+.empty-small{padding:20px 0;color:var(--muted);font-size:12px}
+html.modal-open,body.modal-open{overflow:hidden!important;height:100%!important;overscroll-behavior:none!important}
+.gpt-explain-modal{overscroll-behavior:contain;touch-action:none;background:rgba(238,240,244,.20)}
+.gpt-explain-sheet{
+  height:min(88dvh,820px);
+  max-height:calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  background:rgba(250,250,252,.70)!important;
+  border:1px solid rgba(255,255,255,.78);
+  box-shadow:0 24px 70px rgba(25,28,34,.18),inset 0 1px rgba(255,255,255,.9);
+}
+.gpt-explain-body{
+  min-height:0!important;max-height:none!important;
+  overflow-y:scroll!important;overscroll-behavior:contain!important;
+  touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch!important;
+  padding:18px 18px 34px!important;
+  white-space:pre-wrap!important;
+  word-break:normal;overflow-wrap:anywhere;
+}
+.gpt-explain-head,.gpt-explain-foot{backdrop-filter:blur(30px) saturate(170%)!important;-webkit-backdrop-filter:blur(30px) saturate(170%)!important;}
+.gpt-explain-foot{justify-content:flex-end}
+@media(max-width:820px){
+  .metric-grid{grid-template-columns:repeat(3,1fr)}
+  .analytics-grid{grid-template-columns:1fr}}
+@media(max-width:767px){
+  .plan-screen{height:calc(100dvh - 88px - env(safe-area-inset-bottom));}
+  .plan-fixed .page-head{margin-bottom:8px}
+  .plan-fixed .plan-head{margin-bottom:7px;}
+  .gpt-explain-sheet{height:calc(100dvh - max(6px,env(safe-area-inset-top)));max-height:none;background:rgba(250,250,252,.78)!important}}
+@media(max-width:430px){
+  .nav button{font-size:9px!important;padding-left:5px!important;padding-right:5px!important}
+  .nav button span{font-size:18px!important}
+  .analytics-hero{padding:17px}.analytics-hero h2{font-size:18px}
+  .metric-grid{grid-template-columns:repeat(3,1fr)}
+  .metric{padding:11px 6px}.metric strong{font-size:20px}
+  .block-analysis-row{grid-template-columns:1fr 42px}.block-analysis-row .a-bar-track{grid-column:1/-1}}
+@media(prefers-color-scheme:dark){
+  .gpt-explain-sheet{background:rgba(28,29,32,.76)!important}}/* V6.12 */
+.glass{background:rgba(255,255,255,.07)!important;border:1px solid rgba(255,255,255,.84)!important;box-shadow:0 10px 28px rgba(40,44,52,.05),inset 0 1px rgba(255,255,255,.94)!important;backdrop-filter:blur(18px) saturate(195%) brightness(1.08)!important;-webkit-backdrop-filter:blur(18px) saturate(195%) brightness(1.08)!important}
+.nav{width:auto!important;bottom:calc(7px + env(safe-area-inset-bottom))!important;}.plan-screen{height:calc(100dvh - 66px - env(safe-area-inset-bottom))!important}
+.plan-fixed .page-head{margin:0 0 5px!important}.plan-fixed .page-title{font-size:22px!important}.plan-fixed .cloud{font-size:9px!important}.plan-fixed .app-version{font-size:8px!important}
+.plan-fixed .plan-head{margin-bottom:4px!important;gap:6px 9px!important;}.plan-fixed .plan-event{margin-bottom:3px!important;}
+.plan-fixed .plan-controls{gap:5px!important;}.plan-fixed select{font-size:13px!important;}
+.plan-fixed .block-stats{gap:3px!important}.plan-fixed .block-progress{height:4px!important}.plan-fixed .block-stat strong{font-size:11px!important}.plan-fixed .block-stat span{font-size:8px!important}
+.metric-grid{grid-template-columns:repeat(4,1fr)}.metric.overdue strong{color:#ff7a00}.cross-row{display:grid;grid-template-columns:minmax(130px,220px) 1fr;gap:12px;padding:10px 0;border-bottom:1px solid rgba(127,127,127,.08)}
+.data-chip{display:inline-block;margin:2px 4px 2px 0;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.58);font-size:11px}
+@media(max-width:767px){main{padding-left:9px!important;padding-right:9px!important}.plan-screen{height:calc(100dvh - 64px - env(safe-area-inset-bottom))!important;padding-top:4px!important}.plan-fixed .plan-head{grid-template-columns:1fr!important}.plan-fixed .block-stat-grid{grid-template-columns:repeat(4,1fr)!important}.nav button{padding:4px 5px!important}.metric-grid{grid-template-columns:repeat(2,1fr)}.cross-row{grid-template-columns:1fr}}/* ===== V6.12.1 TRUE CLEAR GLASS / INSTAGRAM-LIKE FLOATING TAB BAR ===== */
+:root{--panel:transparent!important;--border:rgba(255,255,255,.72)!important;--shadow:0 8px 26px rgba(31,38,48,.055)!important;}
+html{
+ background:#f8fafc!important;
+}
+body{
+ background:
+   radial-gradient(circle at 15% 4%,rgba(255,255,255,1) 0 12%,transparent 38%),
+   radial-gradient(circle at 92% 24%,rgba(218,232,255,.42),transparent 34%),
+   radial-gradient(circle at 12% 80%,rgba(239,225,255,.28),transparent 35%),
+   linear-gradient(160deg,#fcfdff 0%,#f5f8fc 45%,#fbfbfd 100%)!important;
+ background-attachment:fixed!important;
+}
+body::before{
+ content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+ background:
+  radial-gradient(circle at 72% 76%,rgba(211,235,245,.32),transparent 24%),
+  radial-gradient(circle at 26% 44%,rgba(255,255,255,.82),transparent 28%);
+}
+button,.pill,.segment,.segment button,select,input,textarea{
+ backdrop-filter:blur(22px) saturate(190%) brightness(1.08)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(190%) brightness(1.08)!important;
+}
+.pill,.segment,select,input,textarea{
+ background:rgba(255,255,255,.10)!important;
+ border-color:rgba(255,255,255,.72)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.78),0 3px 12px rgba(30,36,44,.035)!important;
+}/* Remove the old full-width bottom tray completely. */
+.nav{position:fixed!important;left:50%!important;right:auto!important;top:auto!important;bottom:calc(10px + env(safe-area-inset-bottom))!important;z-index:1000!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:2px!important;width:min(520px,calc(100vw - 20px))!important;max-width:none!important;height:auto!important;margin:0!important;overflow:visible!important;}
+.nav button{min-width:0!important;width:auto!important;max-width:none!important;margin:0!important;padding:5px 3px 4px!important;border:0!important;border-radius:18px!important;background:transparent!important;box-shadow:none!important;color:rgba(28,31,36,.70)!important;line-height:1.05!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;}
+.nav button span{display:block!important;width:24px!important;text-align:center!important;opacity:.82!important;}
+.nav button.active{box-shadow:inset 0 1px rgba(255,255,255,.92),0 3px 10px rgba(30,36,44,.045)!important;}
+.plan-screen{height:100dvh!important;max-height:100dvh!important;}/* Make the actual symbols lighter and less "solid button" looking. */
+.nav button:nth-child(1) span{font-size:19px!important}
+.nav button:nth-child(2) span,.nav button:nth-child(4) span{font-weight:300!important}
+.nav button:nth-child(3) span{
+ width:25px!important;height:20px!important;border:1px solid rgba(30,34,40,.28)!important;
+ border-radius:9px!important;background:rgba(255,255,255,.12)!important;
+}/* compact fixed plan header */
+.plan-fixed .plan-head{
+ padding:7px 9px!important;margin:0 0 3px!important;border-radius:16px!important;
+}
+.plan-fixed .plan-event{font-size:14px!important;line-height:1.1!important}
+.plan-fixed .plan-controls{margin-top:2px!important}
+.plan-fixed select{min-height:30px!important;height:30px!important;padding:4px 8px!important}
+.plan-fixed .block-stat-grid{gap:3px!important}
+.plan-fixed .block-stat{background:rgba(255,255,255,.08)!important;padding:3px!important}
+.plan-scroll{padding-bottom:12px!important}/* no gray mobile bottom background / tray */
+@media(max-width:767px){
+ main{padding:4px 8px calc(78px + env(safe-area-inset-bottom))!important}
+ .plan-screen{padding:3px 8px calc(76px + env(safe-area-inset-bottom))!important}
+ .nav{bottom:calc(8px + env(safe-area-inset-bottom))!important;border-radius:23px!important;}
+ .nav button{font-size:8.5px!important;padding-left:1px!important;padding-right:1px!important}
+ .nav button span{font-size:17px!important}
+ .plan-fixed .block-stats-top{display:none!important}
+ .plan-fixed .block-progress{height:3px!important}
+ .plan-fixed .block-stat span{font-size:7.5px!important}}
+@media(max-width:390px){
+ .nav{width:calc(100vw - 12px)!important;padding:4px 3px!important;gap:0!important}
+ .nav button{font-size:7.7px!important}
+ .nav button span{font-size:16px!important}}/* Keep dark mode glass, but no opaque gray panels */
+@media(prefers-color-scheme:dark){
+ html{background:#111317!important}
+ body{background:radial-gradient(circle at 80% 12%,rgba(75,90,120,.28),transparent 32%),linear-gradient(160deg,#181b20,#101216)!important}}/* ===== V6.12.2 WHITE APP / ADAPTIVE FLOATING BAR / SCROLL FIX ===== */
+:root{--bg:#fff!important;--glass:rgba(255,255,255,.72)!important;--glass2:rgba(255,255,255,.82)!important}
+html,body{background-image:none!important;}
+body::before,body::after{display:none!important;content:none!important}
+.shell,main,.plan-screen,.plan-fixed,.plan-scroll{background:#fff!important}
+.page-head,.plan-fixed,.page-title{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important}
+.page-head::before,.page-head::after,.plan-fixed::before,.plan-fixed::after{display:none!important;content:none!important}
+.glass,.event-card,.session,.analytics-card,.analytics-hero,.metric,.plan-head{
+ background:rgba(255,255,255,.76)!important;
+ border:1px solid rgba(225,227,232,.72)!important;
+ box-shadow:0 2px 10px rgba(20,24,32,.035)!important;
+ backdrop-filter:blur(16px) saturate(145%)!important;
+ -webkit-backdrop-filter:blur(16px) saturate(145%)!important;
+}
+.session{background:rgba(250,250,251,.72)!important}
+select,input,textarea,.segment,.pill{
+ background:rgba(247,247,249,.78)!important;
+ border:1px solid rgba(224,225,230,.78)!important;
+ box-shadow:none!important;
+}
+.nav{width:min(500px,calc(100vw - 24px))!important;border-radius:25px!important;padding:5px!important;transition:width .22s ease,padding .22s ease,border-radius .22s ease,transform .22s ease,opacity .22s ease!important;transform:translateX(-50%) scale(1)!important;transform-origin:center bottom!important;}
+.nav button{
+ min-height:45px!important;
+ font-size:9px!important;
+ transition:min-height .22s ease,padding .22s ease,font-size .22s ease,opacity .22s ease,background .22s ease!important;
+}
+.nav button span{
+ font-size:19px!important;height:21px!important;line-height:21px!important;
+ transition:font-size .22s ease,height .22s ease,transform .22s ease!important;
+}
+.nav button.active{background:rgba(239,240,243,.92)!important}
+.nav.scrolling{
+ width:min(390px,calc(100vw - 54px))!important;
+ padding:3px!important;
+ border-radius:20px!important;
+ transform:translateX(-50%) scale(.92)!important;
+ opacity:.91!important;
+}
+.nav.scrolling button{min-height:31px!important;padding:2px!important;font-size:0!important}
+.nav.scrolling button span{font-size:16px!important;height:18px!important;line-height:18px!important}
+.nav.scrolling button.active{background:rgba(238,239,242,.88)!important}
+.plan-fixed .page-head{background:#fff!important}
+@media(max-width:767px){
+ main{padding-top:5px!important}
+ .plan-fixed{background:#fff!important}
+ .nav{width:calc(100vw - 20px)!important}
+ .nav.scrolling{width:calc(100vw - 72px)!important}}
+@media(prefers-color-scheme:dark){
+ html,body,.shell,main,.plan-screen,.plan-fixed,.plan-scroll{background:#fff!important;color:#1c1c1e!important}
+ .glass,.event-card,.session,.analytics-card,.analytics-hero,.metric,.plan-head{background:rgba(255,255,255,.78)!important;border-color:rgba(225,227,232,.72)!important}.nav button.active{background:rgba(239,240,243,.94)!important;}
+ .meta,.a-muted,.cloud,.block-stat span,.event-sub{color:#76767d!important}}/* V6.13 */ .plan-scroll{mask-image:none!important;-webkit-mask-image:none!important;}.plan-scroll:before,.plan-scroll:after,.plan-fixed:before,.plan-fixed:after{display:none!important;content:none!important}.plan-fixed,.plan-fixed .plan-head,.week-title{background:#fff!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;box-shadow:none!important}.filter-pill{display:flex!important;gap:4px!important;align-items:center!important}#filterCount:empty{display:none}#filterCount:not(:empty){display:inline-flex;width:17px;height:17px;border-radius:50%;align-items:center;justify-content:center;background:#111;color:#fff;font-size:9px}.plan-filter-modal{background:rgba(255,255,255,.94)!important}@media(max-width:767px){.plan-fixed .actions-top{flex-wrap:nowrap!important;overflow-x:auto!important;scrollbar-width:none}.plan-fixed .actions-top::-webkit-scrollbar{display:none}.plan-fixed .actions-top .pill{white-space:nowrap!important;flex:0 0 auto!important}}/* ===== V6.13.1 iPhone structural fix ===== *//* PWA canvas and safe areas are truly white. */
+html,body{background-color:#fff!important;}
+html{min-height:100%;overscroll-behavior:none!important}
+body{min-height:100dvh!important;margin:0!important}/* Plan is a fixed viewport: header never participates in scrolling. */
+.plan-screen{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-height:100dvh!important;display:flex!important;flex-direction:column!important;box-sizing:border-box!important;padding:
+   calc(env(safe-area-inset-top) + 8px)
+   8px
+   calc(env(safe-area-inset-bottom) + 74px)
+   8px!important;}
+.plan-fixed{position:relative!important;top:auto!important;left:auto!important;right:auto!important;flex:0 0 auto!important;z-index:20!important;overflow:visible!important;padding:0!important;margin:0!important;transform:none!important;}
+.plan-scroll{position:relative!important;flex:1 1 0!important;min-height:0!important;height:auto!important;padding:3px 0 18px!important;margin:0!important;mask:none!important;-webkit-mask:none!important;filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}/* Absolutely no top fade/blur overlay. */
+.plan-screen::before,.plan-screen::after,
+.plan-fixed::before,.plan-fixed::after,
+.plan-scroll::before,.plan-scroll::after,
+.week-title::before,.week-title::after{
+ display:none!important;content:none!important;
+}
+.week-title{
+ position:relative!important;
+ top:auto!important;
+ z-index:1!important;
+ background:#fff!important;
+ filter:none!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}/* Floating navigation: no app-colored tray behind it. */
+.nav{bottom:calc(env(safe-area-inset-bottom) + 8px)!important;}
+.nav::before,.nav::after{display:none!important;content:none!important}/* Filter sheet: centered and iPhone-safe. */
+#planFilterDialog{
+ width:100vw!important;
+ max-width:none!important;
+ height:100dvh!important;
+ max-height:none!important;
+ margin:0!important;
+ padding:
+   calc(env(safe-area-inset-top) + 12px)
+   12px
+   calc(env(safe-area-inset-bottom) + 12px)!important;
+ box-sizing:border-box!important;
+ background:transparent!important;
+ overflow:hidden!important;
+}
+#planFilterDialog[open]{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+}
+#planFilterDialog .plan-filter-modal{width:min(100%,520px)!important;max-width:520px!important;max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px)!important;margin:0 auto!important;padding:18px!important;box-sizing:border-box!important;overflow-y:auto!important;border-radius:24px!important;}
+#planFilterDialog .grid{grid-template-columns:1fr!important;gap:11px!important}
+#planFilterDialog .full{grid-column:1!important}
+#planFilterDialog select{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+#planFilterDialog .modal-actions{
+ display:grid!important;
+ grid-template-columns:1fr 1fr!important;
+ gap:8px!important;
+}
+#planFilterDialog .modal-actions .primary{grid-column:1/-1!important;order:-1!important}
+#planFilterDialog .modal-actions button{width:100%!important;margin:0!important}/* On iPhone the plan header starts below the physical status/notch area. */
+@media(max-width:767px){
+ body:has(.plan-screen){overflow:hidden!important;height:100dvh!important}
+ main:has(.plan-screen){
+   padding:0!important;
+   margin:0!important;
+   height:100dvh!important;
+   overflow:hidden!important;
+ }
+ .plan-fixed .page-head{display:none!important}
+ .plan-fixed .plan-head{
+   margin:0 0 4px!important;
+   padding:6px 8px!important;
+   background:#fff!important;
+   border:1px solid #ededf0!important;
+   border-radius:15px!important;
+ }
+ .plan-fixed .actions-top{margin:3px 0 4px!important}}/* iOS rubber-band area stays white even outside Plan. */
+@supports(padding:max(0px)){
+ body{padding-bottom:env(safe-area-inset-bottom)}}/* ===== V6.13.2 UNIFIED LIQUID GLASS ===== */
+:root{
+ --lg-bg:rgba(255,255,255,.34);
+ --lg-bg-strong:rgba(255,255,255,.50);
+ --lg-line:rgba(255,255,255,.82);
+ --lg-shadow:0 8px 26px rgba(32,38,48,.075);
+ --lg-inset:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(255,255,255,.26);
+}
+html,body,.shell,main{background:#fff!important}/* One material language for virtually every interactive/card surface. */
+.glass,.event-card,.session,.analytics-card,.analytics-hero,.metric,
+.plan-head,.block-stat,.card,.settings-card,.equipment-card,
+.modal,.quick-menu,.gpt-explain-sheet,
+.pill,.segment,select,input,textarea{
+ background:linear-gradient(145deg,rgba(255,255,255,.48),rgba(246,248,252,.24))!important;
+ border:1px solid var(--lg-line)!important;
+ box-shadow:var(--lg-shadow),var(--lg-inset)!important;
+ backdrop-filter:blur(24px) saturate(180%) brightness(1.055)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(180%) brightness(1.055)!important;
+}
+select{background-color:rgba(255,255,255,.36)!important;}
+.segment{padding:2px!important}
+.segment button{background:transparent!important;box-shadow:none!important;border:0!important}
+.segment button.active{
+ background:rgba(255,255,255,.52)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.98),0 2px 8px rgba(32,38,48,.055)!important;
+}
+.pill.primary{
+ background:rgba(36,39,45,.76)!important;color:#fff!important;
+ border-color:rgba(255,255,255,.48)!important;
+}
+.pill.gold{background:rgba(255,223,105,.28)!important}/* Plan fixed area remains structurally fixed but the control panel itself is glass. */
+.plan-fixed{background:#fff!important}
+.plan-fixed .plan-head{
+ background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(245,247,251,.30))!important;
+ border:1px solid rgba(225,228,234,.72)!important;
+ box-shadow:0 5px 18px rgba(30,36,44,.045),inset 0 1px rgba(255,255,255,.98)!important;
+ backdrop-filter:blur(22px) saturate(175%)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(175%)!important;
+}
+.plan-scroll,.week-title{background:#fff!important}/* Floating bar: only the glass capsule exists; no tray/background layer. */
+.nav button,.nav button.active{background:transparent!important;border:0!important;box-shadow:none!important}
+.nav button.active{color:#111!important;font-weight:750!important}/* Filter is a bottom/center glass sheet, but never focuses a select automatically. */
+#planFilterDialog{outline:none!important}
+#planFilterDialog::backdrop{
+ background:rgba(245,247,250,.20)!important;
+ backdrop-filter:blur(7px)!important;
+ -webkit-backdrop-filter:blur(7px)!important;
+}
+#planFilterDialog label{font-weight:650!important}
+#planFilterDialog select{
+ min-height:44px!important;
+ background:rgba(255,255,255,.42)!important;
+ border:1px solid rgba(255,255,255,.88)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.96),0 3px 12px rgba(30,36,44,.045)!important;
+}/* GPT and dialogs use same glass family. */
+.gpt-explain-head,.gpt-explain-foot{
+ background:rgba(255,255,255,.48)!important;
+ border-color:rgba(255,255,255,.80)!important;
+}
+dialog::backdrop{background:rgba(244,246,250,.22)}/* Do not allow previous dark-mode CSS to repaint the requested white app. */
+@media(prefers-color-scheme:dark){
+ html,body,.shell,main,.plan-screen,.plan-fixed,.plan-scroll,.week-title{background:#fff!important;color:#1c1c1e!important}
+ .glass,.event-card,.session,.analytics-card,.analytics-hero,.metric,.plan-head,.block-stat,.card,.settings-card,.equipment-card,.modal,.quick-menu,.gpt-explain-sheet{
+  background:linear-gradient(145deg,rgba(255,255,255,.48),rgba(246,248,252,.24))!important;
+  border-color:rgba(255,255,255,.82)!important;color:#1c1c1e!important
+ }
+ .nav{background:linear-gradient(145deg,rgba(255,255,255,.46),rgba(246,248,252,.20))!important;border-color:rgba(255,255,255,.88)!important}
+ .nav button{color:#666!important}.nav button.active{color:#111!important}}/* ===== V6.13.3 CLEAR SELECTS + TRUE EDGE-TO-EDGE FOOTER ===== *//* Selects: deliberately much clearer than generic cards. */
+select,
+#planFilterDialog select,
+.plan-fixed select,
+.settings-card select,
+.modal select{
+ background:rgba(255,255,255,.10)!important;
+ background-color:rgba(255,255,255,.10)!important;
+ border:1px solid rgba(218,221,227,.46)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 2px 8px rgba(25,30,38,.025)!important;
+ backdrop-filter:blur(12px) saturate(150%)!important;
+ -webkit-backdrop-filter:blur(12px) saturate(150%)!important;
+}/* Filter sheet itself clearer as well. *//*
+ iPhone bottom fix:
+ Earlier versions still reserved a bottom area in main/plan-screen and body.
+ That white/gray "footer" was not the nav itself. Remove ALL reserved footer/tray
+ space; only add scroll-content inset where needed so content can pass behind nav.
+*/
+html,body{
+ padding-bottom:0!important;
+ margin-bottom:0!important;
+ background:#fff!important;
+}
+.shell{
+ padding-bottom:0!important;
+ margin-bottom:0!important;
+ background:transparent!important;
+}
+main{
+ padding-bottom:0!important;
+ margin-bottom:0!important;
+ background:#fff!important;
+}
+body:not(:has(.plan-screen)) main{
+ padding-bottom:0!important;
+}
+.plan-screen{
+ padding-bottom:0!important;
+ background:#fff!important;
+}
+.plan-scroll{
+ padding-bottom:calc(82px + env(safe-area-inset-bottom))!important;
+ background:#fff!important;
+}
+.analytics-card:last-child,
+.settings-wrap:last-child,
+.overview-wrap:last-child{
+ margin-bottom:calc(82px + env(safe-area-inset-bottom))!important;
+}/* Nav is the only bottom material; make it clearer. *//* No footer/pseudo/container layer behind nav. */
+footer,.footer,.bottom-bar,.bottom-nav-wrap,.nav-wrap{
+ background:transparent!important;
+ box-shadow:none!important;
+ border:0!important;
+}
+footer::before,footer::after,.footer::before,.footer::after,
+.bottom-bar::before,.bottom-bar::after,.nav-wrap::before,.nav-wrap::after{
+ display:none!important;content:none!important;
+}/* The physical iPhone safe-area remains the page's plain white canvas, not a tray. */
+@media(max-width:767px){
+ body{padding-bottom:0!important}
+ main{padding-bottom:0!important}
+ .plan-screen{
+   padding-bottom:0!important;
+   padding-top:calc(env(safe-area-inset-top) + 8px)!important;
+ }
+ .plan-scroll{padding-bottom:calc(80px + env(safe-area-inset-bottom))!important}}/* ===== V6.14 CLEAN GLASS CONTROLS ===== */
+:root{
+ --clear-glass:rgba(255,255,255,.055);
+ --clear-line:rgba(214,218,225,.34);
+}/* Glass capsule and selects: almost optically clear, matching native Block control. */
+select,#planFilterDialog select,.plan-fixed select,.settings-card select,.modal select{
+ background:rgba(255,255,255,.035)!important;
+ background-color:rgba(255,255,255,.035)!important;
+ border:1px solid rgba(215,219,226,.34)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.78),0 1px 5px rgba(25,30,38,.018)!important;
+ backdrop-filter:blur(7px) saturate(135%)!important;
+ -webkit-backdrop-filter:blur(7px) saturate(135%)!important;
+}/* No pointless scrolling: JS adds can-scroll only when actual overflow exists. */
+main,.overview-wrap,.settings-wrap,.modal,.plan-scroll{
+ overflow-y:hidden!important;
+ overscroll-behavior-y:none!important;
+}
+main.can-scroll,.overview-wrap.can-scroll,.settings-wrap.can-scroll,.modal.can-scroll,.plan-scroll.can-scroll{
+ overflow-y:auto!important;
+ overscroll-behavior-y:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+}/* Plan control language: small centered floating icon capsules, labels appear on interaction. */
+.plan-fixed .segment{justify-content:center!important;}
+.plan-fixed .segment button{min-width:64px!important;}
+.plan-fixed .segment button.active{font-weight:700!important;}/* Action row becomes a centered, minimal floating control strip. */
+.plan-fixed .actions-top{
+ width:max-content!important;
+ max-width:100%!important;
+ margin:5px auto 4px!important;
+ padding:3px!important;
+ display:flex!important;
+ justify-content:center!important;
+ align-items:center!important;
+ gap:3px!important;
+ overflow:visible!important;
+ background:rgba(255,255,255,.035)!important;
+ border:1px solid rgba(215,219,226,.32)!important;
+ border-radius:18px!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.78),0 2px 9px rgba(25,30,38,.025)!important;
+ backdrop-filter:blur(8px) saturate(140%)!important;
+ -webkit-backdrop-filter:blur(8px) saturate(140%)!important;
+}
+.plan-fixed .actions-top .pill{min-height:30px!important;border:0!important;border-radius:15px!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;white-space:nowrap!important;transition:width .18s ease,padding .18s ease,background .18s ease!important;}
+.plan-fixed .actions-top .pill::first-letter{font-size:16px!important}
+.plan-fixed .actions-top .pill:hover,
+.plan-fixed .actions-top .pill:focus-visible{
+ width:auto!important;
+ min-width:32px!important;
+ padding:0 10px!important;
+ font-size:10px!important;
+ background:rgba(255,255,255,.16)!important;
+}
+.plan-fixed .actions-top .pill.primary,
+.plan-fixed .actions-top .pill.gold{
+ background:transparent!important;color:#25272b!important;border:0!important;
+}
+.plan-fixed .actions-top .filter-pill{font-size:0!important}
+.plan-fixed .actions-top .filter-pill:hover,
+.plan-fixed .actions-top .filter-pill:focus-visible{font-size:10px!important}/* On touch screens there is no hover: keep elegant icon-only controls. */
+@media(hover:none) and (pointer:coarse){
+ .plan-fixed .actions-top .pill{font-size:0!important}
+ .plan-fixed .actions-top .pill:active{
+   transform:scale(.94)!important;
+   background:rgba(255,255,255,.16)!important;
+ }}/* Keep overview fixed when content fits. */
+body:not(:has(.plan-screen)) main:not(.can-scroll){height:100dvh!important;overflow:hidden!important}/* ===== V6.14.1 CORRECTIVE FIX ===== *//* Undo V6.14 JS-driven scroll locking. Let browsers scroll only when overflow exists naturally. */
+html,body{height:100%!important;overflow:hidden!important;overscroll-behavior:none!important}
+.shell{
+ height:100dvh!important;
+ min-height:0!important;
+ overflow:hidden!important;
+ display:flex!important;
+ flex-direction:column!important;
+}
+main{
+ flex:1 1 auto!important;
+ min-height:0!important;
+ height:auto!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ overscroll-behavior-y:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-y!important;
+}
+.plan-screen{overflow:hidden!important}
+.plan-scroll{
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ overscroll-behavior-y:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-y!important;
+}/* No nested wrappers may independently move the page when content fits. */
+.overview-wrap,.settings-wrap,.analytics-wrap{
+ overflow:visible!important;
+ height:auto!important;
+ min-height:0!important;
+}/*
+ ONE SELECT STYLE, EVERYWHERE.
+ No separate filter/modal/settings select materials.
+ This intentionally overrides every earlier select rule.
+ */
+select,
+.plan-fixed select,
+#planFilterDialog select,
+.modal select,
+.settings-card select,
+.glass select,
+form select{
+ -webkit-appearance:menulist!important;
+ appearance:auto!important;
+ background:transparent!important;
+ background-color:transparent!important;
+ background-image:none!important;
+ border:1px solid rgba(210,214,221,.42)!important;
+ box-shadow:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+ filter:none!important;
+ opacity:1!important;
+ color:#1c1c1e!important;
+}
+select:focus{
+ background:transparent!important;
+ background-color:transparent!important;
+ box-shadow:none!important;
+ outline:none!important;
+}/* Plan action capsule: explicit icons, labels hidden on touch and revealed on hover/focus desktop. */
+.plan-fixed .actions-top .pill{
+ font-size:inherit!important;
+ width:34px!important;
+ min-width:34px!important;
+ height:32px!important;
+ padding:0!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:5px!important;
+ overflow:hidden!important;
+ color:#202124!important;
+}
+.plan-fixed .actions-top .action-icon{
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ flex:0 0 auto!important;
+ width:22px!important;
+ height:22px!important;
+ font-size:18px!important;
+ line-height:1!important;
+ color:#202124!important;
+ opacity:1!important;
+ visibility:visible!important;
+}
+.plan-fixed .actions-top .action-label{
+ display:none!important;
+ font-size:10px!important;
+ line-height:1!important;
+ white-space:nowrap!important;
+}
+.plan-fixed .actions-top .filter-pill #filterCount{
+ position:absolute!important;
+ transform:translate(11px,-10px)!important;
+}
+@media(hover:hover) and (pointer:fine){
+ .plan-fixed .actions-top .pill:hover,
+ .plan-fixed .actions-top .pill:focus-visible{
+   width:auto!important;
+   padding:0 9px!important;
+ }
+ .plan-fixed .actions-top .pill:hover .action-label,
+ .plan-fixed .actions-top .pill:focus-visible .action-label{display:inline!important}}
+@media(hover:none) and (pointer:coarse){
+ .plan-fixed .actions-top .pill{width:36px!important;min-width:36px!important}
+ .plan-fixed .actions-top .action-label{display:none!important}}/* Keep the non-plan top area fixed inside the app shell; only main content can scroll. */
+header,.topbar,.app-head{flex:0 0 auto!important}/* ===== V6.14.2 NO SNAP + COMPACT EDITOR + ONE TRUE SELECT MATERIAL ===== *//*
+ Exact same select material everywhere.
+ The plan/block select is no longer allowed to have a special parent-specific look:
+ every select gets this final rule and no white fill.
+*/
+select,
+.plan-controls select,
+.plan-fixed select,
+#planFilterDialog select,
+#sessionDialog select,
+.settings-card select,
+.modal select,
+.glass select,
+form select{
+ -webkit-appearance:menulist!important;
+ appearance:auto!important;
+ background:transparent!important;
+ background-color:transparent!important;
+ background-image:none!important;
+ border:1px solid rgba(190,196,205,.30)!important;
+ border-radius:12px!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.62)!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+ filter:none!important;
+ color:#1c1c1e!important;
+}/* Training editor: one-screen iPhone sheet, no internal scrolling. */
+dialog#sessionDialog{
+ width:calc(100vw - 18px)!important;
+ max-width:620px!important;
+ max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 18px)!important;
+ overflow:hidden!important;
+}
+#sessionDialog .modal{
+ width:100%!important;
+ max-height:none!important;
+ height:auto!important;
+ overflow:hidden!important;
+ padding:14px!important;
+ border-radius:24px!important;
+ box-sizing:border-box!important;
+}
+#sessionDialog h2{margin:0 0 2px!important;font-size:19px!important}
+#sessionDialog .helper{margin:0 0 8px!important;font-size:10px!important;line-height:1.2!important}
+#sessionDialog .grid{
+ grid-template-columns:1fr 1fr!important;
+ gap:7px 9px!important;
+}
+#sessionDialog label{font-size:10px!important;gap:3px!important}
+#sessionDialog input:not([type="checkbox"]),
+#sessionDialog select{
+ min-height:34px!important;
+ height:34px!important;
+ padding-top:4px!important;
+ padding-bottom:4px!important;
+ font-size:12px!important;
+}
+#sessionDialog textarea{
+ min-height:42px!important;
+ max-height:48px!important;
+ resize:none!important;
+ padding:7px 9px!important;
+ font-size:11px!important;
+ line-height:1.25!important;
+}
+#sessionDialog .eq-small{margin:0!important;font-size:9px!important;min-height:0!important}
+#sessionDialog .buttons{
+ display:flex!important;
+ justify-content:center!important;
+ gap:7px!important;
+ margin-top:9px!important;
+}
+#sessionDialog .buttons button{
+ min-width:105px!important;
+ min-height:34px!important;
+ border-radius:17px!important;
+ border:1px solid rgba(190,196,205,.28)!important;
+ background:rgba(255,255,255,.055)!important;
+ color:#24262a!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.70)!important;
+ backdrop-filter:blur(7px) saturate(135%)!important;
+ -webkit-backdrop-filter:blur(7px) saturate(135%)!important;
+}
+#sessionDialog .buttons button.primary{
+ background:rgba(255,255,255,.075)!important;
+ color:#111!important;
+ font-weight:700!important;
+}/* On-Top checkbox: clean circular selector, never a yellow/black box. */
+#sessionDialog label.inline:has(#sTopup){
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ flex-direction:row!important;
+ gap:8px!important;
+ min-height:32px!important;
+ border:1px solid rgba(190,196,205,.24)!important;
+ border-radius:16px!important;
+ background:rgba(255,255,255,.035)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.60)!important;
+}
+#sTopup{
+ -webkit-appearance:none!important;
+ appearance:none!important;
+ width:18px!important;height:18px!important;
+ min-width:18px!important;
+ border-radius:50%!important;
+ border:1.5px solid rgba(60,64,70,.38)!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ margin:0!important;
+ position:relative!important;
+}
+#sTopup:checked{
+ background:rgba(30,32,36,.80)!important;
+ border-color:rgba(30,32,36,.80)!important;
+}
+#sTopup:checked::after{
+ content:""!important;
+ position:absolute!important;
+ width:6px!important;height:6px!important;border-radius:50%!important;
+ background:#fff!important;
+ left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;
+}/* On small iPhones still keep two-column compact layout where useful. */
+@media(max-width:430px){
+ #sessionDialog .modal{padding:12px!important}
+ #sessionDialog .grid{grid-template-columns:1fr 1fr!important;gap:6px 7px!important}
+ #sessionDialog .full{grid-column:1/-1!important}
+ #sessionDialog textarea{min-height:38px!important;max-height:42px!important}
+ #sessionDialog .buttons{margin-top:7px!important}}/* Handlebar uses the same near-clear material family. */
+.nav{
+ background:rgba(255,255,255,.035)!important;
+ border:1px solid rgba(190,196,205,.26)!important;
+ box-shadow:0 5px 18px rgba(24,29,37,.05),inset 0 1px rgba(255,255,255,.62)!important;
+ backdrop-filter:blur(7px) saturate(135%)!important;
+ -webkit-backdrop-filter:blur(7px) saturate(135%)!important;
+}
+.nav.scrolling{background:rgba(255,255,255,.025)!important}/* ===== V6.15 ONE GLASS SYSTEM =====
+   Reference material = the visible "Block 1 · Grundlagen" select.
+   Do not add component-specific fills below this block.
+*/
+:root{
+ --oneglass-bg:transparent;
+ --oneglass-border:1px solid rgba(190,196,205,.30);
+ --oneglass-radius:12px;
+ --oneglass-shadow:inset 0 1px 0 rgba(255,255,255,.62);
+ --oneglass-filter:none;
+}/* EXACT SAME MATERIAL: block dropdown + every dropdown + calendars/date/time + filter controls */
+.plan-controls select,
+select,
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="month"],
+input[type="week"],
+#planFilterDialog select,
+#sessionDialog select,
+.modal select,
+.settings-card select,
+form select{
+ background:var(--oneglass-bg)!important;
+ background-color:transparent!important;
+ background-image:none!important;
+ border:var(--oneglass-border)!important;
+ border-radius:var(--oneglass-radius)!important;
+ box-shadow:var(--oneglass-shadow)!important;
+ backdrop-filter:var(--oneglass-filter)!important;
+ -webkit-backdrop-filter:var(--oneglass-filter)!important;
+ filter:none!important;
+}/* Remove milky parent-field treatments that visually changed otherwise identical selects. */
+#planFilterDialog label,
+#sessionDialog label,
+.modal label,
+.settings-card label{
+ background:transparent!important;
+ box-shadow:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}/* Filter dialog: the fields sit on a clean white canvas, same context as the Block control. */
+#planFilterDialog .plan-filter-modal{
+ background:#fff!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+ box-shadow:0 14px 42px rgba(25,30,38,.10)!important;
+ border:1px solid rgba(225,227,232,.70)!important;
+}/* Bottom handlebar: EXACT same material variables as Block dropdown. */
+.nav,.nav.scrolling{
+ background:var(--oneglass-bg)!important;
+ background-color:transparent!important;
+ border:var(--oneglass-border)!important;
+ box-shadow:var(--oneglass-shadow)!important;
+ backdrop-filter:var(--oneglass-filter)!important;
+ -webkit-backdrop-filter:var(--oneglass-filter)!important;
+}/* Plan micro controls use the exact same material too. */
+.plan-fixed .segment,
+.plan-fixed .actions-top{
+ background:var(--oneglass-bg)!important;
+ border:var(--oneglass-border)!important;
+ border-radius:var(--oneglass-radius)!important;
+ box-shadow:var(--oneglass-shadow)!important;
+ backdrop-filter:var(--oneglass-filter)!important;
+ -webkit-backdrop-filter:var(--oneglass-filter)!important;
+}
+.plan-fixed .segment button,
+.plan-fixed .segment button.active,
+.plan-fixed .actions-top .pill,
+.plan-fixed .actions-top .pill.primary,
+.plan-fixed .actions-top .pill.gold{
+ background:transparent!important;
+ box-shadow:none!important;
+ border:0!important;
+}/* Other clickable glass controls where the same visual language fits. */
+.filter-pill,
+#sessionDialog .buttons button,
+#sessionDialog label.inline:has(#sTopup){
+ background:var(--oneglass-bg)!important;
+ border:var(--oneglass-border)!important;
+ box-shadow:var(--oneglass-shadow)!important;
+ backdrop-filter:var(--oneglass-filter)!important;
+ -webkit-backdrop-filter:var(--oneglass-filter)!important;
+}/* iOS native form controls retain their native popup/picker behavior, but closed surface is identical. */
+select{
+ -webkit-appearance:menulist!important;
+ appearance:auto!important;
+}
+input[type="date"],input[type="time"],input[type="datetime-local"],input[type="month"],input[type="week"]{
+ -webkit-appearance:auto!important;
+ appearance:auto!important;
+}/* ===== V6.17 NATIVE DROPDOWN RESTORE =====
+   Native iOS dropdown/picker behavior is intentionally retained.
+   Dialogs are readable surfaces; only their form controls use the Block-style material.
+*//* Auswertung wieder scrollbar */
+body:has(#navAnalytics.active) main{
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ min-height:0!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-y!important;
+ padding-bottom:calc(90px + env(safe-area-inset-bottom))!important;
+}/* Liste/Woche: frei, ohne gemeinsamen Rahmen; aktive Auswahl weich abgerundet. */
+.plan-fixed .segment{
+ display:flex!important;width:max-content!important;margin:4px auto!important;
+ padding:0!important;gap:14px!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.plan-fixed .segment button{
+ -webkit-appearance:none!important;appearance:none!important;
+ background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;
+ border-radius:14px!important;padding:5px 9px!important;min-height:28px!important;
+ color:rgba(55,57,61,.48)!important;font-size:12px!important;font-weight:600!important;
+}
+.plan-fixed .segment button.active{
+ background:rgba(255,255,255,.16)!important;
+ border:1px solid rgba(160,165,173,.22)!important;
+ border-radius:14px!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.55)!important;
+ color:rgba(25,26,29,.92)!important;
+}
+.plan-fixed .segment button::before,.plan-fixed .segment button::after{content:none!important;display:none!important}/* Dialoge selbst NICHT durchsichtig: Inhalt muss ruhig und gut lesbar bleiben. */
+#planFilterDialog::backdrop,#sessionDialog::backdrop{
+ background:rgba(20,22,26,.10)!important;
+ backdrop-filter:blur(1px)!important;-webkit-backdrop-filter:blur(1px)!important;
+}
+#planFilterDialog .plan-filter-modal,#sessionDialog .modal{
+ background:rgba(250,250,251,.94)!important;
+ border:1px solid rgba(220,223,228,.78)!important;
+ box-shadow:0 18px 48px rgba(25,30,38,.16)!important;
+ backdrop-filter:blur(18px) saturate(125%)!important;
+ -webkit-backdrop-filter:blur(18px) saturate(125%)!important;
+}/* Die BEDIENELEMENTE im Dialog entsprechen wieder dem Block-Control.
+   Wichtig: native select/date appearance bleibt erhalten => normales Dropdown/Picker, KEIN Overlay-Fenster. */
+#planFilterDialog select,
+#sessionDialog select,
+#sessionDialog input[type="date"],
+#sessionDialog input[type="time"],
+#sessionDialog input[type="datetime-local"],
+.settings-card select,
+.plan-controls select{
+ background:transparent!important;
+ background-color:transparent!important;
+ background-image:none!important;
+ border:1px solid rgba(190,196,205,.30)!important;
+ border-radius:12px!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.62)!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+#planFilterDialog select,#sessionDialog select,.settings-card select,.plan-controls select{
+ -webkit-appearance:menulist!important;appearance:auto!important;
+}
+#sessionDialog input[type="date"],#sessionDialog input[type="time"],#sessionDialog input[type="datetime-local"]{
+ -webkit-appearance:auto!important;appearance:auto!important;
+}/* ===== V6.18 ANALYTICS LINKS + NATIVE SELECT CONSISTENCY ===== *//* All native selects share exactly the same closed-control CSS.
+   Opened native popup remains OS/WebKit-rendered; no custom overlay is introduced. */
+.plan-controls select,#planFilterDialog select,#sessionDialog select,.settings-card select{
+ -webkit-appearance:menulist!important;appearance:auto!important;
+ background:transparent!important;background-color:transparent!important;background-image:none!important;
+ border:1px solid rgba(190,196,205,.30)!important;border-radius:12px!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.62)!important;
+ color:#1d1e20!important;
+}/* Analytics drill-down affordance without turning cards into blue/default buttons. */
+.analytics-link{
+ width:100%;font:inherit;text-align:inherit;color:inherit;cursor:pointer;
+ -webkit-appearance:none;appearance:none;outline:0;
+}
+button.metric.analytics-link{border:inherit}
+.a-bar-row.analytics-link{
+ display:block;border:0;background:transparent;padding:0;margin:0 0 10px;
+}
+.analytics-link:focus,.analytics-link:focus-visible{outline:0!important}
+.analytics-link:active{transform:scale(.992)}
+.clear-plan-filter{
+ width:30px!important;min-width:30px!important;height:30px!important;padding:0!important;
+ border-radius:15px!important;font-size:19px!important;line-height:1!important;
+ background:transparent!important;border:1px solid rgba(160,165,173,.22)!important;
+ box-shadow:none!important;
+}/* V6.18.3.4: Safari must not choose a new scroll anchor while session cards are replaced. */
+#planContent{overflow-anchor:none!important}
+#planContent .session,#planContent [data-date]{overflow-anchor:none!important}/* V6.19 GPT actions clear of floating navbar */
+#gptDialog .modal{max-height:calc(100dvh - 16px)!important;}
+.gpt-export-workout{border-radius:14px!important}/* V6.21.1 GPT modal – single top action bar, no bottom controls behind navbar */
+#gptDialog{
+ z-index:10000!important;
+}
+#gptDialog .modal{
+ display:flex!important;
+ flex-direction:column!important;
+ max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px)!important;
+ padding-bottom:16px!important;
+ overflow:hidden!important;
+}
+#gptDialog .actions{
+ order:-1!important;
+ position:relative!important;
+ top:auto!important;bottom:auto!important;
+ z-index:5!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:flex-end!important;
+ gap:8px!important;
+ margin:0 0 10px!important;
+ padding:0!important;
+ background:transparent!important;
+ border-radius:0!important;
+ flex:0 0 auto!important;
+}
+#gptDialog .gpt-body,#gptDialog #gptContent,#gptDialog .content,#gptDialog .body{
+ overflow:auto!important;
+ -webkit-overflow-scrolling:touch!important;
+ min-height:0!important;
+ flex:1 1 auto!important;
+ padding-bottom:12px!important;
+}
+#gptDialog .x,#gptDialog .close-x,#gptDialog [aria-label="Schließen"]{
+ background:transparent!important;
+ box-shadow:none!important;
+ border:0!important;
+}
+#gptDialog .gpt-export-workout{
+ display:inline-flex!important;
+ visibility:visible!important;
+ opacity:1!important;
+}/* V6.21.2 – REAL GPT modal classes */
+#gptExplainModal{z-index:10000!important;padding-bottom:0!important}
+#gptExplainModal .gpt-explain-sheet{
+  display:flex!important;flex-direction:column!important;
+  width:min(760px,calc(100vw - 20px))!important;
+  height:min(88dvh,820px)!important;max-height:calc(100dvh - 24px)!important;
+  margin:max(10px,env(safe-area-inset-top)) auto max(10px,env(safe-area-inset-bottom))!important;
+  padding:14px!important;overflow:hidden!important;
+}
+#gptExplainModal .gpt-explain-head{
+  flex:0 0 auto!important;display:flex!important;flex-direction:column!important;
+  align-items:stretch!important;gap:10px!important;margin:0 0 10px!important;
+  padding:0 0 10px!important;background:transparent!important;
+}
+#gptExplainModal .gpt-explain-titlewrap{min-width:0!important}
+#gptExplainModal .gpt-explain-actions{
+  display:flex!important;flex-wrap:wrap!important;gap:8px!important;
+  align-items:center!important;justify-content:flex-start!important;
+}
+#gptExplainModal .gpt-explain-actions button{
+  display:inline-flex!important;visibility:visible!important;opacity:1!important;
+  position:static!important;transform:none!important;margin:0!important;
+}
+#gptExplainModal .gpt-explain-body{
+  flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch!important;padding:2px 2px 16px!important;
+}
+#gptExplainModal .gpt-explain-foot{display:none!important}
+@media(max-width:560px){
+ #gptExplainModal .gpt-explain-sheet{height:calc(100dvh - 20px)!important}
+ #gptExplainModal .gpt-explain-actions{display:grid!important;grid-template-columns:1fr 1fr!important}
+ #gptExplainModal .gpt-workout-btn{grid-column:1/-1!important}}/* V6.23 My Trainings Coach */
+#meinTrainingCoach{margin-top:14px;padding:14px}
+#meinTrainingCoach h3{margin:0 0 4px}
+#meinTrainingCoach .coach-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+#meinTrainingCoach .coach-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(120,120,128,.15)}
+#meinTrainingCoach .coach-row:last-child{border-bottom:0}
+#meinTrainingCoach .stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+@media(max-width:640px){#meinTrainingCoach .coach-grid{grid-template-columns:1fr}}/* V6.26 – Coach is a real app screen */
+.coach-screen{padding-bottom:calc(92px + env(safe-area-inset-bottom));}
+.coach-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;margin-bottom:10px}
+#coachScreenContent .coach-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#coachScreenContent .coach-value{font-size:1.08rem;font-weight:700;margin-top:8px}
+#coachScreenContent .coach-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid rgba(120,120,128,.15)}
+#coachScreenContent .coach-row:last-child{border-bottom:0}
+#coachScreenContent .stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#coachScreenContent .coach-section{margin-top:10px}
+@media(max-width:700px){#coachScreenContent .coach-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.nav{grid-template-columns:repeat(5,minmax(0,1fr))!important}.nav button{min-width:0}.nav button span{font-size:20px}}/* V6.26 – Coach as a proper Settings menu */
+.coach-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:4px}
+.coach-settings-card{padding:12px;border-radius:16px;background:rgba(255,255,255,.32);border:1px solid rgba(120,120,128,.12)}
+#coachSettingsContent .coach-value{font-size:1.05rem;font-weight:700;margin-top:7px}
+#coachSettingsContent .stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#coachSettingsContent .coach-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid rgba(120,120,128,.14)}
+#coachSettingsContent .coach-row:last-child{border-bottom:0}
+#coachSettingsContent .coach-section{margin-top:10px}
+@media(max-width:700px){.coach-settings-grid{grid-template-columns:1fr}}/* ===== V6.28 Activity analytics / Intervals.icu ===== */
+.analytics-switch{display:flex;gap:3px;padding:4px;margin:0 0 14px;border-radius:16px;width:max-content;max-width:100%;background:rgba(118,118,128,.10)}
+.analytics-switch button{border:0;background:transparent;color:var(--muted);padding:9px 13px;border-radius:12px;font-weight:650}
+.analytics-switch button.active{background:rgba(255,255,255,.48);color:var(--text);box-shadow:0 3px 10px rgba(0,0,0,.06)}
+.activity-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.activity-source{font-size:12px;color:var(--muted)}
+.activity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.activity-card{border-radius:22px;padding:16px;cursor:pointer;text-align:left;border:1px solid var(--border);color:var(--text);background:var(--glass);box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,.45);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px)}
+.activity-card:active{transform:scale(.992)}
+.activity-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.activity-card h3{margin:3px 0 2px;font-size:17px}.activity-date{font-size:11px;color:var(--muted)}
+.activity-demo{font-size:9px;font-weight:800;letter-spacing:.45px;padding:4px 7px;border-radius:999px;background:rgba(255,159,10,.14);color:#a45c00;white-space:nowrap}
+.activity-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:13px}.activity-kpi{padding:8px;border-radius:12px;background:rgba(255,255,255,.18);min-width:0}.activity-kpi strong{display:block;font-size:14px;white-space:nowrap}.activity-kpi span{display:block;font-size:9px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+.activity-match{margin-top:10px;font-size:11px;color:var(--muted)}
+.activity-detail{margin-top:14px;padding-top:13px;border-top:1px solid rgba(127,127,127,.12)}
+.activity-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.activity-detail-metric{padding:10px;border-radius:13px;background:rgba(255,255,255,.14)}.activity-detail-metric span{font-size:10px;color:var(--muted);display:block}.activity-detail-metric strong{font-size:15px;display:block;margin-top:2px}
+.activity-chart{margin-top:12px;padding:11px;border-radius:15px;background:rgba(255,255,255,.12)}.activity-chart-title{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:8px}.activity-bars{height:64px;display:flex;align-items:flex-end;gap:3px}.activity-bars i{display:block;flex:1;min-width:2px;border-radius:3px 3px 1px 1px;background:rgba(80,82,88,.38)}
+.activity-empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.activity-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:12px}.activity-summary .metric{min-height:80px}
+@media(max-width:760px){.activity-grid{grid-template-columns:1fr}.activity-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-switch{width:100%}.analytics-switch button{flex:1}}
+@media(prefers-color-scheme:dark){.analytics-switch button.active{background:rgba(255,255,255,.10)}.activity-kpi,.activity-detail-metric,.activity-chart{background:rgba(255,255,255,.06)}}/* ===== V6.29 adaptive scrolling + activity development ===== */
+main:not(.plan-screen){height:100dvh!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain!important;padding-bottom:calc(112px + env(safe-area-inset-bottom))!important}
+@media(min-width:1200px){main:not(.plan-screen){padding-bottom:48px!important}}
+.activity-toolbar .auto-sync-note{font-size:10px;color:var(--muted);margin-top:3px}.activity-refresh{min-width:42px;padding:9px 11px!important}
+.trend-controls{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px;margin:12px 0}.trend-controls select{width:100%}
+.trend-hero{border-radius:22px;padding:16px;margin:12px 0}.trend-hero-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.trend-hero h3{margin:0 0 3px}.trend-comparison{font-size:12px;line-height:1.5;color:var(--muted);margin-top:12px}.trend-positive{color:#248a3d}.trend-negative{color:#c9342e}.trend-neutral{color:var(--muted)}
+.trend-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.trend-kpi{padding:10px;border-radius:14px;background:rgba(255,255,255,.16)}.trend-kpi span{display:block;font-size:9px;color:var(--muted)}.trend-kpi strong{display:block;font-size:15px;margin-top:2px}.trend-kpi small{font-size:9px}
+.trend-chart{padding:12px;border-radius:17px;background:rgba(255,255,255,.12);margin-top:10px}.trend-chart-head{display:flex;justify-content:space-between;gap:10px;font-size:11px;color:var(--muted);margin-bottom:8px}.trend-line{height:100px;width:100%;display:block}.trend-point-list{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:4px}
+.activity-extra-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}.activity-extra-grid .activity-detail-metric{min-width:0}.activity-unavailable{font-size:10px;color:var(--muted);margin-top:9px;line-height:1.4}
+@media(max-width:760px){.trend-controls{grid-template-columns:1fr}.trend-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-extra-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-color-scheme:dark){.trend-kpi,.trend-chart{background:rgba(255,255,255,.06)}}/* ===== V6.31 Settings scroll fix =====
+   main must remain the flex child of .shell. A forced 100dvh height made
+   expanded settings content extend below the visible shell. */
+body:has(#navSettings.active) main{
+  flex:1 1 0!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  touch-action:pan-y!important;
+  padding-bottom:calc(92px + env(safe-area-inset-bottom))!important;
+}
+body:has(#navSettings.active) .settings-accordion{
+  overflow:visible!important;
+  min-height:min-content!important;
+}
+body:has(#navSettings.active) .settings-section.open{
+  overflow:visible!important;
+}
+body:has(#navSettings.active) .settings-section.open .settings-section-body{
+  overflow:visible!important;
+}
+@media(min-width:1200px){
+  body:has(#navSettings.active) main{
+    padding-bottom:40px!important;
+  }}/* ===== V6.32 onboarding / multi-user Intervals ===== */
+.tutorial-steps{display:grid;gap:10px;margin-top:12px}.tutorial-step{padding:13px;border-radius:16px;background:rgba(255,255,255,.14)}.tutorial-step-head{display:flex;gap:10px;align-items:flex-start}.tutorial-no{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;background:rgba(80,82,88,.13);font-weight:800;flex:0 0 auto}.tutorial-step strong{display:block;margin:3px 0 4px}.tutorial-step p{margin:4px 0;font-size:12px;line-height:1.45;color:var(--muted)}.tutorial-links{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.intervals-connect-box{padding:13px;border-radius:16px;margin-top:12px;background:rgba(255,255,255,.12)}.intervals-connect-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:8px;margin-top:9px}.intervals-status{font-size:12px;color:var(--muted);margin:6px 0}.tutorial-note{font-size:11px;line-height:1.45;color:var(--muted);margin-top:8px}.tutorial-example{margin-top:8px;padding:10px;border-radius:12px;background:rgba(80,82,88,.08);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:10px;white-space:pre-wrap;overflow-wrap:anywhere}.tutorial-check{font-size:12px;margin-top:8px}.tutorial-check.ok{color:#248a3d}.tutorial-check.warn{color:#a45c00}@media(max-width:650px){.intervals-connect-grid{grid-template-columns:1fr}}@media(prefers-color-scheme:dark){.tutorial-step,.intervals-connect-box{background:rgba(255,255,255,.055)}}/* ===== V6.33 development: Gesamtübersicht aller Messwerte ===== */
+.trend-overview-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;flex-wrap:wrap;margin:14px 0 8px}
+.trend-overview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.trend-overview-card{padding:11px;border-radius:15px;background:rgba(255,255,255,.15);min-width:0}
+.trend-overview-card span{display:block;font-size:9px;color:var(--muted)}
+.trend-overview-card strong{display:block;font-size:15px;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trend-overview-card small{display:block;font-size:9px;min-height:12px}
+.trend-all-series{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:10px}
+.trend-mini{padding:11px;border-radius:16px;background:rgba(255,255,255,.11)}
+.trend-mini-head{display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:10px;color:var(--muted)}
+.trend-mini-head strong{font-size:12px;color:var(--text)}
+.trend-mini .trend-line{height:54px;margin-top:7px}
+.trend-focus-note{font-size:11px;color:var(--muted);line-height:1.45;margin-top:8px}
+@media(max-width:760px){.trend-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.trend-all-series{grid-template-columns:1fr}}
+@media(prefers-color-scheme:dark){.trend-overview-card,.trend-mini{background:rgba(255,255,255,.055)}}/* ===== block-1 ===== *//* v6.52: info/detail sheets must stay above the bottom navigation/handlebar */
+.info-sheet-backdrop{z-index:1290!important}
+.info-sheet{z-index:1300!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
+@media(min-width:768px){.info-sheet{padding-bottom:24px!important}}
+.actual-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.actual-detail-grid>div{padding:10px;border-radius:12px;background:rgba(127,127,127,.09)}
+.actual-detail-grid small{display:block;color:var(--muted);font-size:11px}.actual-detail-grid strong{display:block;margin-top:2px}/* ===== block-2 ===== *//* v6.52 GLOBAL overlay contract: no bottom sheet/menu/dialog may be obscured by app navigation. */
+:root{--app-bottom-clearance:calc(96px + env(safe-area-inset-bottom))}
+.quick-menu-backdrop,.info-sheet-backdrop{z-index:1990!important}
+.quick-menu,.info-sheet{z-index:2000!important;box-sizing:border-box!important}
+@media(max-width:767px){
+ .quick-menu,.info-sheet{
+   bottom:var(--app-bottom-clearance)!important;
+   max-height:calc(100dvh - var(--app-bottom-clearance) - max(14px,env(safe-area-inset-top)))!important;
+   overflow-y:auto!important;
+   overscroll-behavior:contain;
+ }
+ .quick-menu{padding-bottom:16px!important}
+ .info-sheet{padding-bottom:20px!important}
+ dialog[open] .modal,.equipment-sheet{
+   max-height:calc(100dvh - var(--app-bottom-clearance))!important;
+   padding-bottom:calc(20px + env(safe-area-inset-bottom))!important;
+   overflow-y:auto!important;
+ }}
+.trend-custom-dates{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.trend-axis{display:flex;justify-content:space-between;gap:6px;margin-top:3px;font-size:9px;color:var(--muted)}
+.trend-axis span:nth-child(2){text-align:center}.trend-axis span:last-child{text-align:right}
+.trend-stat-explain{font-size:9px;color:var(--muted);line-height:1.35;margin-top:5px}/* ===== v645-theme ===== *//* ===== v6.52 COMPLETE APPEARANCE SYSTEM ===== */
+:root{
+ --theme-bg:#ffffff;--theme-bg2:#f1f2f5;--theme-text:#1c1c1e;--theme-muted:#6e6e73;
+ --theme-panel:rgba(255,255,255,.76);--theme-panel-strong:rgba(255,255,255,.92);
+ --theme-soft:rgba(118,118,128,.08);--theme-border:rgba(210,214,221,.62);
+ --theme-shadow:0 10px 30px rgba(20,24,32,.07);--theme-nav:rgba(248,249,251,.88);
+ color-scheme:light;
+}
+html[data-theme="dark"]{
+ --theme-bg:#0b0c0e;--theme-bg2:#15171b;--theme-text:#f5f5f7;--theme-muted:#a9a9b0;
+ --theme-panel:rgba(30,32,37,.82);--theme-panel-strong:rgba(37,39,45,.96);
+ --theme-soft:rgba(255,255,255,.075);--theme-border:rgba(255,255,255,.14);
+ --theme-shadow:0 14px 38px rgba(0,0,0,.34);--theme-nav:rgba(25,27,31,.91);
+ color-scheme:dark;
+}
+html[data-theme="light"]{color-scheme:light}/* Full app canvas */
+html[data-theme],html[data-theme] body,html[data-theme] .shell,html[data-theme] main,
+html[data-theme] .plan-screen,html[data-theme] .plan-fixed,html[data-theme] .plan-scroll,
+html[data-theme] .week-title{
+ background:var(--theme-bg)!important;color:var(--theme-text)!important;
+}
+html[data-theme] body{
+ background-image:linear-gradient(180deg,var(--theme-bg),var(--theme-bg2))!important;
+}
+html[data-theme] body::before,html[data-theme] body::after{display:none!important}/* Every major surface */
+html[data-theme] .glass,html[data-theme] .event-card,html[data-theme] .session,
+html[data-theme] .dayitem,html[data-theme] .analytics-card,html[data-theme] .analytics-hero,
+html[data-theme] .metric,html[data-theme] .plan-head,html[data-theme] .block-stat,
+html[data-theme] .card,html[data-theme] .settings-card,html[data-theme] .settings-section,
+html[data-theme] .equipment-card,html[data-theme] .modal,html[data-theme] .quick-menu,
+html[data-theme] .info-sheet,html[data-theme] .gpt-explain-sheet,html[data-theme] .trend-hero,
+html[data-theme] .trend-chart,html[data-theme] .trend-kpi,html[data-theme] .trend-mini,
+html[data-theme] .trend-overview-card,html[data-theme] .activity-kpi,
+html[data-theme] .activity-detail-metric,html[data-theme] .activity-chart,
+html[data-theme] .tutorial-step,html[data-theme] .intervals-connect-box{
+ background:var(--theme-panel)!important;border-color:var(--theme-border)!important;
+ color:var(--theme-text)!important;box-shadow:var(--theme-shadow)!important;
+}
+html[data-theme] .session{background:color-mix(in srgb,var(--theme-panel) 92%,var(--theme-bg))!important}/* Text */
+html[data-theme] .meta,html[data-theme] .muted,html[data-theme] .cloud,
+html[data-theme] .settings-section-sub,html[data-theme] .activity-source,
+html[data-theme] .trend-mini-head,html[data-theme] .trend-stat-explain,
+html[data-theme] .trend-axis,html[data-theme] .eq-small,html[data-theme] .tutorial-step p,
+html[data-theme] .tutorial-note{color:var(--theme-muted)!important}
+html[data-theme] h1,html[data-theme] h2,html[data-theme] h3,html[data-theme] h4,
+html[data-theme] strong,html[data-theme] .stitle,html[data-theme] .page-title,
+html[data-theme] .quick-menu-title{color:var(--theme-text)!important}/* Inputs / controls */
+html[data-theme] input,html[data-theme] textarea,html[data-theme] select{
+ background:var(--theme-soft)!important;background-color:var(--theme-soft)!important;
+ border-color:var(--theme-border)!important;color:var(--theme-text)!important;
+ -webkit-text-fill-color:var(--theme-text)!important;
+}
+html[data-theme] input::placeholder,html[data-theme] textarea::placeholder{color:var(--theme-muted)!important;opacity:.9}
+html[data-theme] option{background:var(--theme-panel-strong)!important;color:var(--theme-text)!important}
+html[data-theme] .pill,html[data-theme] button:not(.primary):not(.ok):not(.bad):not(.warn){
+ color:var(--theme-text);
+}/* Navigation + sheets */
+html[data-theme] .nav{
+ background:var(--theme-nav)!important;border-color:var(--theme-border)!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.18)!important;
+}
+html[data-theme] .nav button{color:var(--theme-muted)!important}
+html[data-theme] .nav button.active{color:var(--theme-text)!important;background:var(--theme-soft)!important}
+html[data-theme] dialog::backdrop,html[data-theme] #planFilterDialog::backdrop{
+ background:rgba(0,0,0,.38)!important;backdrop-filter:blur(7px)!important;
+}
+html[data-theme] #planFilterDialog .plan-filter-modal{background:var(--theme-panel-strong)!important;border-color:var(--theme-border)!important}/* Status/semantic colors stay recognizable in both modes. */
+html[data-theme="dark"]{--green:#5ee27c;--red:#ff6961;--yellow:#ffd35a;--gold:#ffd35a}
+html[data-theme="dark"] .note,html[data-theme="dark"] .info-block,
+html[data-theme="dark"] .actual-detail-grid>div,html[data-theme="dark"] .tutorial-example{
+ background:rgba(255,255,255,.07)!important;color:var(--theme-text)!important;
+}
+html[data-theme="dark"] a{color:#7db7ff}/* Appearance selector */
+.appearance-choice{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.appearance-choice button{min-height:62px;border:1px solid var(--theme-border)!important;border-radius:15px;background:var(--theme-soft)!important;color:var(--theme-text)!important}
+.appearance-choice button.active{outline:2px solid currentColor!important;outline-offset:-2px}
+.appearance-choice button span{display:block;font-size:20px;margin-bottom:3px}
+@media(max-width:420px){.appearance-choice{grid-template-columns:1fr}}/* ===== v646-dark-fixes ===== *//* Dark-mode hard override for legacy rules that still force light colors. */
+html[data-theme="dark"]{
+ --text:#f5f5f7!important;--muted:#b5b5bd!important;--line:rgba(255,255,255,.16)!important;
+}
+html[data-theme="dark"] .plan-view-switch,
+html[data-theme="dark"] .plan-view-switch button,
+html[data-theme="dark"] .plan-controls,
+html[data-theme="dark"] .plan-controls button,
+html[data-theme="dark"] .plan-controls select,
+html[data-theme="dark"] .plan-fixed button,
+html[data-theme="dark"] .filter-pill,
+html[data-theme="dark"] .segmented,
+html[data-theme="dark"] .segmented button{
+ color:#f5f5f7!important;-webkit-text-fill-color:#f5f5f7!important;
+ border-color:rgba(255,255,255,.24)!important;background-color:rgba(255,255,255,.075)!important;
+ box-shadow:none!important;
+}
+html[data-theme="dark"] .plan-view-switch button.active,
+html[data-theme="dark"] .segmented button.active{
+ background:#f5f5f7!important;color:#111216!important;-webkit-text-fill-color:#111216!important;
+}
+html[data-theme="dark"] .session,
+html[data-theme="dark"] .dayitem{
+ color:#f5f5f7!important;border-color:rgba(255,255,255,.14)!important;
+}
+html[data-theme="dark"] .session.open,html[data-theme="dark"] .dayitem.open{background:#202228!important}
+html[data-theme="dark"] .session.done,html[data-theme="dark"] .dayitem.done{background:#173522!important}
+html[data-theme="dark"] .session.cancel,html[data-theme="dark"] .dayitem.cancel{background:#38201f!important}
+html[data-theme="dark"] .session.move,html[data-theme="dark"] .dayitem.move{background:#3a321b!important}
+html[data-theme="dark"] .session.topup,html[data-theme="dark"] .dayitem.topup{box-shadow:inset 0 0 0 1px rgba(255,211,90,.42)!important}
+html[data-theme="dark"] .session *,html[data-theme="dark"] .dayitem *{color:inherit}
+html[data-theme="dark"] .session .meta,html[data-theme="dark"] .dayitem .meta,
+html[data-theme="dark"] .session .sdate,html[data-theme="dark"] .dayitem .sdate{color:#c5c5cc!important}/* ALL native dialogs, especially Training / On-Top editor */
+html[data-theme="dark"] dialog{background:#15171b!important;color:#f5f5f7!important;border-color:rgba(255,255,255,.15)!important}
+html[data-theme="dark"] dialog .modal,html[data-theme="dark"] #sessionDialog .modal{
+ background:#1d1f24!important;color:#f5f5f7!important;border:1px solid rgba(255,255,255,.15)!important;
+}
+html[data-theme="dark"] dialog label,html[data-theme="dark"] dialog .helper,
+html[data-theme="dark"] #sessionDialog label,html[data-theme="dark"] #sessionDialog .helper{color:#d8d8de!important}
+html[data-theme="dark"] dialog input,html[data-theme="dark"] dialog textarea,html[data-theme="dark"] dialog select,
+html[data-theme="dark"] #sessionDialog input,html[data-theme="dark"] #sessionDialog textarea,html[data-theme="dark"] #sessionDialog select{
+ background:#292c32!important;background-color:#292c32!important;color:#f5f5f7!important;
+ -webkit-text-fill-color:#f5f5f7!important;border:1px solid rgba(255,255,255,.22)!important;
+ box-shadow:none!important;
+}
+html[data-theme="dark"] dialog button:not(.primary){
+ background:#292c32!important;color:#f5f5f7!important;border-color:rgba(255,255,255,.18)!important;
+}
+html[data-theme="dark"] dialog .primary{color:#fff!important}
+html[data-theme="dark"] dialog::backdrop{background:rgba(0,0,0,.68)!important}/* Action/filter sheets */
+html[data-theme="dark"] .action-sheet,html[data-theme="dark"] .quick-menu,
+html[data-theme="dark"] .info-sheet{background:#1d1f24!important;color:#f5f5f7!important}
+html[data-theme="dark"] .action-sheet button,html[data-theme="dark"] .quick-menu button{
+ background:#292c32!important;color:#f5f5f7!important;border-color:rgba(255,255,255,.12)!important
+}/* ===== v647-dark-fixes ===== *//* Analytics > Einzelne Einheiten: dark cards and readable metrics */
+html[data-theme="dark"] #analyticsActivities .activity-card,
+html[data-theme="dark"] #analyticsActivities .activity-row,
+html[data-theme="dark"] #analyticsActivities .activity-item,
+html[data-theme="dark"] .activity-list .activity-card{
+ background:#1d1f24!important;background-color:#1d1f24!important;
+ border-color:rgba(255,255,255,.14)!important;color:#f5f5f7!important;
+ box-shadow:0 10px 28px rgba(0,0,0,.24)!important;
+}
+html[data-theme="dark"] #analyticsActivities .activity-card *,
+html[data-theme="dark"] .activity-list .activity-card *{color:inherit}
+html[data-theme="dark"] #analyticsActivities .activity-source,
+html[data-theme="dark"] #analyticsActivities .activity-date,
+html[data-theme="dark"] #analyticsActivities small,
+html[data-theme="dark"] #analyticsActivities .activity-unavailable{color:#b8b8c0!important}
+html[data-theme="dark"] #analyticsActivities .activity-kpi,
+html[data-theme="dark"] #analyticsActivities .activity-detail-metric,
+html[data-theme="dark"] #analyticsActivities .activity-extra-grid>div{
+ background:#292c32!important;border-color:rgba(255,255,255,.10)!important;color:#f5f5f7!important;
+}/* Training editor buttons: explicit contrast beats old button rules */
+html[data-theme="dark"] #sessionDialog .buttons button{
+ color:#f5f5f7!important;-webkit-text-fill-color:#f5f5f7!important;
+ border:1px solid rgba(255,255,255,.22)!important;background:#34373e!important;
+}
+html[data-theme="dark"] #sessionDialog .buttons button.primary{
+ background:#f5f5f7!important;color:#111216!important;-webkit-text-fill-color:#111216!important;
+ border-color:#f5f5f7!important;
+}/* ===== v648-sources ===== */
+.source-provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.source-provider{padding:13px;border:1px solid var(--theme-border,var(--line));border-radius:16px;background:var(--theme-soft,rgba(118,118,128,.08))}
+.source-provider>strong{display:block;margin-bottom:5px}.source-provider>span{display:block;font-size:11px;line-height:1.45;color:var(--muted);margin-bottom:9px}
+@media(max-width:680px){.source-provider-grid{grid-template-columns:1fr}}
+
+/* ===== v6.54 Barrierefreiheit ===== */
+:focus-visible{outline:2px solid #0a84ff;outline-offset:2px}
+[role="button"]{cursor:pointer}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
