@@ -1,2 +1,0 @@
-# Trainingsplan-App
-Persönlicher Radtrainingsplan
