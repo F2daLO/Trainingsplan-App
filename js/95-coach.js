@@ -51,7 +51,7 @@ function coachSnapshot(extra={}){
 /* ===== v6.55: Coach – neuer Plan / bestehenden Plan fortsetzen / Entwurf mit Ergänzungen neu erstellen ===== */
 const COACH_DAYS=[[1,"Mo"],[2,"Di"],[3,"Mi"],[4,"Do"],[5,"Fr"],[6,"Sa"],[0,"So"]];
 const COACH_FOCUS=["","Grundlagenausdauer","Aufbau / Schwelle","Wettkampfvorbereitung / Spitze","FTP steigern","Erholung / Entlastung","Gewicht & Kraft"];
-const COACH_SECTION_STYLE="box-sizing:border-box;width:100%;border-radius:10px;padding:10px;font-size:16px;line-height:1.4;font-family:inherit;background:var(--bg,#12171c);color:var(--text,#fff);border:1px solid #8c939b";
+const COACH_SECTION_STYLE="";
 function coachIso(d){const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")}
 function coachPlanLastDate(planId){
  const ds=(db.sessions||[]).filter(s=>s.planId===planId).map(s=>String(s.date||"")).filter(Boolean).sort();
@@ -128,13 +128,13 @@ function coachOpenRequestDialog(initial="",opts={}){
  const startDefault=p.startDate&&p.startDate>=tomorrow?p.startDate:(last&&last>=coachIso(Date.now())?coachIso(new Date(last+"T12:00:00").getTime()+864e5):tomorrow);
  const overlay=document.createElement("div");overlay.id="coachRequestDialog";
  overlay.dataset.refine=opts.refineOf||"";
- overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;display:flex;align-items:center;justify-content:center;padding:14px";
+ overlay.className="coach-overlay";
  const planOpts=plans.map(x=>`<option value="${esc(x.id)}"${x.id===planId?" selected":""}>${esc(x.title||x.name||"Plan")}${coachPlanLastDate(x.id)?" · bis "+esc(coachPlanLastDate(x.id)):""}</option>`).join("");
- const days=COACH_DAYS.map(([v,l])=>`<label style="display:inline-flex;align-items:center;gap:4px;margin:0 8px 6px 0;font-size:16px"><input type="checkbox" name="coachDay" value="${v}"${(p.trainingDays||[]).includes(v)?" checked":""}> ${l}</label>`).join("");
+ const days=COACH_DAYS.map(([v,l])=>`<label class="coach-day"><input type="checkbox" name="coachDay" value="${v}"${(p.trainingDays||[]).includes(v)?" checked":""}> ${l}</label>`).join("");
  const focusOpts=COACH_FOCUS.map(f=>`<option value="${esc(f)}"${f===(p.focus||"")?" selected":""}>${f||"(kein besonderer Schwerpunkt)"}</option>`).join("");
  const weekOpts=[1,2,3,4,6,8,12].map(w=>`<option value="${w}"${w===Number(p.weeks)?" selected":""}>${w} Woche${w>1?"n":""}</option>`).join("");
- const lab=t=>`<div style="font-weight:600;margin:12px 0 4px">${t}</div>`;
- overlay.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="coachDialogTitle" style="width:min(640px,100%);max-height:92dvh;overflow:auto;background:var(--card,#20252b);color:var(--text,#fff);border:1px solid #7c8590;border-radius:16px;padding:18px;box-shadow:0 12px 45px #0008">
+ const lab=t=>`<div class="coach-label">${t}</div>`;
+ overlay.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="coachDialogTitle" class="coach-sheet">
  <h3 id="coachDialogTitle">${refine?"Entwurf überarbeiten":"Trainingsplan vom Coach erstellen"}</h3>
  ${refine?`<p class="eq-small">Der bisherige Entwurf wird mit deinen ergänzten Wünschen komplett neu erstellt. Der alte Entwurf wird danach verworfen.</p>`:`<div style="display:flex;gap:8px;margin:8px 0" role="group" aria-label="Art der Planung">
   <button type="button" class="pill${p.mode==="new"?" primary":""}" id="coachModeNew" onclick="coachSetMode('new')">Neuer Plan</button>
@@ -142,30 +142,30 @@ function coachOpenRequestDialog(initial="",opts={}){
  <input type="hidden" id="coachMode" value="${esc(p.mode)}">
  <div id="coachContinueBox"${p.mode==="continue"?"":' style="display:none"'}>
   ${lab('<label for="coachPlan">Plan, der fortgesetzt wird</label>')}
-  <select id="coachPlan" onchange="coachPlanChanged()" style="${COACH_SECTION_STYLE}"${refine?" disabled":""}>${planOpts||'<option value="">(kein Plan vorhanden)</option>'}</select>
+  <select id="coachPlan" onchange="coachPlanChanged()" class="coach-field"${refine?" disabled":""}>${planOpts||'<option value="">(kein Plan vorhanden)</option>'}</select>
  </div>
  <div id="coachNewBox"${p.mode==="new"?"":' style="display:none"'}>
   ${lab('<label for="coachGoalTitle">Ziel / Event (optional)</label>')}
-  <input id="coachGoalTitle" type="text" maxlength="120" value="${esc(p.goalTitle||"")}" placeholder="z. B. Radmarathon, Grundlagenblock, Abnehmen" style="${COACH_SECTION_STYLE}">
+  <input id="coachGoalTitle" type="text" maxlength="120" value="${esc(p.goalTitle||"")}" placeholder="z. B. Radmarathon, Grundlagenblock, Abnehmen" class="coach-field">
   ${lab('<label for="coachGoalDate">Zieldatum (optional)</label>')}
-  <input id="coachGoalDate" type="date" value="${esc(p.goalDate||"")}" style="${COACH_SECTION_STYLE}">
+  <input id="coachGoalDate" type="date" value="${esc(p.goalDate||"")}" class="coach-field">
  </div>
  ${lab('<label for="coachStart">Beginn</label>')}
- <input id="coachStart" type="date" min="${tomorrow}" value="${esc(startDefault)}" style="${COACH_SECTION_STYLE}">
+ <input id="coachStart" type="date" min="${tomorrow}" value="${esc(startDefault)}" class="coach-field">
  <div class="eq-small" id="coachStartHint"></div>
  ${lab('<label for="coachWeeks">Zeitraum</label>')}
- <select id="coachWeeks" style="${COACH_SECTION_STYLE}">${weekOpts}</select>
+ <select id="coachWeeks" class="coach-field">${weekOpts}</select>
  ${lab('An welchen Tagen kannst du trainieren?')}
  <div>${days}</div>
  ${lab('<label for="coachMaxMin">Maximale Dauer pro Einheit (Minuten, optional)</label>')}
- <input id="coachMaxMin" type="number" inputmode="numeric" min="15" max="600" step="5" value="${esc(String(p.maxMinutes||""))}" style="${COACH_SECTION_STYLE}">
+ <input id="coachMaxMin" type="number" inputmode="numeric" min="15" max="600" step="5" value="${esc(String(p.maxMinutes||""))}" class="coach-field">
  ${lab('<label for="coachEnv">Indoor / Outdoor</label>')}
- <select id="coachEnv" style="${COACH_SECTION_STYLE}"><option value="mixed"${p.environment==="mixed"?" selected":""}>Mischung</option><option value="indoor"${p.environment==="indoor"?" selected":""}>Nur Indoor</option><option value="outdoor"${p.environment==="outdoor"?" selected":""}>Bevorzugt Outdoor</option></select>
+ <select id="coachEnv" class="coach-field"><option value="mixed"${p.environment==="mixed"?" selected":""}>Mischung</option><option value="indoor"${p.environment==="indoor"?" selected":""}>Nur Indoor</option><option value="outdoor"${p.environment==="outdoor"?" selected":""}>Bevorzugt Outdoor</option></select>
  ${lab('<label for="coachFocus">Schwerpunkt</label>')}
- <select id="coachFocus" style="${COACH_SECTION_STYLE}">${focusOpts}</select>
- ${refine?`${lab('Bisherige Wünsche')}<div class="eq-small" style="white-space:pre-wrap;max-height:90px;overflow:auto;border:1px solid #556;border-radius:8px;padding:8px">${esc(initial||"(keine)")}</div>
+ <select id="coachFocus" class="coach-field">${focusOpts}</select>
+ ${refine?`${lab('Bisherige Wünsche')}<div class="eq-small coach-quote">${esc(initial||"(keine)")}</div>
  ${lab('<label for="coachWishes">Ergänzungen / Änderungen</label>')}`:lab('<label for="coachWishes">Deine Wünsche und Vorgaben</label>')}
- <textarea id="coachWishes" rows="6" maxlength="2500" style="${COACH_SECTION_STYLE};min-height:140px;max-height:40dvh;resize:vertical" placeholder="${refine?"Was soll anders werden? z. B. mehr Intervalle am Samstag, Dienstag lockerer, eine Entlastungswoche früher …":"z. B. Urlaub vom 3. bis 10., am Wochenende lange Ausfahrt, Knie schonen, Wettkampf am 20.6. …"}">${refine?"":esc(initial)}</textarea>
+ <textarea id="coachWishes" rows="6" maxlength="2500" class="coach-field coach-textarea" placeholder="${refine?"Was soll anders werden? z. B. mehr Intervalle am Samstag, Dienstag lockerer, eine Entlastungswoche früher …":"z. B. Urlaub vom 3. bis 10., am Wochenende lange Ausfahrt, Knie schonen, Wettkampf am 20.6. …"}">${refine?"":esc(initial)}</textarea>
  <div class="eq-small" style="margin:8px 0 14px">Die Angaben werden zusammen mit deinem Plan, FTP, Equipment und den Aktivitäten der letzten 90 Tage an den Coach übermittelt. Das Ergebnis siehst du erst als Vorschau und kannst es danach übernehmen, mit Ergänzungen neu erstellen lassen oder verwerfen.</div>
  <div style="display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end"><button type="button" class="pill" onclick="coachCloseRequestDialog()">Abbrechen</button><button type="button" class="pill primary" id="coachSubmitWishes" onclick="coachSubmitRequestDialog()">${refine?"Neu erstellen":"Plan erstellen"}</button></div>
  <div id="coachRequestFeedback" role="status" aria-live="polite" style="margin-top:12px"></div></section>`;
@@ -378,15 +378,15 @@ function coachPackagePreview(id){
  const minutes=s=>{const sec=(s.workout?.steps||[]).reduce((n,x)=>n+(Number(x.durationSec)||0)*(Number(x.repeat)||1),0);return sec?Math.round(sec/60)+" min":""};
  let count=0;
  const blocks=(pkg.blocks||[]).map(b=>{
-  const rows=(b.sessions||[]).slice().sort((x,y)=>String(x.date).localeCompare(String(y.date))).map(s=>{count++;return `<div style="display:flex;gap:8px;padding:5px 0;border-top:1px solid #4448"><span style="min-width:74px;opacity:.8">${esc(fmtDay(s.date))}</span><span style="flex:1"><strong>${esc(s.title||"")}</strong><br><small>${esc(s.type||"")}${minutes(s)?" · "+minutes(s):""}${s.description?" · "+esc(String(s.description).slice(0,140)):""}</small></span></div>`}).join("");
+  const rows=(b.sessions||[]).slice().sort((x,y)=>String(x.date).localeCompare(String(y.date))).map(s=>{count++;return `<div class="coach-item"><span class="coach-item-date">${esc(fmtDay(s.date))}</span><span style="flex:1"><strong>${esc(s.title||"")}</strong><br><small>${esc(s.type||"")}${minutes(s)?" · "+minutes(s):""}${s.description?" · "+esc(String(s.description).slice(0,140)):""}</small></span></div>`}).join("");
   return `<div style="margin:12px 0 4px"><strong>${esc(b.title||"Block")}</strong> <small>${esc(b.startDate||"")} – ${esc(b.endDate||"")}</small></div>${rows}`;
  }).join("");
  const overlay=document.createElement("div");overlay.id="coachPackagePreview";
- overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100001;display:flex;align-items:center;justify-content:center;padding:14px";
- overlay.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="coachPrevTitle" style="width:min(680px,100%);max-height:92dvh;overflow:auto;background:var(--card,#20252b);color:var(--text,#fff);border:1px solid #7c8590;border-radius:16px;padding:18px;box-shadow:0 12px 45px #0008">
+ overlay.className="coach-overlay top";
+ overlay.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="coachPrevTitle" class="coach-sheet wide">
   <h3 id="coachPrevTitle">Vorschau: ${esc(pkg.plan?.title||"Trainingsplan")}</h3>
   <div class="eq-small">${(pkg.blocks||[]).length} Block/Blöcke · ${count} Einheiten${item.applied_at?" · bereits übernommen":""}</div>
-  ${pkg.coachNote?`<p style="margin:10px 0;padding:10px;border-radius:10px;background:#ffffff14">${esc(pkg.coachNote)}</p>`:""}
+  ${pkg.coachNote?`<p class="coach-note">${esc(pkg.coachNote)}</p>`:""}
   ${blocks}
   <div style="display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end;margin-top:16px">
    <button type="button" class="pill" onclick="coachClosePackagePreview()">Später entscheiden</button>

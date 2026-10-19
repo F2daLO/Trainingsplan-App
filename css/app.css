@@ -2453,3 +2453,22 @@ html[data-theme="dark"] #sessionDialog .buttons button.primary{
 html body dialog :is(input,textarea,select):not([type=checkbox]):not([type=radio]),
 html body .modal :is(input,textarea,select):not([type=checkbox]):not([type=radio]),
 html body .settings-card :is(input,textarea,select):not([type=checkbox]):not([type=radio]){font-size:16px!important}
+
+/* v6.57: Coach-Dialoge nutzen die Theme-Variablen der App (hell/dunkel) statt fester Farben */
+.coach-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(20,24,32,.40);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);z-index:100000}
+.coach-overlay.top{z-index:100001}
+.coach-sheet{box-sizing:border-box;width:min(640px,100%);max-height:92dvh;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--theme-panel-strong);color:var(--theme-text);border:1px solid var(--theme-border);border-radius:20px;padding:18px;box-shadow:var(--theme-shadow)}
+.coach-sheet.wide{width:min(680px,100%)}
+.coach-sheet h3{margin:0 0 6px}
+.coach-sheet label,.coach-sheet .coach-label{color:var(--theme-text)}
+.coach-sheet .eq-small,.coach-sheet small{color:var(--theme-muted)}
+.coach-label{font-weight:600;margin:12px 0 4px}
+.coach-field{box-sizing:border-box;width:100%;border-radius:12px;padding:10px 12px;font:inherit;font-size:16px;line-height:1.4;background:var(--theme-soft);color:var(--theme-text);border:1px solid var(--theme-border);-webkit-text-fill-color:var(--theme-text)}
+.coach-field:disabled{opacity:.6}
+.coach-textarea{min-height:140px;max-height:40dvh;resize:vertical}
+.coach-day{display:inline-flex;align-items:center;gap:4px;margin:0 8px 6px 0;font-size:16px}
+.coach-day input{width:20px;height:20px}
+.coach-note{margin:10px 0;padding:10px;border-radius:12px;background:var(--theme-soft);color:var(--theme-text)}
+.coach-quote{white-space:pre-wrap;max-height:90px;overflow:auto;border:1px solid var(--theme-border);border-radius:10px;padding:8px}
+.coach-item{display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--theme-border)}
+.coach-item-date{min-width:74px;color:var(--theme-muted)}
