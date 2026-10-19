@@ -48,20 +48,53 @@ function coachSnapshot(extra={}){
     ...extra
   };
 }
-async function createCoachRequest(type,requirements=""){
+/* ===== v6.55: Coach – neuer Plan / bestehenden Plan fortsetzen / Entwurf mit Ergänzungen neu erstellen ===== */
+const COACH_DAYS=[[1,"Mo"],[2,"Di"],[3,"Mi"],[4,"Do"],[5,"Fr"],[6,"Sa"],[0,"So"]];
+const COACH_FOCUS=["","Grundlagenausdauer","Aufbau / Schwelle","Wettkampfvorbereitung / Spitze","FTP steigern","Erholung / Entlastung","Gewicht & Kraft"];
+const COACH_SECTION_STYLE="box-sizing:border-box;width:100%;border-radius:10px;padding:10px;font-size:16px;line-height:1.4;font-family:inherit;background:var(--bg,#12171c);color:var(--text,#fff);border:1px solid #8c939b";
+function coachIso(d){const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")}
+function coachPlanLastDate(planId){
+ const ds=(db.sessions||[]).filter(s=>s.planId===planId).map(s=>String(s.date||"")).filter(Boolean).sort();
+ return ds.length?ds[ds.length-1]:"";
+}
+function coachContextFor(planId){
+ const plan=(db.plans||[]).find(p=>p.id===planId)||null;
+ if(!plan)return {};
+ const ev=(db.events||[]).find(e=>e.id===plan.eventId)||null;
+ const sessions=(db.sessions||[]).filter(s=>s.planId===plan.id).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ return {
+  plan:{externalId:plan.externalId||plan.id,title:plan.title||plan.name||"",description:String(plan.description||"").slice(0,1000)},
+  event:ev?{externalId:ev.externalId||ev.id,title:ev.title||ev.name||"",subtitle:ev.subtitle||"",date:ev.date||""}:undefined,
+  blocks:(db.blocks||[]).filter(b=>b.planId===plan.id).slice(-60).map(b=>({externalId:b.externalId||b.id,title:b.title||b.name||"",startDate:b.startDate||"",endDate:b.endDate||""})),
+  sessions:sessions.slice(-120).map(s=>({date:String(s.date||"").slice(0,10),title:String(s.title||"").slice(0,200),type:s.type||"",status:s.status||""}))
+ };
+}
+function coachPackageAsPrevious(pkg){
+ const out=[];
+ for(const b of pkg?.blocks||[])for(const s of b.sessions||[])out.push({date:s.date,title:String(s.title||"").slice(0,200),type:s.type||"",description:String(s.description||"").slice(0,300)});
+ return out.slice(0,250);
+}
+async function createCoachRequest(type,requirements="",opts={}){
   const user=await coachUser(); if(!user){alert("Bitte zuerst anmelden.");return null}
-  const plan=coachCurrentPlan(),block=coachCurrentBlock();
+  const params=opts.params||{mode:"continue",weeks:4};
+  const planId=params.mode==="continue"?(opts.planId||coachCurrentPlan()?.id||null):null;
+  const block=coachCurrentBlock();
+  const context=opts.context||(planId?coachContextFor(planId):{});
   const row={
     user_id:user.id,
-    plan_id:plan?.id||null,
+    plan_id:planId,
     request_type:type,
-    source_block_ref:block?.id||block?.title||null,
+    source_block_ref:planId?(block?.id||block?.title||null):null,
     requirements:requirements||null,
-    input_snapshot:coachSnapshot({requirements}),
+    input_snapshot:coachSnapshot({requirements,params,context}),
     status:"pending",
     updated_at:new Date().toISOString()
   };
-  const {data,error}=await sb.from("coach_requests").insert(row).select().single();
+  let ins=await sb.from("coach_requests").insert(row).select().single();
+  if(ins.error&&ins.error.code==="23503"){ /* Plan noch nicht in der Cloud: ohne Verknüpfung, Kontext reicht dem Coach */
+    ins=await sb.from("coach_requests").insert({...row,plan_id:null}).select().single();
+  }
+  const {data,error}=ins;
   if(error){alert("Coach-Anfrage konnte nicht erstellt werden:\n"+error.message);return null}
   coachState.requests.unshift(data); renderCoachPanel();
   if(type==="continue_plan"){
@@ -81,47 +114,159 @@ async function createCoachRequest(type,requirements=""){
   return data;
 }
 function coachCloseRequestDialog(){document.getElementById("coachRequestDialog")?.remove()}
-function coachOpenRequestDialog(initial=""){
+/** opts: {mode:"new"|"continue", planId, refineOf:packageId, restore:requestRow} */
+function coachOpenRequestDialog(initial="",opts={}){
  coachCloseRequestDialog();
- const plan=coachCurrentPlan(),block=coachCurrentBlock();
+ const prefs=coachState.profile?.preferences?.coach||{};
+ const restoreParams=opts.restore?.input_snapshot?.params||{};
+ const p={mode:"continue",weeks:prefs.weeks||4,trainingDays:prefs.trainingDays||[1,2,3,4,5,6,0],maxMinutes:prefs.maxMinutes||"",environment:prefs.environment||"mixed",focus:prefs.focus||"",...restoreParams,...(opts.mode?{mode:opts.mode}:{})};
+ const refine=!!opts.refineOf;
+ const plans=db.plans||[];
+ const planId=opts.planId||opts.restore?.plan_id||coachCurrentPlan()?.id||plans[0]?.id||"";
+ const last=planId?coachPlanLastDate(planId):"";
+ const tomorrow=coachIso(Date.now()+864e5);
+ const startDefault=p.startDate&&p.startDate>=tomorrow?p.startDate:(last&&last>=coachIso(Date.now())?coachIso(new Date(last+"T12:00:00").getTime()+864e5):tomorrow);
  const overlay=document.createElement("div");overlay.id="coachRequestDialog";
+ overlay.dataset.refine=opts.refineOf||"";
  overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;display:flex;align-items:center;justify-content:center;padding:14px";
- overlay.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="coachDialogTitle" style="width:min(620px,100%);max-height:92dvh;overflow:auto;background:var(--card,#20252b);color:var(--text,#fff);border:1px solid #7c8590;border-radius:16px;padding:18px;box-shadow:0 12px 45px #0008">
- <h3 id="coachDialogTitle">Trainingsplan fortsetzen</h3>
- <p class="eq-small">${esc(plan?.title||plan?.name||"Aktueller Plan")} · ${esc(block?.title||"Nächster Block")}</p>
- <label for="coachWishes"><strong>Deine Wünsche und Vorgaben</strong></label>
- <textarea id="coachWishes" rows="9" style="box-sizing:border-box;width:100%;min-height:200px;max-height:48dvh;overflow-y:auto;resize:vertical;border-radius:10px;padding:12px;font:inherit;line-height:1.5;background:var(--bg,#12171c);color:var(--text,#fff);border:1px solid #8c939b" placeholder="Zum Beispiel: verfügbare Trainingstage, maximale Dauer, Indoor/Outdoor, Urlaubszeiten, gewünschte Schwerpunkte, Wettkampfziel …">${esc(initial)}</textarea>
- <div class="eq-small" style="margin:8px 0 14px">Die Wünsche werden mit den gespeicherten Plan-, FTP- und Aktivitätsdaten an den Trainingscoach übermittelt. Eine bestehende Anforderung bleibt im Verlauf abrufbar.</div>
- <div style="display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end"><button type="button" class="pill" onclick="coachCloseRequestDialog()">Abbrechen</button><button type="button" class="pill primary" id="coachSubmitWishes" onclick="coachSubmitRequestDialog()">Plan erstellen</button></div>
+ const planOpts=plans.map(x=>`<option value="${esc(x.id)}"${x.id===planId?" selected":""}>${esc(x.title||x.name||"Plan")}${coachPlanLastDate(x.id)?" · bis "+esc(coachPlanLastDate(x.id)):""}</option>`).join("");
+ const days=COACH_DAYS.map(([v,l])=>`<label style="display:inline-flex;align-items:center;gap:4px;margin:0 8px 6px 0;font-size:16px"><input type="checkbox" name="coachDay" value="${v}"${(p.trainingDays||[]).includes(v)?" checked":""}> ${l}</label>`).join("");
+ const focusOpts=COACH_FOCUS.map(f=>`<option value="${esc(f)}"${f===(p.focus||"")?" selected":""}>${f||"(kein besonderer Schwerpunkt)"}</option>`).join("");
+ const weekOpts=[1,2,3,4,6,8,12].map(w=>`<option value="${w}"${w===Number(p.weeks)?" selected":""}>${w} Woche${w>1?"n":""}</option>`).join("");
+ const lab=t=>`<div style="font-weight:600;margin:12px 0 4px">${t}</div>`;
+ overlay.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="coachDialogTitle" style="width:min(640px,100%);max-height:92dvh;overflow:auto;background:var(--card,#20252b);color:var(--text,#fff);border:1px solid #7c8590;border-radius:16px;padding:18px;box-shadow:0 12px 45px #0008">
+ <h3 id="coachDialogTitle">${refine?"Entwurf überarbeiten":"Trainingsplan vom Coach erstellen"}</h3>
+ ${refine?`<p class="eq-small">Der bisherige Entwurf wird mit deinen ergänzten Wünschen komplett neu erstellt. Der alte Entwurf wird danach verworfen.</p>`:`<div style="display:flex;gap:8px;margin:8px 0" role="group" aria-label="Art der Planung">
+  <button type="button" class="pill${p.mode==="new"?" primary":""}" id="coachModeNew" onclick="coachSetMode('new')">Neuer Plan</button>
+  <button type="button" class="pill${p.mode==="continue"?" primary":""}" id="coachModeContinue" onclick="coachSetMode('continue')"${plans.length?"":" disabled"}>Bestehenden Plan fortsetzen</button></div>`}
+ <input type="hidden" id="coachMode" value="${esc(p.mode)}">
+ <div id="coachContinueBox"${p.mode==="continue"?"":' style="display:none"'}>
+  ${lab('<label for="coachPlan">Plan, der fortgesetzt wird</label>')}
+  <select id="coachPlan" onchange="coachPlanChanged()" style="${COACH_SECTION_STYLE}"${refine?" disabled":""}>${planOpts||'<option value="">(kein Plan vorhanden)</option>'}</select>
+ </div>
+ <div id="coachNewBox"${p.mode==="new"?"":' style="display:none"'}>
+  ${lab('<label for="coachGoalTitle">Ziel / Event (optional)</label>')}
+  <input id="coachGoalTitle" type="text" maxlength="120" value="${esc(p.goalTitle||"")}" placeholder="z. B. Radmarathon, Grundlagenblock, Abnehmen" style="${COACH_SECTION_STYLE}">
+  ${lab('<label for="coachGoalDate">Zieldatum (optional)</label>')}
+  <input id="coachGoalDate" type="date" value="${esc(p.goalDate||"")}" style="${COACH_SECTION_STYLE}">
+ </div>
+ ${lab('<label for="coachStart">Beginn</label>')}
+ <input id="coachStart" type="date" min="${tomorrow}" value="${esc(startDefault)}" style="${COACH_SECTION_STYLE}">
+ <div class="eq-small" id="coachStartHint"></div>
+ ${lab('<label for="coachWeeks">Zeitraum</label>')}
+ <select id="coachWeeks" style="${COACH_SECTION_STYLE}">${weekOpts}</select>
+ ${lab('An welchen Tagen kannst du trainieren?')}
+ <div>${days}</div>
+ ${lab('<label for="coachMaxMin">Maximale Dauer pro Einheit (Minuten, optional)</label>')}
+ <input id="coachMaxMin" type="number" inputmode="numeric" min="15" max="600" step="5" value="${esc(String(p.maxMinutes||""))}" style="${COACH_SECTION_STYLE}">
+ ${lab('<label for="coachEnv">Indoor / Outdoor</label>')}
+ <select id="coachEnv" style="${COACH_SECTION_STYLE}"><option value="mixed"${p.environment==="mixed"?" selected":""}>Mischung</option><option value="indoor"${p.environment==="indoor"?" selected":""}>Nur Indoor</option><option value="outdoor"${p.environment==="outdoor"?" selected":""}>Bevorzugt Outdoor</option></select>
+ ${lab('<label for="coachFocus">Schwerpunkt</label>')}
+ <select id="coachFocus" style="${COACH_SECTION_STYLE}">${focusOpts}</select>
+ ${refine?`${lab('Bisherige Wünsche')}<div class="eq-small" style="white-space:pre-wrap;max-height:90px;overflow:auto;border:1px solid #556;border-radius:8px;padding:8px">${esc(initial||"(keine)")}</div>
+ ${lab('<label for="coachWishes">Ergänzungen / Änderungen</label>')}`:lab('<label for="coachWishes">Deine Wünsche und Vorgaben</label>')}
+ <textarea id="coachWishes" rows="6" maxlength="2500" style="${COACH_SECTION_STYLE};min-height:140px;max-height:40dvh;resize:vertical" placeholder="${refine?"Was soll anders werden? z. B. mehr Intervalle am Samstag, Dienstag lockerer, eine Entlastungswoche früher …":"z. B. Urlaub vom 3. bis 10., am Wochenende lange Ausfahrt, Knie schonen, Wettkampf am 20.6. …"}">${refine?"":esc(initial)}</textarea>
+ <div class="eq-small" style="margin:8px 0 14px">Die Angaben werden zusammen mit deinem Plan, FTP, Equipment und den Aktivitäten der letzten 90 Tage an den Coach übermittelt. Das Ergebnis siehst du erst als Vorschau und kannst es danach übernehmen, mit Ergänzungen neu erstellen lassen oder verwerfen.</div>
+ <div style="display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end"><button type="button" class="pill" onclick="coachCloseRequestDialog()">Abbrechen</button><button type="button" class="pill primary" id="coachSubmitWishes" onclick="coachSubmitRequestDialog()">${refine?"Neu erstellen":"Plan erstellen"}</button></div>
  <div id="coachRequestFeedback" role="status" aria-live="polite" style="margin-top:12px"></div></section>`;
+ overlay.dataset.initial=initial||"";
  document.body.appendChild(overlay);
- overlay.querySelector('textarea').focus();
+ coachPlanChanged();
+}
+function coachSetMode(m){
+ const mode=document.getElementById("coachMode");if(!mode)return;mode.value=m;
+ document.getElementById("coachContinueBox").style.display=m==="continue"?"":"none";
+ document.getElementById("coachNewBox").style.display=m==="new"?"":"none";
+ document.getElementById("coachModeNew")?.classList.toggle("primary",m==="new");
+ document.getElementById("coachModeContinue")?.classList.toggle("primary",m==="continue");
+ coachPlanChanged();
+}
+function coachPlanChanged(){
+ const hint=document.getElementById("coachStartHint"),start=document.getElementById("coachStart"),mode=document.getElementById("coachMode")?.value;
+ if(!hint||!start)return;
+ const planId=document.getElementById("coachPlan")?.value;
+ const last=mode==="continue"&&planId?coachPlanLastDate(planId):"";
+ if(last){
+  const next=coachIso(new Date(last+"T12:00:00").getTime()+864e5);
+  hint.textContent="Der gewählte Plan hat Einheiten bis "+last+". Empfohlener Beginn: "+next+".";
+  if(!start.dataset.touched&&next>start.min)start.value=next;
+ }else hint.textContent="";
+ start.addEventListener("input",()=>{start.dataset.touched="1"},{once:true});
+}
+function coachReadDialog(){
+ const g=id=>document.getElementById(id);
+ const mode=g("coachMode").value==="new"?"new":"continue";
+ const days=[...document.querySelectorAll('#coachRequestDialog input[name="coachDay"]:checked')].map(x=>Number(x.value));
+ const params={mode,weeks:Number(g("coachWeeks").value)||4,trainingDays:days,environment:g("coachEnv").value||"mixed"};
+ const start=g("coachStart").value; if(/^\d{4}-\d{2}-\d{2}$/.test(start))params.startDate=start;
+ const mm=parseInt(g("coachMaxMin").value,10); if(Number.isFinite(mm)&&mm>=15)params.maxMinutes=Math.min(600,mm);
+ const focus=g("coachFocus").value; if(focus)params.focus=focus;
+ if(mode==="new"){
+  const t=g("coachGoalTitle").value.trim(); if(t)params.goalTitle=t.slice(0,200);
+  const d=g("coachGoalDate").value; if(/^\d{4}-\d{2}-\d{2}$/.test(d))params.goalDate=d;
+ }
+ return {params,planId:mode==="continue"?(g("coachPlan").value||null):null,wishes:g("coachWishes").value.trim()};
 }
 async function coachSubmitRequestDialog(){
- const input=document.getElementById("coachWishes"),button=document.getElementById("coachSubmitWishes"),feedback=document.getElementById("coachRequestFeedback");
- if(!input||!button)return;
- const wishes=input.value.trim();button.disabled=true;button.textContent="Anforderung wird verarbeitet …";
- feedback.textContent="Die Wünsche werden gespeichert und die Planerstellung gestartet. Bitte dieses Fenster geöffnet lassen.";
+ const overlay=document.getElementById("coachRequestDialog"),button=document.getElementById("coachSubmitWishes"),feedback=document.getElementById("coachRequestFeedback");
+ if(!overlay||!button)return;
+ const refineOf=overlay.dataset.refine||"";
+ const f=coachReadDialog();
+ if(f.params.mode==="continue"&&!f.planId){feedback.textContent="Bitte einen Plan wählen oder „Neuer Plan“ verwenden.";return}
+ if(f.params.trainingDays.length===0){feedback.textContent="Bitte mindestens einen Trainingstag auswählen.";return}
+ let wishes=f.wishes,context=null;
+ if(refineOf){
+  const old=coachState.packages.find(x=>x.id===refineOf),oldReq=coachState.requests.find(x=>x.id===old?.coach_request_id);
+  wishes=((oldReq?.requirements||"")+(f.wishes?"\n\nERGÄNZUNG/ÄNDERUNG:\n"+f.wishes:"")).trim();
+  context=f.params.mode==="continue"&&f.planId?coachContextFor(f.planId):{};
+  context.previous=coachPackageAsPrevious(old?.package);
+  f.params.refine=true;
+ }
+ button.disabled=true;button.textContent="Der Coach arbeitet … (bis zu 2 Minuten)";
+ feedback.textContent="Die Angaben werden gespeichert und die Planerstellung läuft. Bitte dieses Fenster geöffnet lassen.";
  try{
-  const row=await createCoachRequest("continue_plan",wishes);
+  const row=await createCoachRequest("continue_plan",wishes,{params:f.params,planId:f.planId,context:context||undefined});
   if(!row)throw new Error("Die Anforderung konnte nicht gespeichert werden.");
+  /* Einstellungen für das nächste Mal merken (best effort) */
+  try{upsertCoachProfile({preferences:{...(coachState.profile?.preferences||{}),coach:{weeks:f.params.weeks,trainingDays:f.params.trainingDays,maxMinutes:f.params.maxMinutes||"",environment:f.params.environment,focus:f.params.focus||""}}})}catch(_){}
   const fresh=coachState.requests.find(x=>x.id===row.id);
-  if(fresh?.status==="ready"){coachCloseRequestDialog();return}
   if(fresh?.status==="failed"){
-   feedback.textContent="Die Wünsche wurden gespeichert, aber die Erstellung ist fehlgeschlagen. Du findest die Anforderung unten im Verlauf und kannst sie erneut starten.";
-  }else{coachCloseRequestDialog()}
+   feedback.textContent="Die Wünsche wurden gespeichert, aber die Erstellung ist fehlgeschlagen. Du findest die Anforderung im Verlauf und kannst sie erneut starten.";
+  }else{
+   if(refineOf)await coachDiscardPackage(refineOf,true);
+   coachCloseRequestDialog();
+  }
  }catch(e){feedback.textContent="Fehler: "+(e?.message||e)}
- finally{button.disabled=false;button.textContent="Plan erstellen"}
+ finally{button.disabled=false;button.textContent=refineOf?"Neu erstellen":"Plan erstellen"}
 }
-function requestPlanContinuation(){coachOpenRequestDialog()}
+function requestPlanContinuation(mode){coachOpenRequestDialog("",{mode:mode||((db.plans||[]).length?"continue":"new")})}
+function requestNewCoachPlan(){coachOpenRequestDialog("",{mode:"new"})}
 async function coachRetryRequest(id){
  const r=coachState.requests.find(x=>x.id===id);if(!r)return alert("Anforderung nicht gefunden.");
- coachOpenRequestDialog(r.requirements||"");
+ coachOpenRequestDialog(r.requirements||"",{restore:r,mode:r.input_snapshot?.params?.mode||"continue",planId:r.plan_id||undefined});
+}
+function coachRefinePackage(id){
+ const item=coachState.packages.find(x=>x.id===id);if(!item)return;
+ if(item.applied_at)return alert("Dieser Entwurf wurde bereits übernommen. Mit „Übernahme zurücknehmen“ kannst du ihn entfernen und dann neu erstellen lassen.");
+ const r=coachState.requests.find(x=>x.id===item.coach_request_id);
+ coachClosePackagePreview();
+ coachOpenRequestDialog(r?.requirements||"",{restore:r,mode:r?.input_snapshot?.params?.mode||"continue",planId:r?.plan_id||undefined,refineOf:id});
+}
+async function coachDiscardPackage(id,silent=false){
+ const item=coachState.packages.find(x=>x.id===id);if(!item)return;
+ if(item.applied_at)return alert("Ein übernommener Plan kann nur über „Übernahme zurücknehmen“ entfernt werden.");
+ if(!silent&&!confirm("Diesen Entwurf verwerfen? Er wird gelöscht; deine Pläne und Einheiten bleiben unverändert."))return;
+ try{
+  const {error}=await sb.from("coach_plan_packages").delete().eq("id",id);if(error)throw error;
+  if(item.coach_request_id)await sb.from("coach_requests").delete().eq("id",item.coach_request_id);
+  coachClosePackagePreview();await loadCoachState();
+ }catch(e){alert("Entwurf konnte nicht verworfen werden:\n"+(e?.message||e))}
 }
 function coachShowRequest(id){
  const r=coachState.requests.find(x=>x.id===id);if(!r)return;
- const when=new Date(r.created_at).toLocaleString("de-AT");
- const details=`Anforderung vom ${when}\nStatus: ${coachStatusText(r)}\n\nWünsche:\n${r.requirements||"(Keine zusätzlichen Wünsche)"}\n\n${r.error_message?"Fehler: "+r.error_message:""}`;
+ const when=new Date(r.created_at).toLocaleString("de-AT"),p=r.input_snapshot?.params||{};
+ const days=(p.trainingDays||[]).map(d=>(COACH_DAYS.find(x=>x[0]===d)||[0,"?"])[1]).join(", ");
+ const details=`Anforderung vom ${when}\nStatus: ${coachStatusText(r)}\nArt: ${p.mode==="new"?"Neuer Plan":"Plan fortsetzen"}${p.refine?" (überarbeitet)":""}\nBeginn: ${p.startDate||"–"} · ${p.weeks||"?"} Wochen\nTage: ${days||"alle"}${p.maxMinutes?" · max. "+p.maxMinutes+" min":""}\n\nWünsche:\n${r.requirements||"(Keine zusätzlichen Wünsche)"}\n\n${r.error_message?"Fehler: "+r.error_message:""}`;
  alert(details);
 }
 async function coachFunctionError(error){
@@ -176,6 +321,15 @@ async function applyCoachPackage(id){
   try{
     if(!pkg.package||pkg.package.schema!==COACH_SCHEMA)throw new Error("Ungültiges Planpaket.");
     importPlanPackageObject(pkg.package,id);
+    /* Neu erstellter Plan wird direkt aktiv; fortgesetzter Plan bleibt aktiv und springt auf den neuen Block */
+    const pl=(db.plans||[]).find(x=>x.externalId===pkg.package.plan?.externalId);
+    if(pl){
+      db.activePlan=pl.id;
+      const ev=(db.events||[]).find(x=>x.id===pl.eventId); if(ev)db.activeEvent=ev.id;
+      const firstBlock=(db.blocks||[]).filter(b=>b.planId===pl.id&&b.coachPackageId===id).sort((a,b)=>String(a.startDate).localeCompare(String(b.startDate)))[0];
+      if(firstBlock)db.activeBlock=firstBlock.id;
+      persist();
+    }
     const now=new Date().toISOString();
     await sb.from("coach_plan_packages").update({applied_at:now}).eq("id",id);
     if(pkg.coach_request_id)await sb.from("coach_requests").update({status:"applied",updated_at:now}).eq("id",pkg.coach_request_id);
@@ -216,11 +370,29 @@ function exportCoachPackage(id){
  a.href=url;a.download="My_Trainings_Coach_Planpaket_"+(item.package.packageId||id)+".json";
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+function coachClosePackagePreview(){document.getElementById("coachPackagePreview")?.remove()}
 function coachPackagePreview(id){
  const item=coachState.packages.find(x=>x.id===id);if(!item?.package)return;
- const pkg=item.package;let count=(pkg.blocks||[]).reduce((n,b)=>n+(b.sessions||[]).length,0);
- const text=`${pkg.plan?.title||"Trainingsplan"}\n${(pkg.blocks||[]).length} Blöcke · ${count} Einheiten\n\nJetzt direkt übernehmen?\nAbbrechen = vorerst nicht übernehmen; der Download bleibt verfügbar.`;
- if(confirm(text))applyCoachPackage(id);
+ coachClosePackagePreview();
+ const pkg=item.package,fmtDay=d=>{const x=new Date(d+"T12:00:00");return isNaN(x)?d:x.toLocaleDateString("de-AT",{weekday:"short",day:"2-digit",month:"2-digit"})};
+ const minutes=s=>{const sec=(s.workout?.steps||[]).reduce((n,x)=>n+(Number(x.durationSec)||0)*(Number(x.repeat)||1),0);return sec?Math.round(sec/60)+" min":""};
+ let count=0;
+ const blocks=(pkg.blocks||[]).map(b=>{
+  const rows=(b.sessions||[]).slice().sort((x,y)=>String(x.date).localeCompare(String(y.date))).map(s=>{count++;return `<div style="display:flex;gap:8px;padding:5px 0;border-top:1px solid #4448"><span style="min-width:74px;opacity:.8">${esc(fmtDay(s.date))}</span><span style="flex:1"><strong>${esc(s.title||"")}</strong><br><small>${esc(s.type||"")}${minutes(s)?" · "+minutes(s):""}${s.description?" · "+esc(String(s.description).slice(0,140)):""}</small></span></div>`}).join("");
+  return `<div style="margin:12px 0 4px"><strong>${esc(b.title||"Block")}</strong> <small>${esc(b.startDate||"")} – ${esc(b.endDate||"")}</small></div>${rows}`;
+ }).join("");
+ const overlay=document.createElement("div");overlay.id="coachPackagePreview";
+ overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100001;display:flex;align-items:center;justify-content:center;padding:14px";
+ overlay.innerHTML=`<section role="dialog" aria-modal="true" aria-labelledby="coachPrevTitle" style="width:min(680px,100%);max-height:92dvh;overflow:auto;background:var(--card,#20252b);color:var(--text,#fff);border:1px solid #7c8590;border-radius:16px;padding:18px;box-shadow:0 12px 45px #0008">
+  <h3 id="coachPrevTitle">Vorschau: ${esc(pkg.plan?.title||"Trainingsplan")}</h3>
+  <div class="eq-small">${(pkg.blocks||[]).length} Block/Blöcke · ${count} Einheiten${item.applied_at?" · bereits übernommen":""}</div>
+  ${pkg.coachNote?`<p style="margin:10px 0;padding:10px;border-radius:10px;background:#ffffff14">${esc(pkg.coachNote)}</p>`:""}
+  ${blocks}
+  <div style="display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end;margin-top:16px">
+   <button type="button" class="pill" onclick="coachClosePackagePreview()">Später entscheiden</button>
+   ${item.applied_at?"":`<button type="button" class="pill" onclick="coachDiscardPackage('${esc(id)}')">Verwerfen</button><button type="button" class="pill" onclick="coachRefinePackage('${esc(id)}')">Wünsche ergänzen &amp; neu erstellen</button><button type="button" class="pill primary" onclick="coachClosePackagePreview();applyCoachPackage('${esc(id)}')">Übernehmen</button>`}
+  </div></section>`;
+ document.body.appendChild(overlay);
 }
 function coachStatusText(r){
   return ({pending:"Angefragt",processing:"Wird erstellt",ready:"Bereit",applied:"Übernommen",failed:"Fehler"})[r.status]||r.status;
@@ -256,12 +428,12 @@ function renderCoachSettingsPanel(){
    <div class="coach-settings-card">
     <strong>Trainingsplanung</strong>
     <div class="coach-value">${coachCurrentBlock()?.title||"Kein Block ausgewählt"}</div>
-    <div class="stack"><button class="pill primary" onclick="requestPlanContinuation()">＋ Fortsetzung anfordern</button><button class="pill" onclick="syncIntervalsActivities(true)">↻ Trainingsdaten synchronisieren</button><button class="pill" onclick="loadCoachState()">↻ Aktualisieren</button></div>
+    <div class="stack"><button class="pill primary" onclick="requestNewCoachPlan()">＋ Neuer Plan</button><button class="pill primary" onclick="requestPlanContinuation('continue')">＋ Plan fortsetzen</button><button class="pill" onclick="syncIntervalsActivities(true)">↻ Trainingsdaten synchronisieren</button><button class="pill" onclick="loadCoachState()">↻ Aktualisieren</button></div>
    </div>
   </div>
   ${coachState.packages.some(x=>x.applied_at)?`<div class="coach-settings-card coach-section"><strong>Übernommene Coach-Pläne</strong>${coachState.packages.filter(x=>x.applied_at).map(x=>`<div class="coach-row"><span>${x.package?.plan?.title||"Planfortsetzung"}</span><button class="pill" onclick="undoCoachPackage('${x.id}')">Übernahme zurücknehmen</button></div>`).join("")}</div>`:""}
-  ${ready.length?`<div class="coach-settings-card coach-section"><strong>Bereit zur Übernahme</strong>${ready.map(x=>`<div class="coach-row"><span>${x.package?.blocks?.[0]?.title||"Neuer Trainingsblock"}</span><button class="pill primary" onclick="coachPackagePreview('${x.id}')">Vorschau / Übernehmen</button><button class="pill" onclick="exportCoachPackage('${x.id}')">JSON herunterladen</button></div>`).join("")}</div>`:""}
-  <div class="coach-settings-card coach-section"><strong>Letzte Coach-Anfragen</strong>${reqs.length?reqs.map(r=>`<div class="coach-row"><span>${r.request_type==="continue_plan"?"Plan fortsetzen":r.request_type} · ${coachStatusText(r)}<br><small>${esc((r.requirements||"Keine zusätzlichen Wünsche").slice(0,100))}</small></span><span class="eq-small">${new Date(r.created_at).toLocaleDateString("de-AT")}<br><button class="pill" onclick="coachShowRequest('${r.id}')">Details</button> ${r.status==="failed"?`<button class="pill" onclick="coachRetryRequest('${r.id}')">Erneut versuchen</button>`:""}</span></div>`).join(""):'<div class="eq-small" style="margin-top:8px">Noch keine Coach-Anfrage.</div>'}</div>`;
+  ${ready.length?`<div class="coach-settings-card coach-section"><strong>Bereit zur Übernahme</strong>${ready.map(x=>`<div class="coach-row"><span>${esc(x.package?.plan?.title||"Planentwurf")} · ${esc(x.package?.blocks?.[0]?.title||"Neuer Trainingsblock")}</span><button class="pill primary" onclick="coachPackagePreview('${x.id}')">Vorschau / Übernehmen</button><button class="pill" onclick="exportCoachPackage('${x.id}')">JSON herunterladen</button></div>`).join("")}</div>`:""}
+  <div class="coach-settings-card coach-section"><strong>Letzte Coach-Anfragen</strong>${reqs.length?reqs.map(r=>`<div class="coach-row"><span>${r.request_type==="continue_plan"?(r.input_snapshot?.params?.mode==="new"?"Neuer Plan":"Plan fortsetzen"):r.request_type} · ${coachStatusText(r)}<br><small>${esc((r.requirements||"Keine zusätzlichen Wünsche").slice(0,100))}</small></span><span class="eq-small">${new Date(r.created_at).toLocaleDateString("de-AT")}<br><button class="pill" onclick="coachShowRequest('${r.id}')">Details</button> ${r.status==="failed"?`<button class="pill" onclick="coachRetryRequest('${r.id}')">Erneut versuchen</button>`:""}</span></div>`).join(""):'<div class="eq-small" style="margin-top:8px">Noch keine Coach-Anfrage.</div>'}</div>`;
 }
 function renderCoachPanel(){ renderCoachSettingsPanel(); }
 
