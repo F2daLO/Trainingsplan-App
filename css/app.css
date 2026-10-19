@@ -1266,7 +1266,7 @@ html.modal-open,body.modal-open{overflow:hidden!important;height:100%!important;
 .nav{width:auto!important;bottom:calc(7px + env(safe-area-inset-bottom))!important;}.plan-screen{height:calc(100dvh - 66px - env(safe-area-inset-bottom))!important}
 .plan-fixed .page-head{margin:0 0 5px!important}.plan-fixed .page-title{font-size:22px!important}.plan-fixed .cloud{font-size:9px!important}.plan-fixed .app-version{font-size:8px!important}
 .plan-fixed .plan-head{margin-bottom:4px!important;gap:6px 9px!important;}.plan-fixed .plan-event{margin-bottom:3px!important;}
-.plan-fixed .plan-controls{gap:5px!important;}.plan-fixed select{font-size:13px!important;}
+.plan-fixed .plan-controls{gap:5px!important;}.plan-fixed select{font-size:16px!important;}
 .plan-fixed .block-stats{gap:3px!important}.plan-fixed .block-progress{height:4px!important}.plan-fixed .block-stat strong{font-size:11px!important}.plan-fixed .block-stat span{font-size:8px!important}
 .metric-grid{grid-template-columns:repeat(4,1fr)}.metric.overdue strong{color:#ff7a00}.cross-row{display:grid;grid-template-columns:minmax(130px,220px) 1fr;gap:12px;padding:10px 0;border-bottom:1px solid rgba(127,127,127,.08)}
 .data-chip{display:inline-block;margin:2px 4px 2px 0;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.58);font-size:11px}
@@ -1819,14 +1819,14 @@ dialog#sessionDialog{
  height:34px!important;
  padding-top:4px!important;
  padding-bottom:4px!important;
- font-size:12px!important;
+ font-size:16px!important;
 }
 #sessionDialog textarea{
  min-height:42px!important;
  max-height:48px!important;
  resize:none!important;
  padding:7px 9px!important;
- font-size:11px!important;
+ font-size:16px!important;
  line-height:1.25!important;
 }
 #sessionDialog .eq-small{margin:0!important;font-size:9px!important;min-height:0!important}
@@ -2448,3 +2448,8 @@ html[data-theme="dark"] #sessionDialog .buttons button.primary{
 :focus-visible{outline:2px solid #0a84ff;outline-offset:2px}
 [role="button"]{cursor:pointer}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+
+/* v6.55: iOS Safari zoomt in Eingabefelder mit Schrift < 16px. Alle Formularfelder mindestens 16px (Zoom bleibt für Nutzer erlaubt). */
+html body dialog :is(input,textarea,select):not([type=checkbox]):not([type=radio]),
+html body .modal :is(input,textarea,select):not([type=checkbox]):not([type=radio]),
+html body .settings-card :is(input,textarea,select):not([type=checkbox]):not([type=radio]){font-size:16px!important}
