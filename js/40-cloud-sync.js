@@ -9,7 +9,7 @@ function packDesc(s){
   });
 }
 function unpackDesc(v){if(String(v||"").startsWith("__MT__")){try{return JSON.parse(String(v).slice(6))}catch{}}return{desc:v||"",scheduledAt:null}}
-function planRemote(p){return{id:p.id,user_id:cloudUser.id,name:p.name,description:"__MTP__"+JSON.stringify({eventId:p.eventId,focus:p.focus||"",description:p.description||"",eventName:db.events.find(e=>e.id===p.eventId)?.name||""})}}
+function planRemote(p){return{id:p.id,user_id:cloudUser.id,name:p.name||p.title||"Block",description:"__MTP__"+JSON.stringify({eventId:p.eventId,focus:p.focus||"",description:p.description||"",eventName:db.events.find(e=>e.id===p.eventId)?.name||""})}}
 function planLocal(r){let meta={};if(String(r.description||"").startsWith("__MTP__"))try{meta=JSON.parse(String(r.description).slice(7))}catch{};if(meta.eventId&&!db.events.some(e=>e.id===meta.eventId))db.events.push({id:meta.eventId,name:meta.eventName||"Event",description:""});return{id:r.id,eventId:meta.eventId||db.activeEvent,name:r.name,focus:meta.focus||"",description:meta.description||""}}
 function sessionRemote(s){return{id:s.id,user_id:cloudUser.id,plan_id:s.planId,training_date:s.date,training_type:s.type||"",title:s.title||"",description:packDesc(s),note:s.note||"",status:s.status||"open",topup:!!s.topup,reminder:"auto",reminder_time:"18:00",origin:s.origin||"planned",source_activity_id:s.sourceActivityId||null,actual_summary:s.actualSummary||null,updated_at:s.updatedAt||"2026-08-17T00:00:00.000Z"}}
 function sessionLocal(r){
@@ -98,7 +98,7 @@ function recordSyncConflict(id,kept,local){
  db.syncConflicts.length=Math.min(db.syncConflicts.length,20);
 }
 async function syncCloud(show=false){
- if(syncing||!cloudUser||!navigator.onLine)return;syncing=true;updateCloud();
+ if(syncing||!cloudUser||!navigator.onLine)return;syncing=true;updateCloud();try{repairNames()}catch(_){}
  const report={pulled:0,pushed:0,deleted:0,conflicts:0};
  try{
   migrateLocalPlanIds();

@@ -9,6 +9,7 @@ function renderOverview(){
       <div class="event-sub">${esc(detail)}</div>
     </div>
     <div class="foot">
+      ${db.events.length>1?`<button class="event-del" type="button" aria-label="Event zusammenführen" title="Mit anderem Event zusammenführen" onclick="event.stopPropagation();mergeEventFlow('${e.id}')">⇄</button>`:""}
       <button class="event-del" type="button" aria-label="Event löschen" title="Event löschen" onclick="event.stopPropagation();deleteEventFlow('${e.id}')">🗑</button>
       <div class="blocks">${blocks.length} Block${blocks.length===1?"":"e"}</div>
       <div class="chev">›</div>
@@ -71,7 +72,8 @@ function autoCompletePastRestDays(){
   return changed;
 }
 function blockStats(planId){
-  const rows=db.sessions.filter(s=>s.planId===planId && isRealTrainingSession(s));
+  const ids=[].concat(planId);
+  const rows=db.sessions.filter(s=>ids.includes(s.planId) && isRealTrainingSession(s));
   const total=rows.length;
   let done=0,moved=0,cancel=0,open=0;
 
@@ -88,9 +90,9 @@ function blockStats(planId){
 
 function blockStatsHTML(planId){
   const st=blockStats(planId);
-  return `<div class="block-stats" aria-label="Zusammenfassung dieses Trainingsblocks">
+  return `<div class="block-stats" aria-label="Zusammenfassung des Trainingsblocks">
     <div class="block-stats-top">
-      <div class="block-stats-total">${st.total} Einheit${st.total===1?"":"en"} im Block</div>
+      <div class="block-stats-total">${st.total} Einheit${st.total===1?"":"en"} ${planScopeIds().length>1?"in allen Blöcken":"im Block"}</div>
       <div class="block-stats-percent">${st.percent}% erledigt</div>
     </div>
     <div class="block-progress" aria-hidden="true"><span style="width:${st.percent}%"></span></div>
@@ -116,8 +118,9 @@ function renderPlan(){
      <div class="plan-main">
        <div class="plan-event">${esc(e.name)}</div>
        <div class="plan-controls">
-         <select onchange="selectPlan(this.value)">
-           ${blocks.map(b=>`<option value="${b.id}" ${b.id===p.id?"selected":""}>${esc(b.name)}</option>`).join("")}
+         <select onchange="selectPlan(this.value)" aria-label="Block wählen">
+           ${blocks.length>1?`<option value="__all__"${db.planAll?" selected":""}>Alle Blöcke (${blocks.length})</option>`:""}
+           ${blocks.map(b=>`<option value="${b.id}" ${(!(db.planAll&&blocks.length>1)&&b.id===p.id)?"selected":""}>${esc(b.name||b.title||"Block")}</option>`).join("")}
          </select>
          <button class="pill" type="button" onclick="deletePlanFlow('${p.id}')" aria-label="Plan löschen" title="Diesen Plan löschen">🗑</button>
          <div class="segment">
@@ -126,7 +129,7 @@ function renderPlan(){
          </div>
        </div>
      </div>
-     ${blockStatsHTML(p.id)}
+     ${blockStatsHTML(planScopeIds())}
    </section>
    <div class="actions-top">
      <button class="pill primary" onclick="openSession()" aria-label="Training hinzufügen"><span class="action-icon">＋</span><span class="action-label">Training</span></button>
@@ -168,9 +171,9 @@ function matchesPlanFilter(s){
   if(planFilter.status==="topup"&&!s.topup)return false;
  } return true;
 }
-function currentSessions(){return db.sessions.filter(s=>s.planId===db.activePlan&&matchesPlanFilter(s)).sort((a,b)=>a.date.localeCompare(b.date))}
+function currentSessions(){const ids=planScopeIds();return db.sessions.filter(s=>ids.includes(s.planId)&&matchesPlanFilter(s)).sort((a,b)=>a.date.localeCompare(b.date))}
 function openPlanFilter(){
- const all=db.sessions.filter(s=>s.planId===db.activePlan),weeks=[...new Set(all.map(sessionWeekKey))].sort(),eq=[...new Set(all.map(sessionEquipmentKey))].sort();
+ const all=db.sessions.filter(s=>planScopeIds().includes(s.planId)),weeks=[...new Set(all.map(sessionWeekKey))].sort(),eq=[...new Set(all.map(sessionEquipmentKey))].sort();
  pfWeek.innerHTML='<option value="all">Alle Kalenderwochen</option>'+weeks.map(k=>{const [y,w]=k.split("-");return `<option value="${k}">KW ${Number(w)} · ${y}</option>`}).join("");
  pfEquipment.innerHTML='<option value="all">Alle Geräte / Arten</option>'+eq.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
  pfWeek.value=planFilter.week;pfEquipment.value=planFilter.equipment;pfStatus.value=planFilter.status;pfWeekday.value=planFilter.weekday||"all";
@@ -271,7 +274,7 @@ function analyticsToPlan(kind,value=""){
  else if(kind==="equipment")rows=rows.filter(s=>sessionEquipmentKey(s)===value);
  if(!rows.length)return;
  const counts={};rows.forEach(s=>counts[s.planId]=(counts[s.planId]||0)+1);
- db.activePlan=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+ db.activePlan=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];db.planAll=false;
  planFilter={week:"all",equipment:"all",status:"all",weekday:"all"};
  if(kind==="done")planFilter.status="done";
  else if(kind==="moved")planFilter.status="moved";

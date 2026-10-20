@@ -3,7 +3,7 @@ const CANONICAL_PLAN_DESCRIPTIONS={"c8a6edc9-7167-4621-8474-7c2f8fa6ecbf":"45 mi
 const VAPID_PUBLIC_KEY="BOSHi-nP7V_m0ZtxL7klNzQ8HZaGkmBRqp0uF7c27rs-ANZrLuvys3TDWtI20BY29NQYiwvo3YR_EQR4dc_UG0s";
 const PUSH_KEY_VERSION="2026-08-19-v2";
 
-const APP_VERSION="6.61";
+const APP_VERSION="6.63";
 const KEY="meintraining-v51";
 const SUPABASE_URL="https://vhbhocfjzrgdcekjuime.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_iI79yd8iQ0R7hT500Ijtpw_jAWZMu14";
@@ -41,10 +41,24 @@ function go(s){
  if(s==="settings")navSettings.classList.add("active");
  render();
 }
-function selectEvent(id){db.activeEvent=id;const p=db.plans.find(x=>x.eventId===id);if(p)db.activePlan=p.id;safeSave();screen="plan";go("plan")}
-function selectPlan(id){db.activePlan=id;planInitialScrollKey=null;safeSave();render()}
+function selectEvent(id){db.activeEvent=id;const ps=db.plans.filter(x=>x.eventId===id);if(ps[0])db.activePlan=ps[0].id;db.planAll=ps.length>1;safeSave();screen="plan";go("plan")}
+/* Plan-Ansicht: alle Blöcke (Pläne) des aktiven Events oder nur einer */
+function planScopeIds(){
+ if(db.planAll){const ids=(db.plans||[]).filter(p=>p.eventId===db.activeEvent).map(p=>p.id);if(ids.length>1)return ids}
+ return db.activePlan?[db.activePlan]:[];
+}
+/* Reparatur: Pläne/Events ohne Namen (ältere Coach-Importe) bekommen den Titel als Namen – sonst scheitert der Sync (name NOT NULL) */
+function repairNames(){
+ let n=0;
+ (db.plans||[]).forEach(p=>{if(!p.name||!String(p.name).trim()){p.name=p.title||"Block";n++}});
+ (db.events||[]).forEach(e=>{if(!e.name||!String(e.name).trim()){e.name=e.title||"Event";n++}});
+ (db.sessions||[]).forEach(x=>{if(!x.desc&&x.description){x.desc=x.description;n++}});
+ return n;
+}
+function selectPlan(id){if(id==="__all__"){db.planAll=true}else{db.activePlan=id;db.planAll=false}planInitialScrollKey=null;safeSave();render()}
 
 function render(){
+ try{if(repairNames())safeSave()}catch(_){}
  main.classList.toggle("plan-screen",screen==="plan");
  if(screen==="overview")renderOverview();
  else if(screen==="plan")renderPlan();

@@ -385,6 +385,27 @@ async function deletePlanFlow(planId){
  if(db.activePlan===planId)db.activePlan=(db.plans.find(p=>p.eventId===eventId)||db.plans[0]||{}).id||null;
  persist();render();await coachAfterDelete();
 }
+function mergeEventFlow(srcId){
+ const src=(db.events||[]).find(e=>e.id===srcId);if(!src)return;
+ const others=(db.events||[]).filter(e=>e.id!==srcId);if(!others.length)return;
+ document.getElementById("mergeEventDialog")?.remove();
+ const o=document.createElement("div");o.id="mergeEventDialog";o.className="coach-overlay top";
+ const n=(db.plans||[]).filter(p=>p.eventId===srcId).length;
+ o.innerHTML=`<section role="dialog" aria-modal="true" class="coach-sheet"><h3>Event zusammenführen</h3>
+  <p class="eq-small">Die ${n} Block/Blöcke von „${esc(src.name||src.title||"Event")}“ werden in das gewählte Event verschoben. Das leere Event wird danach entfernt. Einheiten bleiben unverändert.</p>
+  ${others.map(e=>`<button type="button" class="pill" style="display:block;width:100%;margin:6px 0;text-align:left" onclick="mergeEventInto('${esc(srcId)}','${esc(e.id)}')">→ ${esc(e.name||e.title||"Event")}</button>`).join("")}
+  <div style="text-align:right;margin-top:12px"><button type="button" class="pill" onclick="document.getElementById('mergeEventDialog').remove()">Abbrechen</button></div></section>`;
+ document.body.appendChild(o);
+}
+function mergeEventInto(srcId,dstId){
+ const src=(db.events||[]).find(e=>e.id===srcId),dst=(db.events||[]).find(e=>e.id===dstId);if(!src||!dst)return;
+ const now=new Date().toISOString();
+ (db.plans||[]).filter(p=>p.eventId===srcId).forEach(p=>{p.eventId=dstId;p.updatedAt=now});
+ db.events=db.events.filter(e=>e.id!==srcId);
+ db.activeEvent=dstId;db.planAll=(db.plans||[]).filter(p=>p.eventId===dstId).length>1;
+ document.getElementById("mergeEventDialog")?.remove();
+ persist();render();
+}
 async function deleteEventFlow(eventId){
  const ev=(db.events||[]).find(e=>e.id===eventId);if(!ev)return;
  const plans=(db.plans||[]).filter(p=>p.eventId===eventId);
