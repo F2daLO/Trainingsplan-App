@@ -64,8 +64,8 @@ function coachContextFor(planId){
  const ev=(db.events||[]).find(e=>e.id===plan.eventId)||null;
  const sessions=(db.sessions||[]).filter(s=>s.planId===plan.id).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
  return {
-  plan:{externalId:plan.externalId||plan.id,title:plan.title||plan.name||"",description:String(plan.description||"").slice(0,1000)},
-  event:ev?{externalId:ev.externalId||ev.id,title:ev.title||ev.name||"",subtitle:ev.subtitle||"",date:ev.date||""}:undefined,
+  plan:{externalId:plan.externalId||plan.id,title:plan.name||plan.title||"",description:String(plan.description||"").slice(0,1000)},
+  event:ev?{externalId:ev.externalId||ev.id,title:ev.name||ev.title||"",subtitle:ev.description||ev.subtitle||"",date:ev.date||""}:undefined,
   blocks:(db.blocks||[]).filter(b=>b.planId===plan.id).slice(-60).map(b=>({externalId:b.externalId||b.id,title:b.title||b.name||"",startDate:b.startDate||"",endDate:b.endDate||""})),
   sessions:sessions.slice(-120).map(s=>({date:String(s.date||"").slice(0,10),title:String(s.title||"").slice(0,200),type:s.type||"",status:s.status||""}))
  };
@@ -130,7 +130,7 @@ function coachOpenRequestDialog(initial="",opts={}){
  const overlay=document.createElement("div");overlay.id="coachRequestDialog";
  overlay.dataset.refine=opts.refineOf||"";
  overlay.className="coach-overlay";
- const planOpts=plans.map(x=>`<option value="${esc(x.id)}"${x.id===planId?" selected":""}>${esc(x.title||x.name||"Plan")}${coachPlanLastDate(x.id)?" · bis "+esc(coachPlanLastDate(x.id)):""}</option>`).join("");
+ const planOpts=plans.map(x=>`<option value="${esc(x.id)}"${x.id===planId?" selected":""}>${esc(x.name||x.title||"Plan")}${coachPlanLastDate(x.id)?" · bis "+esc(coachPlanLastDate(x.id)):""}</option>`).join("");
  const days=COACH_DAYS.map(([v,l])=>`<label class="coach-day"><input type="checkbox" name="coachDay" value="${v}"${(p.trainingDays||[]).includes(v)?" checked":""}> ${l}</label>`).join("");
  const focusOpts=COACH_FOCUS.map(f=>`<option value="${esc(f)}"${f===(p.focus||"")?" selected":""}>${f||"(kein besonderer Schwerpunkt)"}</option>`).join("");
  const weekOpts=[1,2,3,4,6,8,12].map(w=>`<option value="${w}"${w===Number(p.weeks)?" selected":""}>${w} Woche${w>1?"n":""}</option>`).join("");
@@ -146,6 +146,9 @@ function coachOpenRequestDialog(initial="",opts={}){
   <select id="coachPlan" onchange="coachPlanChanged()" class="coach-field"${refine?" disabled":""}>${planOpts||'<option value="">(kein Plan vorhanden)</option>'}</select>
  </div>
  <div id="coachNewBox"${p.mode==="new"?"":' style="display:none"'}>
+  ${lab('<label for="coachEventSel">Zu welchem Event gehört der Plan?</label>')}
+  <select id="coachEventSel" class="coach-field"><option value="">Neues Event anlegen</option>${(db.events||[]).map(e=>`<option value="${esc(e.id)}">${esc(e.name||e.title||"Event")}</option>`).join("")}</select>
+  <div class="eq-small">Bei einem bestehenden Event erscheint der Plan nur im Dropdown des Events, nicht als eigenes Event.</div>
   ${lab('<label for="coachGoalTitle">Ziel / Event (optional)</label>')}
   <input id="coachGoalTitle" type="text" maxlength="120" value="${esc(p.goalTitle||"")}" placeholder="z. B. Radmarathon, Grundlagenblock, Abnehmen" class="coach-field">
   ${lab('<label for="coachGoalDate">Zieldatum (optional)</label>')}
@@ -204,10 +207,10 @@ function coachReadDialog(){
  const mm=parseInt(g("coachMaxMin").value,10); if(Number.isFinite(mm)&&mm>=15)params.maxMinutes=Math.min(600,mm);
  const focus=g("coachFocus").value; if(focus)params.focus=focus;
  if(mode==="new"){
-  const t=g("coachGoalTitle").value.trim(); if(t)params.goalTitle=t.slice(0,200);
+  const t=g("coachEventSel").value?"":g("coachGoalTitle").value.trim(); if(t)params.goalTitle=t.slice(0,200);
   const d=g("coachGoalDate").value; if(/^\d{4}-\d{2}-\d{2}$/.test(d))params.goalDate=d;
  }
- return {params,planId:mode==="continue"?(g("coachPlan").value||null):null,wishes:g("coachWishes").value.trim()};
+ return {params,eventId:mode==="new"?(g("coachEventSel").value||""):"",planId:mode==="continue"?(g("coachPlan").value||null):null,wishes:g("coachWishes").value.trim()};
 }
 async function coachSubmitRequestDialog(){
  const overlay=document.getElementById("coachRequestDialog"),button=document.getElementById("coachSubmitWishes"),feedback=document.getElementById("coachRequestFeedback");
@@ -224,6 +227,7 @@ async function coachSubmitRequestDialog(){
   context.previous=coachPackageAsPrevious(old?.package);
   f.params.refine=true;
  }
+ if(f.params.mode==="new"&&f.eventId){const ev=(db.events||[]).find(x=>x.id===f.eventId);if(ev){context=context||{};context.event={externalId:ev.externalId||ev.id,title:ev.name||ev.title||"",subtitle:ev.description||ev.subtitle||"",date:ev.date||""}}}
  button.disabled=true;button.textContent="Der Coach arbeitet … (bis zu 2 Minuten)";
  feedback.textContent="Die Angaben werden gespeichert und die Planerstellung läuft. Bitte dieses Fenster geöffnet lassen.";
  try{
@@ -363,6 +367,36 @@ async function applyCoachPackage(id){
     await loadCoachState();
   }catch(e){alert("Planpaket konnte nicht übernommen werden:\n"+e.message)}
 }
+
+function planDeleteInfo(planId){const own=(db.sessions||[]).filter(s=>s.planId===planId);const prog=own.filter(s=>!["neutral","open",null,undefined,""].includes(s.status)||s.actualSummary||s.sourceActivityId).length;return {n:own.length,prog}}
+async function coachAfterDelete(){try{await loadCoachState()}catch(_){}}
+function removePlanData(planId){
+ const ids=(db.sessions||[]).filter(s=>s.planId===planId).map(s=>s.id);
+ markDeleted("sessions",ids);db.sessions=db.sessions.filter(s=>s.planId!==planId);
+ markDeleted("plans",[planId]);db.plans=db.plans.filter(p=>p.id!==planId);
+ db.blocks=(db.blocks||[]).filter(b=>b.planId!==planId);
+}
+async function deletePlanFlow(planId){
+ const pl=(db.plans||[]).find(p=>p.id===planId);if(!pl)return;
+ const {n,prog}=planDeleteInfo(planId);
+ if(!confirm(`„${pl.name||pl.title||"Plan"}“ löschen?\n\n${n} Einheit(en) werden entfernt${prog?`, davon ${prog} mit Fortschritt oder Ist-Daten (diese gehen verloren)`:""}.\nDas Event bleibt erhalten.`))return;
+ const eventId=pl.eventId;
+ removePlanData(planId);
+ if(db.activePlan===planId)db.activePlan=(db.plans.find(p=>p.eventId===eventId)||db.plans[0]||{}).id||null;
+ persist();render();await coachAfterDelete();
+}
+async function deleteEventFlow(eventId){
+ const ev=(db.events||[]).find(e=>e.id===eventId);if(!ev)return;
+ const plans=(db.plans||[]).filter(p=>p.eventId===eventId);
+ const tot=plans.reduce((a,p)=>{const i=planDeleteInfo(p.id);return {n:a.n+i.n,prog:a.prog+i.prog}},{n:0,prog:0});
+ if(!confirm(`Event „${ev.name||ev.title||"Event"}“ löschen?\n\n${plans.length} Plan/Pläne und ${tot.n} Einheit(en) werden entfernt${tot.prog?`, davon ${tot.prog} mit Fortschritt oder Ist-Daten`:""}.\nDas kann nicht rückgängig gemacht werden.`))return;
+ if(tot.prog&&!confirm("Wirklich löschen? Erledigte Einheiten und Ist-Daten daran gehen verloren."))return;
+ plans.forEach(p=>removePlanData(p.id));
+ db.events=db.events.filter(e=>e.id!==eventId);
+ if(db.activeEvent===eventId)db.activeEvent=db.events[0]?.id||null;
+ if(!(db.plans||[]).some(p=>p.id===db.activePlan))db.activePlan=(db.plans.find(p=>p.eventId===db.activeEvent)||{}).id||null;
+ persist();render();await coachAfterDelete();
+}
 async function undoCoachPackage(id){
  const item=coachState.packages.find(x=>x.id===id);
  if(!item?.applied_at){alert("Dieses Planpaket wurde noch nicht übernommen.");return}
@@ -406,9 +440,21 @@ async function coachSavePlatforms(){
  const primary=document.querySelector('input[name="coachPlatPrimary"]:checked')?.value||list[0]||"";
  await upsertCoachProfile({preferences:{...(coachState.profile?.preferences||{}),platforms:{list,primary:list.includes(primary)?primary:list[0]||""}}});
 }
+function coachTogglePlatform(k){
+ const cur=coachPlatforms().slice(),i=cur.indexOf(k);if(i>=0)cur.splice(i,1);else cur.push(k);
+ const prim=coachState.profile?.preferences?.platforms?.primary||"";
+ return upsertCoachProfile({preferences:{...(coachState.profile?.preferences||{}),platforms:{list:cur,primary:cur.includes(prim)?prim:cur[0]||""}}});
+}
+function coachSetPrimaryPlatform(k){
+ const cur=coachPlatforms();if(!cur.includes(k))return;
+ return upsertCoachProfile({preferences:{...(coachState.profile?.preferences||{}),platforms:{list:cur,primary:k}}});
+}
 function coachPlatformsHtml(){
  const cur=coachPlatforms(),primary=coachState.profile?.preferences?.platforms?.primary||"";
- return `<div class="coach-settings-card"><strong>Plattformen</strong><div class="eq-small">Auf welchen Plattformen fährst du Workouts? Der Coach plant dafür fahrbare Einheiten (Datei .zwo).</div>`+COACH_PLATFORMS.map(([k,l])=>`<label class="coach-day" style="display:flex;gap:8px;margin:6px 0"><input type="checkbox" name="coachPlat" value="${k}"${cur.includes(k)?" checked":""} onchange="coachSavePlatforms()"> ${l} <span style="margin-left:auto"><input type="radio" name="coachPlatPrimary" value="${k}"${primary===k?" checked":""} onchange="coachSavePlatforms()" title="Hauptplattform"> Haupt</span></label>`).join("")+`<div class="eq-small">Eine direkte Anbindung gibt es bei MyWhoosh, QZ und Zwift nicht (keine offene Schnittstelle). Deshalb: Export als .zwo und Import dort. Intervals.icu ist bereits angebunden.</div></div>`;
+ return `<div class="coach-settings-card coach-section"><strong>Plattformen</strong><div class="eq-small">Auf welchen Plattformen fährst du? Der Coach plant dafür fahrbare Workouts (.zwo-Datei).</div>
+ <div class="coach-chips">${COACH_PLATFORMS.map(([k,l])=>`<button type="button" class="pill${cur.includes(k)?" primary":""}" aria-pressed="${cur.includes(k)}" onclick="coachTogglePlatform('${k}')">${cur.includes(k)?"✓ ":""}${esc(l)}</button>`).join("")}</div>
+ ${cur.length>1?`<div class="coach-label" style="margin-top:10px">Hauptplattform</div><div class="coach-chips">${cur.map(k=>`<button type="button" class="pill${primary===k?" primary":""}" aria-pressed="${primary===k}" onclick="coachSetPrimaryPlatform('${k}')">${primary===k?"★ ":""}${esc(k)}</button>`).join("")}</div>`:""}
+ <div class="eq-small" style="margin-top:8px">Eine direkte Anbindung gibt es bei MyWhoosh, QZ und Zwift nicht (keine offene Schnittstelle): Workouts werden als .zwo exportiert und dort importiert. Intervals.icu ist bereits angebunden.</div></div>`;
 }
 function coachIsoWeek(d){const x=new Date(d+"T12:00:00Z");const day=(x.getUTCDay()+6)%7;x.setUTCDate(x.getUTCDate()-day+3);const y=x.getUTCFullYear();const j=new Date(Date.UTC(y,0,4,12));const wk=1+Math.round(((x-j)/864e5-3+((j.getUTCDay()+6)%7))/7);return {wk,y}}
 function coachWeekRange(d){const x=new Date(d+"T12:00:00Z");const day=(x.getUTCDay()+6)%7;const a=new Date(x-day*864e5),b=new Date(+a+6*864e5);const f=z=>String(z.getUTCDate()).padStart(2,"0")+"."+String(z.getUTCMonth()+1).padStart(2,"0")+".";return f(a)+"–"+f(b)}
@@ -468,12 +514,31 @@ function renderCoach(){
  renderCoachPanel();
  if(!coachState.loaded) loadCoachState();
 }
+
+function coachRequestRow(r){
+ const label=r.request_type==="continue_plan"?(r.input_snapshot?.params?.mode==="new"?"Neuer Plan":"Plan fortsetzen"):r.request_type;
+ return `<div class="coach-row"><span style="min-width:0">${esc(label)} · ${esc(coachStatusText(r))}<br><small>${esc((r.requirements||"Keine zusätzlichen Wünsche").slice(0,70))}</small></span><span class="coach-row-actions"><span class="eq-small">${new Date(r.created_at).toLocaleDateString("de-AT",{day:"2-digit",month:"2-digit"})}</span><button type="button" class="pill" onclick="coachShowRequest('${r.id}')">Details</button>${r.status==="failed"?`<button type="button" class="pill" onclick="coachRetryRequest('${r.id}')">Erneut</button>`:""}</span></div>`;
+}
+function coachRequestsHtml(reqs){
+ const head=reqs.slice(0,3),rest=reqs.slice(3),done=reqs.filter(r=>r.status==="failed"||r.status==="applied").length;
+ return `<div class="coach-settings-card coach-section"><strong>Coach-Anfragen</strong>${reqs.length?head.map(coachRequestRow).join(""):'<div class="eq-small" style="margin-top:8px">Noch keine Coach-Anfrage.</div>'}
+ ${rest.length?`<details class="coach-more"><summary>Ältere Anfragen (${rest.length})</summary>${rest.map(coachRequestRow).join("")}</details>`:""}
+ ${done?`<div class="coach-chips"><button type="button" class="pill" onclick="coachClearRequests()">Fehlgeschlagene &amp; übernommene entfernen (${done})</button></div>`:""}</div>`;
+}
+async function coachClearRequests(){
+ const ids=coachState.requests.filter(r=>r.status==="failed"||r.status==="applied").map(r=>r.id);
+ if(!ids.length||!confirm(`${ids.length} erledigte oder fehlgeschlagene Anfrage(n) aus dem Verlauf entfernen?\nÜbernommene Pläne bleiben erhalten.`))return;
+ const {error}=await sb.from("coach_requests").delete().in("id",ids);
+ if(error){alert("Entfernen fehlgeschlagen:\n"+error.message);return}
+ await loadCoachState();
+}
 function renderCoachSettingsPanel(){
  const box=document.getElementById("coachSettingsContent");
  if(!box || screen!=="settings") return;
  const profile=coachState.profile;
  const ready=coachState.packages.filter(x=>!x.applied_at);
- const reqs=coachState.requests.slice(0,5);
+ const appliedPk=coachState.packages.filter(x=>x.applied_at&&(db.sessions||[]).some(s=>s.coachPackageId===x.id));
+ const reqs=coachState.requests;
  box.innerHTML=`
   <div class="coach-settings-grid">
    <div class="coach-settings-card">
@@ -483,16 +548,16 @@ function renderCoachSettingsPanel(){
     ${coachFtpTestsHtml()}
     <div class="stack"><button class="pill" onclick="editFTP()">✎ FTP manuell eintragen/ändern</button><button class="pill" onclick="exportFTPTest()">⚡ FTP-Test exportieren</button><button class="pill" onclick="saveFTPResult()">✓ FTP-Ergebnis speichern</button></div>
    </div>
-   ${coachPlatformsHtml()}
    <div class="coach-settings-card">
     <strong>Trainingsplanung</strong>
     <div class="coach-value">${coachCurrentBlock()?.title||"Kein Block ausgewählt"}</div>
     <div class="stack"><button class="pill primary" onclick="requestNewCoachPlan()">＋ Neuer Plan</button><button class="pill primary" onclick="requestPlanContinuation('continue')">＋ Plan fortsetzen</button><button class="pill" onclick="syncIntervalsActivities(true)">↻ Trainingsdaten synchronisieren</button><button class="pill" onclick="loadCoachState()">↻ Aktualisieren</button></div>
    </div>
   </div>
-  ${coachState.packages.some(x=>x.applied_at)?`<div class="coach-settings-card coach-section"><strong>Übernommene Coach-Pläne</strong>${coachState.packages.filter(x=>x.applied_at).map(x=>`<div class="coach-row"><span>${x.package?.plan?.title||"Planfortsetzung"}</span><button class="pill" onclick="undoCoachPackage('${x.id}')">Übernahme zurücknehmen</button></div>`).join("")}</div>`:""}
+  ${coachPlatformsHtml()}
+  ${appliedPk.length?`<div class="coach-settings-card coach-section"><strong>Übernommene Coach-Pläne</strong>${appliedPk.map(x=>`<div class="coach-row"><span>${x.package?.plan?.title||"Planfortsetzung"}</span><button class="pill" onclick="undoCoachPackage('${x.id}')">Übernahme zurücknehmen</button></div>`).join("")}</div>`:""}
   ${ready.length?`<div class="coach-settings-card coach-section"><strong>Bereit zur Übernahme</strong>${ready.map(x=>`<div class="coach-row"><span>${esc(x.package?.plan?.title||"Planentwurf")} · ${esc(x.package?.blocks?.[0]?.title||"Neuer Trainingsblock")}</span><button class="pill primary" onclick="coachPackagePreview('${x.id}')">Vorschau / Übernehmen</button><button class="pill" onclick="exportCoachPackage('${x.id}')">JSON herunterladen</button></div>`).join("")}</div>`:""}
-  <div class="coach-settings-card coach-section"><strong>Letzte Coach-Anfragen</strong>${reqs.length?reqs.map(r=>`<div class="coach-row"><span>${r.request_type==="continue_plan"?(r.input_snapshot?.params?.mode==="new"?"Neuer Plan":"Plan fortsetzen"):r.request_type} · ${coachStatusText(r)}<br><small>${esc((r.requirements||"Keine zusätzlichen Wünsche").slice(0,100))}</small></span><span class="eq-small">${new Date(r.created_at).toLocaleDateString("de-AT")}<br><button class="pill" onclick="coachShowRequest('${r.id}')">Details</button> ${r.status==="failed"?`<button class="pill" onclick="coachRetryRequest('${r.id}')">Erneut versuchen</button>`:""}</span></div>`).join(""):'<div class="eq-small" style="margin-top:8px">Noch keine Coach-Anfrage.</div>'}</div>`;
+  ${coachRequestsHtml(reqs)}`;
 }
 function renderCoachPanel(){ renderCoachSettingsPanel(); }
 

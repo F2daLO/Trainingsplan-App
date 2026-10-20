@@ -248,17 +248,18 @@ function importPlanPackageObject(raw,coachPackageId=null){
  const pkg=validatePlanPackage(structuredClone(raw));
  const now=new Date().toISOString();
  db.events=db.events||[];db.plans=db.plans||[];db.blocks=db.blocks||[];db.sessions=db.sessions||[];
- let ev=db.events.find(x=>x.externalId===pkg.event.externalId);
- if(!ev){ev={id:crypto.randomUUID(),externalId:pkg.event.externalId,title:pkg.event.title,subtitle:pkg.event.subtitle||"",date:pkg.event.date||"",updatedAt:now,coachPackageId:coachPackageId||null};db.events.push(ev)}
- let pl=db.plans.find(x=>x.externalId===pkg.plan.externalId);
- if(!pl){pl={id:crypto.randomUUID(),externalId:pkg.plan.externalId,eventId:ev.id,title:pkg.plan.title,description:pkg.plan.description||"",updatedAt:now,coachPackageId:coachPackageId||null};db.plans.push(pl)}
+ const byExt=(list,e)=>list.find(x=>x.externalId===e||x.id===e);
+ let ev=byExt(db.events,pkg.event.externalId);
+ if(!ev){ev={id:crypto.randomUUID(),externalId:pkg.event.externalId,name:pkg.event.title,description:pkg.event.subtitle||"",title:pkg.event.title,subtitle:pkg.event.subtitle||"",date:pkg.event.date||"",updatedAt:now,coachPackageId:coachPackageId||null};db.events.push(ev)}
+ let pl=byExt(db.plans,pkg.plan.externalId);
+ if(!pl){pl={id:crypto.randomUUID(),externalId:pkg.plan.externalId,eventId:ev.id,name:pkg.plan.title,title:pkg.plan.title,description:pkg.plan.description||"",updatedAt:now,coachPackageId:coachPackageId||null};db.plans.push(pl)}
  let addedBlocks=0,addedSessions=0,updatedFuture=0;
  for(const ib of pkg.blocks){
   let b=db.blocks.find(x=>x.externalId===ib.externalId);
   if(!b){b={id:crypto.randomUUID(),externalId:ib.externalId,planId:pl.id,title:ib.title,description:ib.description||"",startDate:ib.startDate||"",endDate:ib.endDate||"",updatedAt:now,coachPackageId:coachPackageId||null};db.blocks.push(b);addedBlocks++}
   for(const is of ib.sessions){
    let s=db.sessions.find(x=>x.externalId===is.externalId);
-   const payload={externalId:is.externalId,planId:pl.id,blockId:b.id,date:is.date,title:is.title,description:is.description||"",type:is.type||"Indoor Rad",equipment:is.equipment||"",workout:is.workout||null,updatedAt:now};
+   const payload={externalId:is.externalId,planId:pl.id,blockId:b.id,date:is.date,title:is.title,description:is.description||"",desc:is.description||"",type:is.type||"Indoor Rad",equipment:is.equipment||"",workout:is.workout||null,updatedAt:now};
    if(!s){db.sessions.push({id:crypto.randomUUID(),status:"neutral",coachPackageId:coachPackageId||null,...payload});addedSessions++;continue}
    /* Never overwrite training history/progress. Only update still-neutral future/open imported sessions. */
    const today=localTodayISO();

@@ -4,7 +4,8 @@ function packDesc(s){
     scheduledAt:s.scheduledAt||s.date+"T19:00",
     originalDate:s.originalDate||null,
     gptExplanation:s.gptExplanation||null,
-    gptExplanationKey:s.gptExplanationKey||null
+    gptExplanationKey:s.gptExplanationKey||null,
+    ...(s.workout?{workout:s.workout}:{})
   });
 }
 function unpackDesc(v){if(String(v||"").startsWith("__MT__")){try{return JSON.parse(String(v).slice(6))}catch{}}return{desc:v||"",scheduledAt:null}}
@@ -23,7 +24,7 @@ function sessionLocal(r){
    desc=canonical;
    updatedAt=new Date().toISOString();
  }
- return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",originalDate:d.originalDate||null,gptExplanation:d.gptExplanation||null,gptExplanationKey:d.gptExplanationKey||null,type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,origin:r.origin||"planned",sourceActivityId:r.source_activity_id||null,actualSummary:r.actual_summary||null,reminder:"auto",reminderTime:"18:00",updatedAt};
+ return{id:r.id,planId:r.plan_id,date:r.training_date,scheduledAt:d.scheduledAt||r.training_date+"T19:00",originalDate:d.originalDate||null,gptExplanation:d.gptExplanation||null,gptExplanationKey:d.gptExplanationKey||null,...(d.workout?{workout:d.workout}:{}),type:r.training_type||"",title:r.title||"",desc,note,status:r.status||"open",topup:!!r.topup,origin:r.origin||"planned",sourceActivityId:r.source_activity_id||null,actualSummary:r.actual_summary||null,reminder:"auto",reminderTime:"18:00",updatedAt};
 }
 
 function makeClient(){

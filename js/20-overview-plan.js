@@ -9,6 +9,7 @@ function renderOverview(){
       <div class="event-sub">${esc(detail)}</div>
     </div>
     <div class="foot">
+      <button class="event-del" type="button" aria-label="Event löschen" title="Event löschen" onclick="event.stopPropagation();deleteEventFlow('${e.id}')">🗑</button>
       <div class="blocks">${blocks.length} Block${blocks.length===1?"":"e"}</div>
       <div class="chev">›</div>
     </div>
@@ -118,6 +119,7 @@ function renderPlan(){
          <select onchange="selectPlan(this.value)">
            ${blocks.map(b=>`<option value="${b.id}" ${b.id===p.id?"selected":""}>${esc(b.name)}</option>`).join("")}
          </select>
+         <button class="pill" type="button" onclick="deletePlanFlow('${p.id}')" aria-label="Plan löschen" title="Diesen Plan löschen">🗑</button>
          <div class="segment">
            <button class="${planView==="list"?"active":""}" onclick="planView='list';planInitialScrollKey=null;render()">Liste</button>
            <button class="${planView==="week"?"active":""}" onclick="planView='week';planInitialScrollKey=null;render()">Woche</button>

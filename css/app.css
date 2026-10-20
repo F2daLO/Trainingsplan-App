@@ -2472,3 +2472,14 @@ html body .settings-card :is(input,textarea,select):not([type=checkbox]):not([ty
 .coach-quote{white-space:pre-wrap;max-height:90px;overflow:auto;border:1px solid var(--theme-border);border-radius:10px;padding:8px}
 .coach-item{display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--theme-border)}
 .coach-item-date{min-width:74px;color:var(--theme-muted)}
+
+/* v6.61 */
+.coach-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;min-width:0}
+.coach-chips .pill{max-width:100%}
+.coach-row-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none}
+.coach-more{margin-top:6px}.coach-more summary{cursor:pointer;padding:6px 0;color:var(--theme-muted)}
+.event-card .foot{display:flex;align-items:center;gap:8px}
+.event-del{margin-right:auto;background:transparent;border:0;font-size:16px;line-height:1;padding:6px 8px;border-radius:10px;opacity:.65;cursor:pointer}
+.event-del:active{opacity:1}
+#coachSettingsContent .coach-settings-card.coach-section{grid-column:1/-1}
+#coachSettingsContent{overflow-x:hidden}
