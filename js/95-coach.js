@@ -116,6 +116,37 @@ async function createCoachRequest(type,requirements="",opts={}){
   }
   return data;
 }
+/** Datengrundlage fuer den Dialog: FTP, neuerer Test, haeufigste Trainingstage aus bisherigen Einheiten. */
+function coachDataBasis(){
+ const prof=coachState.profile||{},t0=(coachState.tests||[])[0];
+ const today=coachIso(Date.now()),cnt=[0,0,0,0,0,0,0];let n=0;
+ for(const x of (db.sessions||[])){const d=String(x.date||"").slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||d>=today||/ruhe|regenerat/i.test(String(x.type||"")))continue;
+  cnt[new Date(d+"T12:00:00").getDay()]++;n++}
+ const top=Math.max(0,...cnt);
+ const fav=top?COACH_DAYS.map(([v,l])=>({v,l,c:cnt[v]})).filter(x=>x.c>=Math.max(2,top*.5)).sort((a,b)=>b.c-a.c):[];
+ const newer=t0&&prof.ftp_date&&String(t0.activity_date||"").slice(0,10)>prof.ftp_date?t0:null;
+ return {ftp:prof.ftp_watts||null,ftpDate:prof.ftp_date||"",newerTest:newer,favDays:fav,sessions:n,
+  testIcu:t0?.raw_summary?.icu_ftp||null,hasTest:!!t0};
+}
+function coachDataBasisHtml(mode,b){
+ const ftp=b.ftp?`${b.ftp} W${b.ftpDate?" (vom "+esc(b.ftpDate)+")":""}`:"noch nicht bestätigt";
+ const fav=b.favDays.length?b.favDays.map(x=>`${x.l} (${x.c}×)`).join(", "):"noch nicht genug Einheiten";
+ const upd=b.newerTest?`<div class="eq-small" style="color:#b45309">Es gibt einen neueren Test vom ${esc(String(b.newerTest.activity_date).slice(0,10))}${b.testIcu?" (Intervals.icu-FTP "+esc(String(b.testIcu))+" W)":""}. <a href="#" onclick="event.preventDefault();useFtpTest(0).then(()=>coachRefreshDataBasis())">FTP jetzt aktualisieren</a></div>`:(!b.ftp&&b.hasTest?`<div class="eq-small" style="color:#b45309">Testaktivität gefunden, aber noch kein FTP bestätigt. <a href="#" onclick="event.preventDefault();useFtpTest(0).then(()=>coachRefreshDataBasis())">FTP aus Test übernehmen</a></div>`:"");
+ if(mode==="continue")return `<div class="eq-small"><b>Datengrundlage (automatisch, vollständig):</b> FTP ${ftp} · alle Aktivitäten der letzten 90 Tage · ${b.sessions} bisherige Einheiten · häufigste Trainingstage: ${fav}. Der Coach baut darauf auf, du musst das nicht in die Wünsche schreiben.</div>${upd}${b.favDays.length?`<div class="eq-small"><a href="#" onclick="event.preventDefault();coachApplyFavDays()">Nur meine häufigsten Tage anhaken</a></div>`:""}`;
+ return `<div class="eq-small"><b>Welche Daten soll der Coach nutzen?</b></div>
+ <label class="coach-day"><input type="checkbox" id="coachUseFtp" checked> FTP (${ftp})</label><br>
+ <label class="coach-day"><input type="checkbox" id="coachUseAct" checked> Aktivitäten der letzten 90 Tage</label><br>
+ <label class="coach-day"><input type="checkbox" id="coachUseDays" checked> Häufigste Trainingstage bevorzugen (${fav})</label>${upd}`;
+}
+function coachApplyFavDays(){
+ const b=coachDataBasis(),set=new Set(b.favDays.map(x=>x.v));
+ document.querySelectorAll('#coachRequestDialog input[name="coachDay"]').forEach(i=>{i.checked=set.has(Number(i.value))});
+}
+function coachRefreshDataBasis(){
+ const box=document.getElementById("coachDataBasis");if(!box)return;
+ box.innerHTML=coachDataBasisHtml(document.getElementById("coachMode")?.value==="new"?"new":"continue",coachDataBasis());
+}
 function coachCloseRequestDialog(){document.getElementById("coachRequestDialog")?.remove()}
 /** opts: {mode:"new"|"continue", planId, refineOf:packageId, restore:requestRow} */
 function coachOpenRequestDialog(initial="",opts={}){
@@ -124,6 +155,7 @@ function coachOpenRequestDialog(initial="",opts={}){
  const restoreParams=opts.restore?.input_snapshot?.params||{};
  const p={mode:"continue",weeks:prefs.weeks||4,trainingDays:prefs.trainingDays||[1,2,3,4,5,6,0],maxMinutes:prefs.maxMinutes||"",environment:prefs.environment||"mixed",focus:prefs.focus||"",...restoreParams,...(opts.mode?{mode:opts.mode}:{})};
  const refine=!!opts.refineOf;
+ if(!opts.restore&&!refine&&p.mode==="continue"&&!prefs.trainingDays){const fb=coachDataBasis();if(fb.favDays.length>=2)p.trainingDays=fb.favDays.map(x=>x.v)}
  const plans=db.plans||[];
  const planId=opts.planId||opts.restore?.plan_id||coachCurrentPlan()?.id||plans[0]?.id||"";
  const last=planId?coachPlanLastDate(planId):"";
@@ -161,8 +193,12 @@ function coachOpenRequestDialog(initial="",opts={}){
  <div class="eq-small" id="coachStartHint"></div>
  ${lab('<label for="coachWeeks">Zeitraum</label>')}
  <select id="coachWeeks" class="coach-field">${weekOpts}</select>
+ <div id="coachDataBasis" class="coach-databasis">${coachDataBasisHtml(p.mode==="new"?"new":"continue",coachDataBasis())}</div>
  ${lab('An welchen Tagen kannst du trainieren?')}
  <div>${days}</div>
+ ${lab('<label for="coachFree">Trainingsfreie Tage (optional)</label>')}
+ <input id="coachFree" type="text" maxlength="200" value="${esc(p.freeText||"")}" placeholder="z. B. 21.11.–22.11., 24.11." class="coach-field" autocomplete="off">
+ <div class="eq-small">An diesen Tagen wird sicher nichts geplant. Einzelne Tage oder Zeiträume, durch Komma getrennt.</div>
  ${lab('<label for="coachMaxMin">Maximale Dauer pro Einheit (Minuten, optional)</label>')}
  <input id="coachMaxMin" type="number" inputmode="numeric" min="15" max="600" step="5" value="${esc(String(p.maxMinutes||""))}" class="coach-field">
  ${lab('<label for="coachEnv">Indoor / Outdoor</label>')}
@@ -171,7 +207,7 @@ function coachOpenRequestDialog(initial="",opts={}){
  <select id="coachFocus" class="coach-field">${focusOpts}</select>
  ${refine?`${lab('Bisherige Wünsche')}<div class="eq-small coach-quote">${esc(initial||"(keine)")}</div>
  ${lab('<label for="coachWishes">Ergänzungen / Änderungen</label>')}`:lab('<label for="coachWishes">Deine Wünsche und Vorgaben</label>')}
- <textarea id="coachWishes" rows="6" maxlength="2500" class="coach-field coach-textarea" placeholder="${refine?"Was soll anders werden? z. B. mehr Intervalle am Samstag, Dienstag lockerer, eine Entlastungswoche früher …":"z. B. Urlaub vom 3. bis 10., am Wochenende lange Ausfahrt, Knie schonen, Wettkampf am 20.6. …"}">${refine?"":esc(initial)}</textarea>
+ <textarea id="coachWishes" rows="6" maxlength="2500" class="coach-field coach-textarea" placeholder="${refine?"Was soll anders werden? z. B. mehr Intervalle am Samstag, Dienstag lockerer, eine Entlastungswoche früher …":"Nur Besonderes, z. B. Knie schonen, am Wochenende lange Ausfahrt. Ziel, Event, bisherige Einheiten, FTP, häufigste Trainingstage und Progression kennt der Coach selbst."}">${refine?"":esc(initial)}</textarea>
  <div class="eq-small" style="margin:8px 0 14px">Die Angaben werden zusammen mit deinem Plan, FTP, Equipment und den Aktivitäten der letzten 90 Tage an den Coach übermittelt. Das Ergebnis siehst du erst als Vorschau und kannst es danach übernehmen, mit Ergänzungen neu erstellen lassen oder verwerfen.</div>
  <div style="display:flex;flex-wrap:wrap;gap:9px;justify-content:flex-end"><button type="button" class="pill" onclick="coachCloseRequestDialog()">Abbrechen</button><button type="button" class="pill primary" id="coachSubmitWishes" onclick="coachSubmitRequestDialog()">${refine?"Neu erstellen":"Plan erstellen"}</button></div>
  <div id="coachRequestFeedback" role="status" aria-live="polite" style="margin-top:12px"></div></section>`;
@@ -180,7 +216,7 @@ function coachOpenRequestDialog(initial="",opts={}){
  coachPlanChanged();
 }
 function coachSetMode(m){
- const mode=document.getElementById("coachMode");if(!mode)return;mode.value=m;
+ const mode=document.getElementById("coachMode");if(!mode)return;mode.value=m;coachRefreshDataBasis();
  document.getElementById("coachContinueBox").style.display=m==="continue"?"":"none";
  document.getElementById("coachNewBox").style.display=m==="new"?"":"none";
  document.getElementById("coachModeNew")?.classList.toggle("primary",m==="new");
@@ -199,6 +235,22 @@ function coachPlanChanged(){
  }else hint.textContent="";
  start.addEventListener("input",()=>{start.dataset.touched="1"},{once:true});
 }
+/** "21.11.–22.11., 24.11." -> ISO-Tage (Jahr = nächstes Vorkommen ab Beginn). */
+function coachParseFreeDates(text,startIso){
+ const out=new Set(),base=/^\d{4}-\d{2}-\d{2}$/.test(startIso||"")?startIso:coachIso(Date.now());
+ const by=+base.slice(0,4),bm=+base.slice(5,7)*100+ +base.slice(8,10);
+ const one=t=>{const m=String(t).trim().match(/^(\d{1,2})\.\s*(\d{1,2})\.?\s*(\d{4})?$/);if(!m)return null;
+  const d=+m[1],mo=+m[2];if(d<1||d>31||mo<1||mo>12)return null;
+  const y=m[3]?+m[3]:(mo*100+d<bm-1?by+1:by);
+  const iso=`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`;return isNaN(new Date(iso+"T12:00:00"))?null:iso};
+ for(const part of String(text||"").split(/[,;\n]/)){
+  const r=part.split(/\s*(?:–|—|-|bis)\s*/).filter(Boolean);
+  const a=one(r[0]),b=r[1]?one(r[1]):a;if(!a||!b)continue;
+  let t=new Date(a+"T12:00:00").getTime();const e=new Date(b+"T12:00:00").getTime();
+  for(let k=0;t<=e&&k<60;k++,t+=864e5)out.add(coachIso(t));
+ }
+ return [...out].sort();
+}
 function coachReadDialog(){
  const g=id=>document.getElementById(id);
  const mode=g("coachMode").value==="new"?"new":"continue";
@@ -206,6 +258,8 @@ function coachReadDialog(){
  const params={mode,weeks:Number(g("coachWeeks").value)||4,trainingDays:days,environment:g("coachEnv").value||"mixed"};
  const pl=coachPlatforms();if(pl.length)params.platforms=pl;
  const start=g("coachStart").value; if(/^\d{4}-\d{2}-\d{2}$/.test(start))params.startDate=start;
+ if(mode==="new"&&g("coachUseFtp"))params.useData={ftp:g("coachUseFtp").checked,activities:g("coachUseAct").checked,days:g("coachUseDays").checked};
+ const ft=(g("coachFree")?.value||"").trim();if(ft){params.freeText=ft.slice(0,200);const fd=coachParseFreeDates(ft,params.startDate);if(fd.length)params.freeDates=fd.slice(0,60)}
  const mm=parseInt(g("coachMaxMin").value,10); if(Number.isFinite(mm)&&mm>=15)params.maxMinutes=Math.min(600,mm);
  const focus=g("coachFocus").value; if(focus)params.focus=focus;
  if(mode==="new"){

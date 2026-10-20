@@ -2483,3 +2483,10 @@ html body .settings-card :is(input,textarea,select):not([type=checkbox]):not([ty
 .event-del:active{opacity:1}
 #coachSettingsContent .coach-settings-card.coach-section{grid-column:1/-1}
 #coachSettingsContent{overflow-x:hidden}
+
+/* v6.65 iPhone: Coach-Dialog nie seitlich verschiebbar */
+.coach-overlay{overflow:hidden;touch-action:pan-y;overscroll-behavior:contain}
+.coach-sheet{overflow-x:hidden!important;overflow-y:auto;max-width:100%;touch-action:pan-y;overscroll-behavior:contain;overflow-wrap:anywhere}
+.coach-sheet *{max-width:100%;box-sizing:border-box}
+.coach-sheet input[type=date],.coach-sheet input[type=number],.coach-sheet input[type=text],.coach-sheet select{display:block;min-width:0;width:100%;-webkit-appearance:none;appearance:none}
+.coach-sheet input[type=checkbox]{-webkit-appearance:auto;appearance:auto;width:20px;min-width:20px}

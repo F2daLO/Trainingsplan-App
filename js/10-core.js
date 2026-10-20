@@ -3,7 +3,7 @@ const CANONICAL_PLAN_DESCRIPTIONS={"c8a6edc9-7167-4621-8474-7c2f8fa6ecbf":"45 mi
 const VAPID_PUBLIC_KEY="BOSHi-nP7V_m0ZtxL7klNzQ8HZaGkmBRqp0uF7c27rs-ANZrLuvys3TDWtI20BY29NQYiwvo3YR_EQR4dc_UG0s";
 const PUSH_KEY_VERSION="2026-08-19-v2";
 
-const APP_VERSION="6.64";
+const APP_VERSION="6.65";
 const KEY="meintraining-v51";
 const SUPABASE_URL="https://vhbhocfjzrgdcekjuime.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_iI79yd8iQ0R7hT500Ijtpw_jAWZMu14";
