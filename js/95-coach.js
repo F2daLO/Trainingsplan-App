@@ -63,7 +63,9 @@ function coachContextFor(planId){
  if(!plan)return {};
  const ev=(db.events||[]).find(e=>e.id===plan.eventId)||null;
  const sessions=(db.sessions||[]).filter(s=>s.planId===plan.id).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ const eventPlans=(db.plans||[]).filter(x=>x.eventId===plan.eventId).map(x=>{const ss=(db.sessions||[]).filter(s=>s.planId===x.id).map(s=>String(s.date||"")).filter(Boolean).sort();return {name:String(x.name||x.title||"").slice(0,120),from:ss[0]||"",to:ss[ss.length-1]||"",sessions:ss.length}}).slice(0,20);
  return {
+  eventPlans,
   plan:{externalId:plan.externalId||plan.id,title:plan.name||plan.title||"",description:String(plan.description||"").slice(0,1000)},
   event:ev?{externalId:ev.externalId||ev.id,title:ev.name||ev.title||"",subtitle:ev.description||ev.subtitle||"",date:ev.date||""}:undefined,
   blocks:(db.blocks||[]).filter(b=>b.planId===plan.id).slice(-60).map(b=>({externalId:b.externalId||b.id,title:b.title||b.name||"",startDate:b.startDate||"",endDate:b.endDate||""})),
@@ -368,7 +370,7 @@ async function applyCoachPackage(id){
   }catch(e){alert("Planpaket konnte nicht übernommen werden:\n"+e.message)}
 }
 
-function planDeleteInfo(planId){const own=(db.sessions||[]).filter(s=>s.planId===planId);const prog=own.filter(s=>!["neutral","open",null,undefined,""].includes(s.status)||s.actualSummary||s.sourceActivityId).length;return {n:own.length,prog}}
+function planDeleteInfo(planId){const own=(db.sessions||[]).filter(s=>s.planId===planId);const prog=own.filter(s=>!["neutral","open",null,undefined,""].includes(s.status)||s.actualSummary||s.sourceActivityId).length;const train=own.filter(s=>isRealTrainingSession(s)).length;return {n:own.length,train,rest:own.length-train,prog}}
 async function coachAfterDelete(){try{await loadCoachState()}catch(_){}}
 function removePlanData(planId){
  const ids=(db.sessions||[]).filter(s=>s.planId===planId).map(s=>s.id);
@@ -376,10 +378,27 @@ function removePlanData(planId){
  markDeleted("plans",[planId]);db.plans=db.plans.filter(p=>p.id!==planId);
  db.blocks=(db.blocks||[]).filter(b=>b.planId!==planId);
 }
+function planPickDialog(title,fn){
+ const blocks=(db.plans||[]).filter(p=>p.eventId===db.activeEvent);
+ document.getElementById("planPickDialog")?.remove();
+ const o=document.createElement("div");o.id="planPickDialog";o.className="coach-overlay top";
+ o.innerHTML=`<section role="dialog" aria-modal="true" class="coach-sheet"><h3>${esc(title)}</h3><p class="eq-small">Welcher Block?</p>
+  ${blocks.map(b=>{const i=planDeleteInfo(b.id);return `<button type="button" class="pill" style="display:block;width:100%;margin:6px 0;text-align:left" onclick="document.getElementById('planPickDialog').remove();${fn}('${esc(b.id)}')">${esc(b.name||b.title||"Block")} <small>· ${i.n} Einträge</small></button>`}).join("")}
+  <div style="text-align:right;margin-top:12px"><button type="button" class="pill" onclick="document.getElementById('planPickDialog').remove()">Abbrechen</button></div></section>`;
+ document.body.appendChild(o);
+}
+function planDeleteButton(){if(planScopeIds().length>1)planPickDialog("Block löschen","deletePlanFlow");else deletePlanFlow(db.activePlan)}
+function planRenameButton(){if(planScopeIds().length>1)planPickDialog("Block umbenennen","renamePlanFlow");else renamePlanFlow(db.activePlan)}
+function renamePlanFlow(planId){
+ const pl=(db.plans||[]).find(p=>p.id===planId);if(!pl)return;
+ const v=prompt("Neuer Name für diesen Block:",pl.name||pl.title||"");
+ if(v===null)return;const t=v.trim().slice(0,120);if(!t)return;
+ pl.name=t;pl.updatedAt=new Date().toISOString();persist();render();
+}
 async function deletePlanFlow(planId){
  const pl=(db.plans||[]).find(p=>p.id===planId);if(!pl)return;
- const {n,prog}=planDeleteInfo(planId);
- if(!confirm(`„${pl.name||pl.title||"Plan"}“ löschen?\n\n${n} Einheit(en) werden entfernt${prog?`, davon ${prog} mit Fortschritt oder Ist-Daten (diese gehen verloren)`:""}.\nDas Event bleibt erhalten.`))return;
+ const {n,train,rest,prog}=planDeleteInfo(planId);
+ if(!confirm(`Nur diesen Block löschen: „${pl.name||pl.title||"Block"}“?\n\n${n} Einträge werden entfernt (${train} Trainings + ${rest} Ruhe-/Regenerationstage)${prog?`, davon ${prog} mit Fortschritt oder Ist-Daten (diese gehen verloren)`:""}.\nAndere Blöcke und das Event bleiben erhalten.`))return;
  const eventId=pl.eventId;
  removePlanData(planId);
  if(db.activePlan===planId)db.activePlan=(db.plans.find(p=>p.eventId===eventId)||db.plans[0]||{}).id||null;

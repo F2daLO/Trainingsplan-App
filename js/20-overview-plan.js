@@ -122,7 +122,7 @@ function renderPlan(){
            ${blocks.length>1?`<option value="__all__"${db.planAll?" selected":""}>Alle Blöcke (${blocks.length})</option>`:""}
            ${blocks.map(b=>`<option value="${b.id}" ${(!(db.planAll&&blocks.length>1)&&b.id===p.id)?"selected":""}>${esc(b.name||b.title||"Block")}</option>`).join("")}
          </select>
-         <button class="pill" type="button" onclick="deletePlanFlow('${p.id}')" aria-label="Plan löschen" title="Diesen Plan löschen">🗑</button>
+         <button class="pill" type="button" onclick="planRenameButton()" aria-label="Block umbenennen" title="Block umbenennen">✎</button><button class="pill" type="button" onclick="planDeleteButton()" aria-label="Block löschen" title="Block löschen">🗑</button>
          <div class="segment">
            <button class="${planView==="list"?"active":""}" onclick="planView='list';planInitialScrollKey=null;render()">Liste</button>
            <button class="${planView==="week"?"active":""}" onclick="planView='week';planInitialScrollKey=null;render()">Woche</button>
