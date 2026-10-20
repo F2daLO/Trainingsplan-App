@@ -358,8 +358,9 @@ function scrollPlanToToday(){
 function openSession(id=null,topup=false){
  editId=id;const s=id?db.sessions.find(x=>x.id===id):null;
  sessionHeading.textContent=s?"Training bearbeiten":(topup?"On-Top-Training":"Training hinzufügen");
- sDateTime.value=s?.scheduledAt||nowLocal();sType.value=s?.type||"Indoor Rad";sTitle.value=s?.title||"";sDesc.value=s?.desc||"";sStatus.value=s?.status||"open";sReminder.value="auto";sReminderTime.value="18:00";sTopup.checked=!!(s?.topup||topup);sNote.value=s?.note||"";sessionDialog.showModal()
+ sDateTime.value=s?.scheduledAt||nowLocal();sType.value=s?.type||"Indoor Rad";sTitle.value=s?.title||"";sDesc.value=s?.desc||"";sStatus.value=s?.status||"open";sReminder.value="auto";sReminderTime.value="18:00";sTopup.checked=!!(s?.topup||topup);sNote.value=s?.note||"";sessionWorkoutBoxUpdate(s);sessionDialog.showModal()
 }
+function sessionWorkoutBoxUpdate(s){const b=document.getElementById("sWorkoutBox");if(b)b.style.display=(s&&s.workout&&normalizeStructuredWorkout(s.workout))?"":"none"}
 function saveSession(e){
  e.preventDefault();
  const scheduledAt=sDateTime.value||nowLocal(),date=scheduledAt.slice(0,10);

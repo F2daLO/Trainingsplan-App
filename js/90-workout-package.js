@@ -297,3 +297,51 @@ exportSessionWorkout=function(id){
 
 
 /* V6.28 – My Trainings Coach, Supabase-backed */
+
+
+/* v6.66: Workouts direkt an der Einheit nutzen (.zwo) bzw. an Intervals.icu senden */
+function workoutIntervalsText(w){
+ const st=(w&&w.steps)||[];if(!st.length)return "";
+ const mm=x=>{const m=(Number(x.durationSec)||0)/60;return (Number.isInteger(m)?m:+m.toFixed(1))+"m"};
+ const pc=x=>Math.round((Number(x.powerPctFtp)||0)*100)+"%";
+ const same=(a,b)=>a&&b&&mm(a)===mm(b)&&pc(a)===pc(b);
+ const out=[];let i=0;
+ while(i<st.length){
+  const a=st[i],b=st[i+1];let n=1;
+  if(b&&a.type==="interval"&&b.type==="recovery"){
+   while(same(st[i+2*n],a)&&same(st[i+2*n+1],b))n++;
+   if(n>1){out.push("",`${n}x`,`- ${mm(a)} ${pc(a)}`,`- ${mm(b)} ${pc(b)}`,"");i+=2*n;continue}
+  }
+  const head=a.type==="warmup"?"Warmup":a.type==="cooldown"?"Cooldown":"";
+  if(head)out.push("",head);
+  out.push(`- ${mm(a)} ${pc(a)}`);i++;
+ }
+ return out.join("\n").replace(/^\n+/,"").replace(/\n{3,}/g,"\n\n").trim();
+}
+async function downloadSessionWorkout(id){
+ const s=db.sessions.find(x=>x.id===id);const w=s&&sessionStructuredWorkout(s);
+ if(!w){alert("Diese Einheit hat kein strukturiertes Workout.");return}
+ const t=s.title||"Workout",name=((s.date||"")+"_"+t).replace(/[^\p{L}\p{N}_-]+/gu,"_")+".zwo";
+ const file=new File([new Blob([zwoFromStructured(t,w)],{type:"application/xml"})],name,{type:"application/xml"});
+ if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:t});return}catch(e){if(e.name==="AbortError")return}}
+ const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+}
+async function pushWorkoutsToIntervals(ids,label){
+ const list=(ids||[]).map(id=>db.sessions.find(x=>x.id===id)).filter(Boolean).map(s=>{
+  const w=normalizeStructuredWorkout(s.workout);if(!w)return null;
+  return {key:s.externalId||s.id,date:String(s.date).slice(0,10),name:s.title||"Workout",text:workoutIntervalsText(w),minutes:Math.round(w.steps.reduce((t,x)=>t+(x.durationSec||0),0)/60)};
+ }).filter(x=>x&&x.text);
+ if(!list.length){alert("Keine Einheit mit strukturiertem Workout gefunden.");return}
+ if(typeof sb==="undefined"||!sb||!cloudUser){alert("Bitte zuerst anmelden und Intervals.icu verbinden.");return}
+ try{
+  const {data,error}=await sb.functions.invoke("intervals-push-workouts",{body:{workouts:list}});
+  if(error||!data)throw new Error(error?.message||"Keine Antwort");
+  if(data.error==="intervals_not_connected"){alert("Intervals.icu ist noch nicht verbunden (Einstellungen → Aktivitäten).");return}
+  if(data.error)throw new Error(data.error);
+  alert(`Intervals.icu: ${data.created||0} neu, ${data.updated||0} aktualisiert${data.failed?.length?`, fehlgeschlagen: ${data.failed.join(", ")}`:""}.\nDas Workout liegt im Intervals.icu-Kalender (${label||"Workout"}) und kann von dort in Zwift, Garmin u. a. synchronisiert werden.`);
+ }catch(e){alert("Senden an Intervals.icu fehlgeschlagen: "+(e.message||e))}
+}
+function pushUpcomingWorkoutsToIntervals(days=14){
+ const t=new Date(),a=t.toISOString().slice(0,10),b=new Date(t.getTime()+days*864e5).toISOString().slice(0,10);
+ pushWorkoutsToIntervals((db.sessions||[]).filter(s=>s.date>=a&&s.date<=b&&s.status!=="cancel"&&sessionStructuredWorkout(s)&&s.workout).map(s=>s.id),days+" Tage");
+}
